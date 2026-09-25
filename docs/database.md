@@ -17,6 +17,7 @@
 - **Integridad:** FK en todas las relaciones estructurales. `ON DELETE RESTRICT` desde los datos del estudiante hacia el contenido (el contenido con historia se archiva, no se borra) y `ON DELETE CASCADE` desde el usuario hacia sus datos.
 - **Relaciones polimórficas** solo para *adjuntables* genéricos (recursos, videos, marcadores y auditoría), con **morph map forzado** (`lesson`, `track`, `skill`, `project`, `resource`, `video`, `lab`, `exercise`, `quiz`, `module`, `roadmap`, `user`). La limpieza al borrar la hace el dominio.
 - **Sin soft deletes en el contenido.** El estado ARCHIVED cumple ese rol con semántica explícita. El borrado físico solo es posible si ninguna FK RESTRICT lo impide.
+- **Contenido enriquecido (`rich`)**: columnas `jsonb` con el sobre RichContent `{"version": 1, "doc": {…}}` (documento ProseMirror, ADR-023). Se validan en el servidor contra el esquema de nodos permitido antes de guardarse. El texto plano para búsqueda y métricas se extrae en PHP.
 - **JSONB** solo para estructuras que siempre se leen completas con su dueño (objetivos, opciones de pregunta, pasos, criterios de insignia). Nada que se filtre o se una por separado va en JSONB.
 
 ## 2. Enums
@@ -79,13 +80,13 @@ erDiagram
     lessons { bigint id PK
         bigint module_id FK
         string slug UK
-        text body
+        jsonb body
         bigint published_version_id FK
         enum status }
     lesson_versions { bigint id PK
         bigint lesson_id FK
         int version
-        text body }
+        jsonb body }
     skills { bigint id PK
         string slug UK
         string name
@@ -169,7 +170,7 @@ passkeys, sessions, password_reset_tokens, cache, jobs, failed_jobs             
 
 ```text
 roadmaps
-  id, slug UK, title, summary text, description text (md)
+  id, slug UK, title, summary text, description jsonb (rich)
   locale varchar(5) DEFAULT 'es'
   unlock_policy enum UnlockPolicy DEFAULT 'ADVISORY'
   mastery_threshold smallint DEFAULT 90           CK BETWEEN 50 AND 100
@@ -178,7 +179,7 @@ roadmaps
 
 tracks
   id, roadmap_id FK→roadmaps (RESTRICT)
-  slug, title, summary text, description text (md), why_it_matters text
+  slug, title, summary text, description jsonb (rich), why_it_matters text
   icon varchar NULL                               -- nombre de icono lucide
   position smallint, difficulty enum Difficulty, estimated_hours smallint NULL
   review_interval_months smallint NULL            -- p. ej. 6 en tracks volátiles
@@ -202,7 +203,7 @@ lessons                                           -- COPIA DE TRABAJO (editable)
   slug UK                                         -- global: mover una lección de módulo no rompe su URL
   title, summary text, why_it_matters text
   learning_objectives jsonb DEFAULT '[]'          -- array de strings
-  body text (md)
+  body jsonb (rich)
   content_type enum (subconjunto de ContentType) DEFAULT 'CONCEPT'
   difficulty enum Difficulty, estimated_minutes smallint   CK BETWEEN 1 AND 600
   position smallint
@@ -214,7 +215,7 @@ lessons                                           -- COPIA DE TRABAJO (editable)
 
 lesson_versions                                   -- SNAPSHOT INMUTABLE (solo INSERT)
   id, lesson_id FK→lessons (CASCADE), version integer
-  title, summary, why_it_matters, learning_objectives jsonb, body, content_type,
+  title, summary, why_it_matters, learning_objectives jsonb, body jsonb (rich), content_type,
   difficulty, estimated_minutes
   content_hash char(64)                           -- sha256 de los campos versionados
   change_note varchar NULL
@@ -312,9 +313,9 @@ Sobre XP: la inserción con XP usa `INSERT … ON CONFLICT DO NOTHING`. Si hay c
 ```text
 exercises
   id, lesson_id FK→lessons (RESTRICT), slug UK, title, type enum ExerciseType
-  prompt text (md)
+  prompt jsonb (rich)
   payload jsonb                                   -- según tipo: opciones, orden correcto, pares, starter_code, language
-  hints jsonb DEFAULT '[]', solution text (md) NULL, rubric jsonb DEFAULT '[]'
+  hints jsonb DEFAULT '[]', solution jsonb (rich) NULL, rubric jsonb DEFAULT '[]'
   difficulty, xp_reward smallint DEFAULT 10, position, status, timestamps
   IX (lesson_id, position)
 
@@ -335,8 +336,8 @@ quizzes
 
 quiz_questions
   id, quiz_id FK→quizzes (CASCADE), type enum QuestionType
-  prompt text (md), payload jsonb                 -- {options:[{id,text}], correct:[ids]} | {items, order} | {left, right, pairs}
-  explanation text (md), difficulty, points smallint DEFAULT 1, position
+  prompt jsonb (rich), payload jsonb                 -- {options:[{id,text}], correct:[ids]} | {items, order} | {left, right, pairs}
+  explanation jsonb (rich), difficulty, points smallint DEFAULT 1, position
   IX (quiz_id, position)
 
 quiz_attempts
@@ -357,10 +358,10 @@ quiz_attempt_answers
 ```text
 labs
   id, lesson_id FK→lessons (RESTRICT), slug UK, title
-  objective text, context text (md), setup text (md)
+  objective text, context jsonb (rich), setup jsonb (rich)
   steps jsonb                                     -- [{key, title, body_md}]
-  expected_result text (md), validation jsonb     -- checklist [{key, text}]
-  challenge text (md) NULL, solution text (md) NULL
+  expected_result jsonb (rich), validation jsonb     -- checklist [{key, text}]
+  challenge jsonb (rich) NULL, solution jsonb (rich) NULL
   difficulty, estimated_minutes, status, timestamps
 
 lab_progress
@@ -370,7 +371,7 @@ lab_progress
 
 projects
   id, track_id FK→tracks (RESTRICT), slug UK, title, summary text
-  problem, context, architecture, dataset, evaluation   text (md)
+  problem, context, architecture, dataset, evaluation   jsonb (rich)
   requirements jsonb, stack jsonb, deliverables jsonb, interview_questions jsonb
   difficulty, estimated_hours smallint, portfolio_sequence smallint NULL UK
   status, timestamps
@@ -378,7 +379,7 @@ projects
 project_skill        project_id FK (CASCADE), skill_id FK (CASCADE), PK (project_id, skill_id)
 
 project_milestones
-  id, project_id FK→projects (CASCADE), title, description text (md), tasks jsonb, position
+  id, project_id FK→projects (CASCADE), title, description jsonb (rich), tasks jsonb, position
   IX (project_id, position)
 
 user_projects
@@ -397,13 +398,13 @@ user_project_milestones
 ```text
 bookmarks      id, user_id FK (CASCADE), bookmarkable_type, bookmarkable_id, created_at
                UK (user_id, bookmarkable_type, bookmarkable_id)
-notes          id, user_id FK (CASCADE), lesson_id FK (CASCADE), body text (md), timestamps
+notes          id, user_id FK (CASCADE), lesson_id FK (CASCADE), body text, timestamps   -- texto plano del estudiante
                IX (user_id, lesson_id)
 badges         id, slug UK, name, description, icon, criteria jsonb, xp_reward smallint, status, timestamps
 user_badges    user_id FK (CASCADE), badge_id FK (RESTRICT), awarded_at, PK (user_id, badge_id)
 certificates   id, user_id FK (CASCADE), track_id FK (RESTRICT), code char(12) UK (verificación pública),
                issued_at, snapshot jsonb, UK (user_id, track_id)
-topics         id, slug UK, name, definition text (md), status, timestamps        -- glosario de conceptos
+topics         id, slug UK, name, definition jsonb (rich), status, timestamps        -- glosario de conceptos
 lesson_topic   lesson_id FK (CASCADE), topic_id FK (CASCADE), PK
 technologies   id, slug UK, name, category enum (LANGUAGE, LIBRARY, FRAMEWORK, DATABASE, PLATFORM, TOOL),
                description, timestamps

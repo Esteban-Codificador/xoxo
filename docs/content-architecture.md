@@ -72,7 +72,7 @@ Toda lección publicada responde las siete preguntas de §5. La respuesta sale d
 
 | Pregunta | Fuente | ¿Obligatorio para publicar? |
 |---|---|---|
-| ¿Qué es? | `summary` (1–3 frases) y `body` | Sí: `summary` ≥ 80 caracteres y `body` ≥ 1.500 caracteres |
+| ¿Qué es? | `summary` (1–3 frases) y `body` | Sí: `summary` ≥ 80 caracteres y `body` ≥ 1.500 caracteres de texto plano extraído |
 | ¿Por qué importa? | `why_it_matters` (aplicación profesional concreta) | Sí, ≥ 80 caracteres |
 | ¿Qué debo saber antes? | `lesson_dependencies` + prerequisitos de skill (calculado) | No: una lección puede no tener prerequisitos. Si se declaran, deben existir |
 | ¿Qué aprendo después? | Dependientes en el grafo más la siguiente lección por posición (calculado) | Automático |
@@ -89,7 +89,7 @@ Otros requisitos para publicar: ≥ 1 skill asociada, `difficulty`, `estimated_m
 | Overview | `summary` + objetivos |
 | Why it matters | `why_it_matters` |
 | Prerequisites | Dependencias con su estado para el estudiante (✓, en curso, pendiente) |
-| Theory / Examples / Code | `body` (Markdown) |
+| Theory / Examples / Code | `body` (RichContent) |
 | Exercises / Lab / Quiz | Relaciones (Fase 6) |
 | Project | Proyectos relacionados por skills |
 | Resources / Videos | `resource_links` / `video_links` |
@@ -97,7 +97,7 @@ Otros requisitos para publicar: ≥ 1 skill asociada, `difficulty`, `estimated_m
 
 ## 4. Plantilla del cuerpo de una lección
 
-Las secciones son H2 fijos para que todas las lecciones se lean igual. Las que no apliquen se omiten, salvo las marcadas como obligatorias.
+Las secciones son H2 fijos para que todas las lecciones se lean igual. El ejemplo va en la sintaxis de autoría del paquete; en el editor TipTap son encabezados de nivel 2. Las que no apliquen se omiten, salvo las marcadas como obligatorias.
 
 ```markdown
 ## Concepto                 ← obligatorio: la idea explicada con precisión
@@ -108,18 +108,38 @@ Las secciones son H2 fijos para que todas las lecciones se lean igual. Las que n
 ## Práctica                 ← obligatorio si no hay ejercicio ni laboratorio asociado
 ```
 
-## 5. Dialecto Markdown soportado
+## 5. Modelo de contenido enriquecido y formato de autoría (ADR-023)
 
-| Necesidad (§31) | Sintaxis |
+**En la BD y en el CMS** el contenido largo (cuerpo de la lección, descripciones, enunciados, explicaciones) es un documento **RichContent**: `{"version": 1, "doc": <documento ProseMirror>}`. Se edita con TipTap y se valida en el servidor contra este esquema:
+
+| Nodo | Atributos | Restricciones |
+|---|---|---|
+| `paragraph`, `blockquote`, `bulletList`, `orderedList` {start}, `listItem`, `horizontalRule`, `hardBreak` | — | — |
+| `heading` | `level` | Solo 2, 3 o 4 (el H1 es el título de la lección) |
+| `codeBlock` | `language` | `[a-z0-9+#-]{1,20}` o vacío |
+| `table`, `tableRow`, `tableHeader`, `tableCell` | — | Celdas con párrafos |
+| `callout` | `variant` | note, tip, important, warning, caution |
+| `inlineMath`, `blockMath` | `latex` | ≤ 2.000 caracteres |
+| `diagram` | `kind`, `source` | `kind = mermaid`; `source` ≤ 10.000 caracteres |
+| `video` | `provider`, `videoId` | `youtube`; ID de 11 caracteres `[A-Za-z0-9_-]` |
+| `image` (Fase 6) | `mediaId`, `alt` | `alt` obligatorio; `mediaId` debe existir en `media_assets` |
+| Marcas `bold`, `italic`, `strike`, `code`, `link` | `link.href` | `https:`, `http:`, `mailto:` o ruta relativa `/…` |
+
+Límites globales: documento ≤ 512 KB y profundidad ≤ 12. Cualquier nodo, marca o atributo fuera de la lista blanca **rechaza el guardado** con un error que indica la ruta del nodo.
+
+**Extender el modelo** (p. ej., un nodo `quizEmbed` o `excalidraw`) requiere tres piezas: la regla en `RichContentSchema` (PHP), la extensión TipTap y el componente React compartido. Si el cambio no es retrocompatible, se sube la `version` del sobre y se escribe un migrador.
+
+**En el paquete de contenido** los autores escriben **Markdown compatible con GitHub**, que se lee bien en los PR y se convierte a RichContent al importar:
+
+| Nodo | Sintaxis de autoría |
 |---|---|
-| Texto, listas, enlaces, tablas | GFM estándar |
-| Código con resaltado | ```` ```python ```` (el lenguaje es obligatorio en el nivel A) |
-| Fórmulas | `$x^2$` en línea y `$$ … $$` en bloque (KaTeX) |
-| Diagramas | ```` ```mermaid ```` |
-| Callouts | `:::tip`, `:::note`, `:::warning`, `:::danger` … `:::` |
-| Videos | `::video{provider=youtube id=VIDEO_ID}`. El ID debe existir en la tabla `videos`; si no, el renderer muestra un placeholder de error |
-| Imágenes | `![alt obligatorio](media:ID)`, que resuelve a `media_assets` (Fase 6) |
-| HTML crudo | **No soportado** (se descarta) |
+| Texto, listas, enlaces, tablas, tachado | GFM estándar |
+| `codeBlock` | ```` ```python ```` (el lenguaje es obligatorio en el nivel A) |
+| `callout` | Alertas de GitHub: `> [!TIP]`, `> [!NOTE]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]` |
+| `blockMath` / `inlineMath` | ```` ```math ```` y `$x^2$` |
+| `diagram` | ```` ```mermaid ```` |
+| `video` | ```` ```video ```` con las líneas `provider: youtube` e `id: VIDEO_ID` |
+| HTML crudo, imágenes (hasta la Fase 6), H1 | **Error de validación** |
 
 ## 6. Formato del paquete de contenido
 
@@ -219,8 +239,8 @@ Capacidad de exponer funciones del sistema a un LLM de forma segura…
 
 | Comando | Comportamiento | Fase |
 |---|---|---|
-| `content:validate {path}` | Valida el esquema del front matter y los enums. Comprueba claves únicas, referencias resolubles (skills, lecciones, recursos) y **aciclicidad** de los tres grafos, contrato pedagógico en lo que tenga `status: PUBLISHED`, y Markdown con directivas válidas. Sale con código ≠ 0 y errores con archivo y línea. Corre en CI | 3 |
-| `content:import {path} [--dry-run] [--force] [--only=…]` | Upsert idempotente en una transacción. Resuelve la identidad por `(package, key)` en `content_import_records`. **Si el hash actual de la entidad difiere del `source_hash` registrado, se editó en el CMS y se salta** (con aviso) salvo `--force`. Crea `lesson_versions` para lo publicado. Registra `IMPORTED` en `audit_logs`. `--dry-run` informa de lo que crearía, actualizaría o saltaría | 3 |
+| `content:validate {path}` | Valida el esquema del front matter y los enums. Comprueba claves únicas, referencias resolubles (skills, lecciones, recursos) y **aciclicidad** de los tres grafos, contrato pedagógico en lo que tenga `status: PUBLISHED`, y que el Markdown se convierta a un RichContent válido. Sale con código ≠ 0 y errores con archivo y línea. Corre en CI | 3 |
+| `content:import {path} [--dry-run] [--force] [--only=…]` | Upsert idempotente en una transacción. Resuelve la identidad por `(package, key)` en `content_import_records`. **Si el hash actual de la entidad difiere del `source_hash` registrado, se editó en el CMS y se salta** (con aviso) salvo `--force`. Convierte el Markdown a RichContent y crea `lesson_versions` para lo publicado. Registra `IMPORTED` en `audit_logs`. `--dry-run` informa de lo que crearía, actualizaría o saltaría | 3 |
 | `content:export {path}` | BD → paquete, con el mismo formato. Sirve para backup, revisión y migración entre entornos | 7 |
 | `content:verify-links [--source=db\|files]` | Verifica recursos (HEAD con fallback a GET, 3 reintentos con backoff, sigue redirecciones) y videos (YouTube oEmbed). Actualiza `link_status` | 5 (recursos), 6 (videos) |
 

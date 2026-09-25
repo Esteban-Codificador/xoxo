@@ -13,7 +13,7 @@
 1. **El servidor es dueño del estado del dominio.** Las páginas reciben props de Inertia ya calculadas: estados de nodos, porcentajes y recomendaciones. **React no recalcula reglas de negocio.** Si una regla existiera en PHP y en TS, divergiría.
 2. **Sin gestor de estado global** (ni Redux ni React Query). El estado del servidor son las props de Inertia, que se refrescan con recargas parciales. El estado de UI es local. El estado compartible (filtros, pestañas, búsqueda) va en la URL.
 3. **Contenido fuera de los componentes.** Ningún componente contiene texto curricular. Los textos de interfaz pasan por i18n.
-4. **Las bibliotecas pesadas se cargan solo donde se usan**: React Flow, Mermaid, KaTeX, Shiki y CodeMirror van como `import()` dinámico.
+4. **Las bibliotecas pesadas se cargan solo donde se usan**: React Flow, Mermaid, KaTeX, Shiki y TipTap van como `import()` dinámico.
 5. **Accesibilidad antes que estética.** El estado de un nodo se comunica con icono y texto, no solo con color.
 
 ## 2. Estructura de directorios
@@ -37,12 +37,12 @@ resources/js/
 │   ├── roadmap-graph/         # Canvas, nodos, aristas, layout dagre, panel lateral, vista de lista
 │   ├── progress/              # ProgressBar, StateBadge, CompleteLessonButton, TrackProgressList
 │   ├── lesson/                # Secciones de la lección: Overview, WhyItMatters, Prerequisites, NextSteps…
-│   ├── markdown/              # MarkdownRenderer y plugins (callout, video, mermaid, math, code)
+│   ├── rich-content/          # RichContentRenderer y nodos compartidos (Callout, CodeBlock, MathBlock, MermaidDiagram, VideoEmbed)
 │   ├── recommendations/       # RecommendationCard y RecommendationList
 │   ├── dependencies/          # DependencyEditor reutilizable (track, skill, lección)
 │   ├── admin/
 │   │   ├── data-table/        # Tabla dirigida por el servidor (orden, filtros, paginación)
-│   │   ├── lesson-editor/     # Editor Markdown + preview + checklist de publicación
+│   │   ├── lesson-editor/     # Editor TipTap + formulario + checklist de publicación
 │   │   └── publishing/        # StatusBadge, PublishActions, VersionHistory
 │   └── search/                # CommandPalette (Fase 7)
 ├── components/
@@ -123,36 +123,35 @@ Dark y light mode vienen del starter kit (`use-appearance`), con preferencia del
 
 `RoadmapCanvas` (layout y React Flow) · `TrackNode` · `ModuleNode` · `DependencyEdge` · `GraphToolbar` (búsqueda y filtros) · `NodeDetailPanel` (Sheet de shadcn) · `RoadmapListView` (móvil y accesibilidad) · `useGraphLayout` (función pura: grafo → posiciones, con test unitario).
 
-## 7. Renderizado de contenido Markdown (ADR-005)
+## 7. Renderizado de contenido enriquecido (ADR-023)
 
-Un único `MarkdownRenderer` sirve para la página de la lección y para el preview del editor. **Lo que ve el editor es exactamente lo que verá el estudiante.**
+El contenido es un documento **RichContent**: el JSON de ProseMirror dentro de un sobre versionado `{version, doc}`, ya validado por el servidor. El frontend lo renderiza con `RichContentRenderer`, un recorrido recursivo que asigna **cada tipo de nodo conocido a un componente React**. No se genera HTML en texto ni se usa `dangerouslySetInnerHTML`. Un nodo desconocido se ignora y se registra en consola en desarrollo.
 
-```text
-markdown ──remark-parse──▶ mdast
-  ├─ remark-gfm             tablas, listas de tareas, autolinks
-  ├─ remark-math            $…$ y $$…$$
-  └─ remark-directive       :::tip / :::warning / :::note  ·  ::video{provider=youtube id=…}
-──remark-rehype (SIN allowDangerousHtml)──▶ hast
-  ├─ rehype-sanitize        esquema restrictivo (defensa en profundidad)
-  ├─ rehype-katex           fórmulas (después de sanitizar: su salida es de confianza)
-  └─ componentes React      code → CodeBlock (Shiki, carga diferida, tema dual claro/oscuro)
-                            code[lang=mermaid] → MermaidDiagram (import dinámico, securityLevel 'strict')
-                            directiva video → VideoEmbed (youtube-nocookie, solo IDs validados)
-                            a[href] externo → rel="noopener noreferrer", icono de enlace externo
-```
+| Nodo / marca | Componente | Notas |
+|---|---|---|
+| `paragraph`, `heading` (2–4), `bulletList`, `orderedList`, `listItem`, `blockquote`, `horizontalRule`, `hardBreak` | Elementos semánticos | Los encabezados reciben `id` para la tabla de contenidos |
+| `table`, `tableRow`, `tableHeader`, `tableCell` | `ContentTable` | Contenedor con scroll horizontal en móvil |
+| `codeBlock` {language} | `CodeBlock` | Shiki con carga diferida y tema dual claro/oscuro; botón copiar |
+| `callout` {variant} | `Callout` | note, tip, important, warning, caution: icono + texto, no solo color |
+| `inlineMath` / `blockMath` {latex} | `MathInline` / `MathBlock` | KaTeX con carga diferida, `throwOnError: false` |
+| `diagram` {kind: mermaid, source} | `MermaidDiagram` | Import dinámico, `securityLevel: 'strict'`, tema según claro/oscuro |
+| `video` {provider, videoId} | `VideoEmbed` | youtube-nocookie. El ID ya viene validado por regex en el servidor |
+| marcas `bold`, `italic`, `strike`, `code`, `link` {href} | Inline | Enlaces externos con `rel="noopener noreferrer"` e icono |
 
-- El HTML crudo del Markdown **se descarta** porque no se incluye `rehype-raw`.
-- Los encabezados reciben un `id` y se genera una tabla de contenidos para lecciones largas.
-- Tests de Vitest cubren: payloads XSS (`<script>`, `javascript:` en enlaces, `onerror` en imágenes), directivas válidas e inválidas y Mermaid con contenido malicioso.
+**El editor y el lector comparten los componentes de los nodos de dominio.** Las NodeViews de TipTap (`ReactNodeViewRenderer`) montan los mismos `Callout`, `MathBlock`, `MermaidDiagram`, `VideoEmbed` y `CodeBlock`. Lo que ve el editor coincide con lo que ve el estudiante sin mantener dos implementaciones.
+
+Tests de Vitest: renderizado de cada tipo de nodo, nodos desconocidos ignorados, enlaces `javascript:` neutralizados (defensa en profundidad aunque el servidor ya los rechaza), Mermaid con contenido malicioso y una instantánea de un documento completo.
 
 ## 8. Editor de lecciones (admin)
 
-- **CodeMirror 6** (`@uiw/react-codemirror`) con el lenguaje Markdown, en pantalla dividida con el preview en vivo (`MarkdownRenderer` con *debounce*).
-- Una barra de inserción para callout, bloque de código, fórmula, Mermaid, video e imagen (esta última desde la Fase 6).
-- El **formulario estructurado** cubre título, slug, resumen, por qué importa, objetivos (lista editable), tipo, dificultad, minutos estimados, skills con peso, dependencias (con `DependencyEditor`), recursos, videos, estado y nota de cambio. Cubre §54 completo.
+- **TipTap 3** (`@tiptap/react`) con StarterKit (limitado a los nodos del esquema), Table, Mathematics y las extensiones propias `Callout`, `Diagram` y `Video`, que usan las mismas NodeViews. La configuración de extensiones es **la definición del esquema en el cliente** y un test compara sus nombres de nodo con la lista blanca del servidor.
+- **Barra de herramientas y menú `/`** para insertar encabezado, lista, cita, código (con selector de lenguaje), tabla, callout, fórmula, diagrama Mermaid, video (pegar una URL de YouTube extrae el ID) e imagen (Fase 6).
+- **Pegar Markdown** se convierte a nodos con `@tiptap/markdown`, útil para migrar texto existente. No es el formato de almacenamiento.
+- El **formulario estructurado** cubre título, slug, resumen, por qué importa, objetivos (lista editable), tipo, dificultad, minutos estimados, skills con peso, dependencias (`DependencyEditor`), recursos, videos, estado y nota de cambio. Cubre §54 completo.
 - **Checklist de publicación en vivo** (`PublishReadiness` del backend): muestra qué falta antes de habilitar "Publicar".
-- **Historial de versiones:** lista de `lesson_versions`, vista de una versión y diff contra la copia de trabajo.
-- Protección de cambios sin guardar: un aviso al navegar con el formulario modificado.
+- **Historial de versiones:** lista de `lesson_versions`, vista de una versión y diff del **texto plano extraído** contra la copia de trabajo.
+- Protección de cambios sin guardar: un aviso al navegar con el documento modificado.
+- Carga diferida: TipTap y sus extensiones solo se cargan en las páginas del admin que editan contenido.
 
 ## 9. Formularios, tablas y feedback
 
@@ -175,7 +174,7 @@ export const en: Messages = { /* … */ };
 ## 11. Rendimiento
 
 - Las páginas se resuelven de forma diferida con `import.meta.glob`, así que cada página es un *chunk*.
-- React Flow y dagre solo cargan en `roadmap/show`. Mermaid, KaTeX y Shiki solo en las lecciones y el editor. CodeMirror solo en el admin.
+- React Flow y dagre solo cargan en `roadmap/show`. Mermaid, KaTeX y Shiki solo en las lecciones y el editor. TipTap solo en el admin.
 - El React Compiler viene activado en el starter kit y evita la memoización manual.
 - Las imágenes de lecciones usan `loading="lazy"` y dimensiones declaradas (desde `media_assets`).
 
@@ -183,7 +182,7 @@ export const en: Messages = { /* … */ };
 
 | Nivel | Herramienta | Qué se prueba |
 |---|---|---|
-| Unitario | Vitest | `useGraphLayout`, filtros del grafo, `t()` y sanitización del Markdown |
+| Unitario | Vitest | `useGraphLayout`, filtros del grafo, `t()` y `RichContentRenderer` (nodos, enlaces peligrosos, nodos desconocidos) |
 | Componente | Vitest + React Testing Library | `ProgressBar`, `StateBadge` (texto accesible), `CompleteLessonButton` (estado de envío), `DependencyEditor`, formulario del editor de lecciones y `RecommendationCard` |
 | E2E | Pest Browser (Playwright) | Flujo del estudiante (login → dashboard → roadmap → lección → completar → progreso actualizado) y flujo editorial (admin crea lección → publica → el estudiante la ve) |
 | Estático | `tsc --noEmit`, `vp check` (oxlint + oxfmt) | Todo el código de `resources/js` |

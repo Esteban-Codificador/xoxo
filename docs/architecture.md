@@ -70,6 +70,7 @@ flowchart LR
 | Rutas tipadas | Laravel Wayfinder | 0.1.x | Funciones TS generadas desde las rutas de Laravel |
 | Estilos | Tailwind CSS | 4.x | |
 | Componentes | shadcn/ui (Radix) | — | Copiados en `components/ui`, no son una dependencia |
+| Editor de contenido | TipTap (ProseMirror) | 3.31 | Editor enriquecido del CMS (ADR-023) |
 | Toolchain JS | Vite 8 + vite-plus (oxlint, oxfmt) | 8.x / 0.3 | Viene del starter kit oficial |
 | Grafo | @xyflow/react + @dagrejs/dagre | 12.x / 3.x | |
 | Base de datos | PostgreSQL | 16 | Extensiones: `pg_trgm`, `unaccent`, `citext`. `pgvector` en V2 |
@@ -155,6 +156,7 @@ app/
 │   ├── Gamification/            # ActivityRecorder, XpLedger, StreakCalculator, BadgeRules/* (Fase 7)
 │   ├── Search/                  # SearchIndex (interfaz), PostgresSearchIndex (Fase 7)
 │   ├── Content/                 # PackageReader, PackageValidator, PackageImporter, LinkVerifier
+│   │   └── RichContent/         # Documento estructurado: esquema, validador, texto plano, Markdown → RichContent
 │   ├── Audit/                   # AuditLogger, observers
 │   └── Ai/                      # V2
 ├── Http/
@@ -313,7 +315,7 @@ En V2, `AiRecommendationEngine` implementa la misma interfaz y puede componerse 
 | Autenticación | Fortify: hash de contraseñas, verificación de email, 2FA TOTP y passkeys. Rate limit de login (`throttle`) |
 | Autorización | Policy por modelo con permisos granulares (spatie). `/admin` exige `admin.access`. Las comprobaciones viven en el backend; la UI solo oculta |
 | CSRF | Middleware de Laravel. Inertia envía el token automáticamente |
-| XSS | El Markdown **no admite HTML crudo** (react-markdown sin `rehype-raw`) y `rehype-sanitize` actúa como defensa en profundidad. Mermaid con `securityLevel: 'strict'`. Videos por proveedor e ID, **nunca con HTML de iframe guardado**. CSP en la Fase 8 |
+| XSS | El contenido enriquecido es un **documento estructurado (JSON), no HTML**. El servidor lo valida contra una lista blanca de nodos, marcas y atributos (`RichContentValidator`): esquemas de enlace permitidos, IDs de video por regex y límites de tamaño. El frontend renderiza **solo** los tipos de nodo conocidos con componentes React, sin `dangerouslySetInnerHTML`. Mermaid con `securityLevel: 'strict'`. Videos por proveedor e ID, **nunca con HTML de iframe guardado**. CSP en la Fase 8 |
 | Asignación masiva | Solo `$request->validated()` llega a las Actions. `$fillable` explícito |
 | Fuga de respuestas | Las preguntas se serializan **sin** la respuesta correcta; se califica en el servidor |
 | Subidas (Fase 6) | Lista blanca de extensiones, MIME detectado con `finfo` (no el declarado), límites de tamaño, nombre aleatorio, disco privado, URLs temporales firmadas y reencodificación de imágenes con GD (elimina EXIF y payloads) |
@@ -355,7 +357,7 @@ Formato: **Decisión** · *alternativas descartadas* · consecuencias.
 | 002 | **Base: starter kit oficial React** (Laravel 13, Fortify, Inertia 3, shadcn/ui, Wayfinder) | Instalar Breeze (ya no es la vía oficial); autenticación a mano | Autenticación completa y probada desde el día 1. Se hereda tooling pre-1.0 (`vite-plus`) |
 | 003 | **PostgreSQL también en tests** | SQLite en memoria | Tests algo más lentos, pero con paridad real (jsonb, índices parciales, CHECK, FTS) |
 | 004 | **La BD es la fuente de verdad del contenido. Paquete Markdown + YAML para bootstrap, import y export** | Contenido en componentes; JSON único; archivos como fuente de verdad (estilo *docs-as-code*) | El CMS es real. El importador debe ser idempotente y respetar las ediciones del CMS (hash) |
-| 005 | **Markdown extendido como único formato**, con renderer compartido entre editor y lector y sin HTML crudo | WYSIWYG (TipTap/Lexical) + Markdown; bloques JSON | Versionable y seguro. Sin edición visual para perfiles no técnicos |
+| 005 | ~~Markdown extendido como único formato~~ **Reemplazada por ADR-023** (decisión del dueño del producto, 2026-09-25) | — | — |
 | 006 | **Versionado por snapshot inmutable al publicar (lecciones)** | Sin versionado; versionado de todas las entidades; event sourcing | Los borradores nunca se filtran. Las relaciones no se versionan en V1 |
 | 007 | **LOCKED y AVAILABLE calculados; IN_PROGRESS, COMPLETED y MASTERED persistidos. MASTERED exige evidencia** | Persistir todos los estados | Sin estados desactualizados al cambiar dependencias |
 | 008 | **Tres tablas de dependencias tipadas (track, skill, lección) con `kind` REQUIRED/RECOMMENDED, umbral y validación DAG al escribir** | Una sola tabla polimórfica de requisitos | Integridad por FK y consultas simples. Tres editores de dependencias, con un mismo componente |
@@ -373,3 +375,5 @@ Formato: **Decisión** · *alternativas descartadas* · consecuencias.
 | 020 | **Progreso de track y skill calculado, no materializado** | Tablas `student_skill_progress` y `track_progress` | Correcto al publicar contenido nuevo. Se cachea por versión. Se materializará si una métrica lo exige |
 | 021 | **Opciones de pregunta en JSONB validado por tipo** | Tabla `quiz_question_options` | Las opciones nunca se consultan sueltas. El validador por tipo mantiene la integridad |
 | 022 | **Un motor de tipos de pregunta compartido entre ejercicios y quizzes** (strategy) | Dos motores | Un solo lugar para calificar. Los ejercicios abiertos usan autoevaluación con rúbrica |
+| 023 | **Contenido enriquecido como documento estructurado (RichContent: JSON de ProseMirror con sobre versionado `{version, doc}`), editado con TipTap.** Esquema propio y extensible: nodos base (párrafo, encabezados H2–H4, listas, cita, código, tabla, separador) y nodos de dominio (`callout`, `blockMath`/`inlineMath`, `diagram` Mermaid, `video`). El Markdown queda **solo como formato de autoría del paquete de contenido** y se convierte a RichContent al importar | Markdown como formato único (ADR-005); HTML guardado desde un editor WYSIWYG; bloques propios sin ProseMirror | Edición visual para perfiles no técnicos y nodos de dominio de primera clase. Costos: un conversor Markdown → RichContent en PHP (sobre el AST de league/commonmark), un validador de esquema en el servidor y **dos renderizadores que deben coincidir** (el del lector y las NodeViews del editor), que se mitiga con componentes React compartidos. Los diffs entre versiones se muestran sobre el texto plano extraído |
+| 024 | **Currículo en cadena lineal estricta (§25)**: cada eslabón Python → Matemáticas → ML → DL → Transformers → LLM Engineering → RAG → Agents es REQUIRED (decisión del dueño del producto, 2026-09-25). El esquema **conserva** `kind` REQUIRED/RECOMMENDED | Ruta "aplicaciones primero" con LLM Engineering dependiendo solo de Python | Con la política ADVISORY (D1) la cadena genera avisos y ordena las recomendaciones, pero no bloquea. Volver a una ruta alternativa es un cambio de datos (el `kind` de una arista), no de código |

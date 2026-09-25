@@ -48,17 +48,19 @@ Ninguna todavía (no hay código).
 
 ## Decisions
 
-El registro completo está en [architecture.md §14](architecture.md#14-registro-de-decisiones-adr) (ADR-001 a ADR-022). Las que **más cambian el producto** y que conviene confirmar antes de la Fase 3:
+El registro completo está en [architecture.md §14](architecture.md#14-registro-de-decisiones-adr) (ADR-001 a ADR-024).
 
-| # | Decisión | Alternativa descartada | Si se revierte… |
-|---|---|---|---|
-| D1 | Desbloqueo **ADVISORY por defecto** (se avisa, no se bloquea) | Bloqueo estricto siempre | Es configuración por roadmap; revertirla cuesta 0 |
-| D2 | Ruta **"aplicaciones primero"**: LLM Engineering requiere solo Python (80 %) y *recomienda* Transformers | Cadena lineal estricta del §25 | Cambiar el `kind` de 1 arista en el paquete |
-| D3 | **Markdown como único formato** de contenido (sin WYSIWYG) | TipTap o Lexical con rich text | Alto: cambia el almacenamiento, el versionado y la seguridad. Decidir ahora |
-| D4 | **Contenido tras login en V1**; lectura pública con SSR y SEO en la Fase 8 | Contenido público desde V1 | Medio: las policies ya aceptan invitados, falta SSR |
-| D5 | **Progreso de skill y track calculado**, sin la tabla `student_skill_progress` | Materializar como pide §49 | Bajo: se puede materializar después sin cambiar la API |
-| D6 | **Sin `AiProviderInterface` en V1**; en V2 sobre `laravel/ai` | Interfaz y 4 proveedores ya en V1 | Bajo |
-| D7 | **Dos niveles de profundidad (A/B)**: ≥ 100 publicadas en V1, 20 completas en V1.1 | 100+ lecciones completas antes de lanzar | Multiplica el tiempo de contenido por 3–4 |
+Decisiones confirmadas por el dueño del producto el 2026-09-25:
+
+| # | Decisión | Resultado |
+|---|---|---|
+| D1 | Desbloqueo ADVISORY por defecto | ✅ Aceptada |
+| D2 | Ruta "aplicaciones primero" | ❌ **Cambiada: cadena lineal estricta del §25** (ADR-024). El esquema conserva REQUIRED/RECOMMENDED |
+| D3 | Markdown como único formato | ❌ **Cambiada: TipTap como editor principal sobre un documento estructurado y extensible** (ADR-023, reemplaza a ADR-005). El Markdown queda como formato de autoría del paquete |
+| D4 | Contenido tras login en V1; SSR y SEO en la Fase 8 | ✅ Aceptada |
+| D5 | Progreso de skill y track calculado | ✅ Aceptada |
+| D6 | Sin `AiProviderInterface` en V1 | ✅ Aceptada |
+| D7 | Dos niveles de profundidad del contenido (A/B) | ✅ Aceptada |
 
 ## Validation Log
 

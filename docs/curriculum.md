@@ -47,11 +47,11 @@ flowchart TB
     T07 -->|70%| T10
     T09 -->|50%| T10
     T03 -->|80%| T11
-    T10 -.->|70%| T11
+    T10 -->|70%| T11
     T11 -->|60%| T12
     T05 -.->|40%| T12
     T11 -->|70%| T13
-    T12 -.->|50%| T13
+    T12 -->|60%| T13
     T03 -->|80%| T14
     T06 -.->|50%| T14
     T11 -.->|50%| T14
@@ -69,10 +69,9 @@ flowchart TB
 
 Línea continua = REQUIRED con el umbral de progreso del prerequisito. Línea punteada = RECOMMENDED.
 
-**Dos rutas sobre el mismo grafo [O]:**
+**Ruta: cadena lineal estricta del §25 (ADR-024, decisión del dueño del producto).** Python → Matemáticas → Machine Learning → Deep Learning → Transformers → LLM Engineering → RAG → Agents, con cada eslabón REQUIRED. NLP, CV, Datos, MLOps, Cloud, Security y System Design cuelgan de esa cadena según el grafo.
 
-- **Fundamentos primero** (persona P2): Fundamentos → Python → Matemáticas y Datos → ML → DL → NLP y CV → Transformers → LLM → RAG y Agents → MLOps, Cloud y Security → System Design. Coincide con el orden del §25 de la spec.
-- **Aplicaciones primero** (persona P1): Python (80 %) → **LLM Engineering** → RAG → Agents → Security → MLOps. Después se vuelve a Matemáticas, ML, DL y Transformers para ganar profundidad. Lo habilita que LLM Engineering *requiere* Python y solo *recomienda* Transformers. Las lecciones que de verdad necesitan DL (fine-tuning, LoRA, cuantización) declaran esa dependencia a nivel de lección.
+Con la política de desbloqueo ADVISORY (D1), un estudiante puede abrir un track bloqueado; la cadena define los avisos ("Antes de continuar, completa…") y el orden de las recomendaciones. El esquema conserva las aristas RECOMMENDED, así que una ruta alternativa futura es un cambio de datos, no de código.
 
 ## 2. Tracks, módulos y lecciones
 
@@ -169,7 +168,7 @@ Línea continua = REQUIRED con el umbral de progreso del prerequisito. Línea pu
 | **[·]** Backlog (DRAFT) | 23 |
 | **Total planificado** | **178** en 17 tracks y 50 módulos |
 
-**Metas de publicación:** ≥ 100 publicadas al cerrar la Fase 5 (prioridad: tracks 00, 02, 03, 05, 09, 10, 11, 12 y 15, completos en nivel B, y el cuerpo A de 5 lecciones). Las 155 A+B publicadas y las 20 A con quiz y ejercicio al cerrar la Fase 6. El backlog queda como demostración viva de que el CMS hace crecer el currículo.
+**Metas de publicación:** ≥ 100 publicadas al cerrar la Fase 5, siguiendo el orden de la cadena (prioridad: tracks 00, 01, 02, 03, 05, 06, 09, 10, 11 y 12 en nivel B, más el cuerpo A de 5 lecciones). Las 155 A+B publicadas y las 20 A con quiz y ejercicio al cerrar la Fase 6. El backlog queda como demostración viva de que el CMS hace crecer el currículo.
 
 ## 3. Skills (72)
 
@@ -184,9 +183,9 @@ Formato: `clave`: prerequisitos (R = REQUIRED, r = RECOMMENDED, con el umbral en
 - **CV:** `computer-vision`: R cnn 60, pytorch 50 · `transfer-learning`: R pytorch 60 · `ocr`: R python 70, r computer-vision 40
 - **NLP:** `nlp`: R ml-fundamentals 60, python 70 · `text-classification`: R nlp 50, supervised-learning 50
 - **Transformers:** `attention`: R neural-networks 60, linear-algebra 70 · `transformers`: R attention 70, r sequence-models 40
-- **LLM:** `llm-fundamentals`: R python 70, r transformers 50 · `prompt-engineering`: R llm-fundamentals 50 · `structured-outputs`: R prompt-engineering 50, python-typing 50 · `tool-calling`: R structured-outputs 60 · `embeddings`: R llm-fundamentals 50, r linear-algebra 40 · `llm-evaluation`: R prompt-engineering 60, r statistics 40 · `fine-tuning`: R pytorch 60, transformers 60 · `llm-inference`: R llm-fundamentals 60 · `hugging-face`: R python 70, r transformers 40
+- **LLM:** `llm-fundamentals`: R python 70, transformers 50 · `prompt-engineering`: R llm-fundamentals 50 · `structured-outputs`: R prompt-engineering 50, python-typing 50 · `tool-calling`: R structured-outputs 60 · `embeddings`: R llm-fundamentals 50, r linear-algebra 40 · `llm-evaluation`: R prompt-engineering 60, r statistics 40 · `fine-tuning`: R pytorch 60, transformers 60 · `llm-inference`: R llm-fundamentals 60 · `hugging-face`: R python 70, r transformers 40
 - **RAG:** `rag`: R embeddings 60, vector-databases 50, prompt-engineering 60 · `advanced-retrieval`: R rag 60 · `rag-evaluation`: R rag 60, llm-evaluation 50
-- **Agents:** `ai-agents`: R tool-calling 70, r rag 40 · `agent-frameworks`: R ai-agents 50 · `mcp`: R tool-calling 60
+- **Agents:** `ai-agents`: R tool-calling 70, rag 50 · `agent-frameworks`: R ai-agents 50 · `mcp`: R tool-calling 60
 - **MLOps y producción:** `docker`: R programming-fundamentals 60 · `ci-cd`: R git 70, python-testing 50, r docker 50 · `experiment-tracking`: R ml-fundamentals 50 · `model-serving`: R api-development 60, docker 50 · `observability`: R model-serving 40 · `llmops`: R llm-evaluation 50, observability 40 · `kubernetes`: R docker 70
 - **Cloud:** `cloud-fundamentals`: R docker 40 · `gpu-computing`: R cloud-fundamentals 50, r pytorch 40 · `cloud-ml-services`: R cloud-fundamentals 60
 - **Seguridad:** `llm-security`: R llm-fundamentals 60, r tool-calling 40 · `data-privacy`: r llm-fundamentals · `access-control`: R api-development 50

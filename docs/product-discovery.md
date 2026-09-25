@@ -90,7 +90,7 @@ Si alguna de estas cuatro se pierde en la ejecución, el producto pierde su raz�
 | UC-07 | P1, P2 | Recibir la recomendación "qué sigue" y, si falta algo, "antes de continuar, completa X" | V1 |
 | UC-08 | P1, P2 | Explorar skills, su nivel, prerequisitos y el contenido asociado | V1 |
 | UC-09 | P3, P4 | Crear y editar tracks, módulos, lecciones, skills y recursos en `/admin` | V1 |
-| UC-10 | P3, P4 | Editar una lección en Markdown con preview en vivo idéntico a la vista del estudiante | V1 |
+| UC-10 | P3, P4 | Editar una lección con el editor enriquecido (TipTap), que muestra el contenido igual que lo verá el estudiante | V1 |
 | UC-11 | P3 | Publicar, despublicar y archivar contenido. Editar una lección publicada sin afectar a los estudiantes hasta republicarla | V1 |
 | UC-12 | P3 | Definir dependencias (track, skill, lección) con validación de ciclos | V1 |
 | UC-13 | P5 | Gestionar usuarios y roles, y consultar el log de auditoría | V1 |
@@ -115,12 +115,12 @@ La correspondencia con las fases de implementación está en [roadmap.md](roadma
 - **Autenticación y roles**: registro, login, verificación de email, 2FA y passkeys (vienen del starter kit), y los roles ADMIN, EDITOR, INSTRUCTOR y STUDENT con permisos granulares.
 - **Roadmap visual**: grafo macro de tracks (zoom, pan, búsqueda, filtros, hover y clic), expansión de módulos, panel lateral de detalle y **vista de lista alternativa** para móvil y accesibilidad.
 - **Página de track**: módulos y lecciones con su estado, progreso y prerequisitos.
-- **Página de lección**: overview, por qué importa, objetivos, prerequisitos, teoría (Markdown con código, math y Mermaid), recursos oficiales y siguientes pasos.
+- **Página de lección**: overview, por qué importa, objetivos, prerequisitos, teoría (contenido enriquecido con código, fórmulas, callouts y Mermaid), recursos oficiales y siguientes pasos.
 - **Progreso**: marcar en curso, completada y deshacer. Los estados LOCKED/AVAILABLE/IN_PROGRESS/COMPLETED/MASTERED se calculan a partir de las dependencias.
 - **Skills**: listado, detalle y progreso por skill (calculado).
 - **Dashboard**: progreso general y por track, skills completadas y pendientes, próximos contenidos, recomendaciones por reglas, actividad y tiempo estimado completado.
 - **Recursos externos**: asociados a lecciones, skills y tracks, con estado de verificación del enlace.
-- **CMS `/admin`**: CRUD de roadmaps, tracks, módulos, lecciones, skills y recursos; editor Markdown con preview; dependencias; flujo DRAFT → REVIEW → PUBLISHED → ARCHIVED; versionado de lecciones; usuarios y roles; log de auditoría. Todas las tablas con filtros, búsqueda, paginación, validación, confirmaciones y toasts.
+- **CMS `/admin`**: CRUD de roadmaps, tracks, módulos, lecciones, skills y recursos; editor enriquecido TipTap; dependencias; flujo DRAFT → REVIEW → PUBLISHED → ARCHIVED; versionado de lecciones; usuarios y roles; log de auditoría. Todas las tablas con filtros, búsqueda, paginación, validación, confirmaciones y toasts.
 - **Contenido inicial**: 17 tracks, alrededor de 60 skills y **100 o más lecciones publicadas** como ficha pedagógica completa, más un núcleo de lecciones en profundidad (ver [curriculum.md](curriculum.md)).
 - **Paquete de contenido e importador idempotente** (`content:validate`, `content:import`).
 
@@ -149,7 +149,6 @@ Tutor de IA con RAG sobre el contenido publicado, recomendaciones asistidas por 
 | Excluido | Motivo | ¿Cuándo? |
 |---|---|---|
 | Ejecución de código del estudiante en el servidor | Exige sandboxing serio (aislamiento, límites y abuso). Es un producto en sí mismo | Nunca en servidor sin un proveedor dedicado. Pyodide en navegador en V2 |
-| Editor WYSIWYG / rich text | Un solo formato (Markdown) es versionable, diferenciable y seguro. Ver ADR-005 | Reevaluar si hay editores no técnicos |
 | Alojamiento propio de video (subida y transcodificación) | Costoso. La arquitectura queda preparada (disco S3/R2/Azure/GCS + URLs firmadas) | Cuando exista contenido propio en video |
 | Pagos y suscripciones | No es necesario para validar el aprendizaje | Sin fecha |
 | Foros, comentarios y comunidad | Requiere moderación | Sin fecha |
@@ -171,10 +170,10 @@ La spec es el documento rector, pero tiene tensiones internas. Cada una se resue
 | C1 | "Contenido desacoplado, no hardcodeado" (§2) frente a "seed con 100+ lecciones" (§50) | El seed vive como **paquete de contenido** (Markdown + YAML), fuera del código de la app, y se carga con un importador idempotente. Tras importarlo, **la BD es la fuente de verdad** y el importador no sobrescribe lo editado en el CMS | ADR-004 |
 | C2 | "No meter todo en un JSON gigante" (§72) | Un archivo por entidad (lección, skill, proyecto), con claves estables y relaciones por clave | ADR-004 |
 | C3 | "No inventar URLs" (§33) frente a un contenedor sin salida a internet | Cada recurso guarda su estado de verificación. Un job de CI verifica cada URL y cada ID de YouTube (oEmbed) y **bloquea el merge si hay 404**. Los enlaces rotos se ocultan al estudiante y se marcan en el admin | — |
-| C4 | Cadena lineal Python → … → Transformers → LLMs → RAG (§25) frente a "rutas alternativas" (§4.14) y el perfil real del AI Engineer | Las dependencias tienen tipo **REQUIRED** o **RECOMMENDED**. LLM Engineering *requiere* Python y *recomienda* Transformers. Las lecciones avanzadas (fine-tuning, LoRA) sí requieren DL y Transformers a nivel de lección. Eso habilita la ruta "aplicaciones primero" sin duplicar contenido | ADR-008 |
+| C4 | Cadena lineal Python → … → Transformers → LLMs → RAG (§25) frente a "rutas alternativas" (§4.14) y el perfil real del AI Engineer | **Decisión del dueño del producto: cadena lineal estricta** (ADR-024). Las dependencias conservan el tipo REQUIRED/RECOMMENDED en el esquema (ADR-008), así que una ruta alternativa futura es un cambio de datos. La política ADVISORY evita que la cadena bloquee a perfiles con experiencia | ADR-008, ADR-024 |
 | C5 | LOCKED estricto (§26) frente a estudiantes que ya saben parte del contenido | Política de desbloqueo por roadmap: **ADVISORY** (por defecto: se ve el estado y un aviso, pero no se bloquea) o **STRICT** (bloquea las acciones de progreso) | ADR-009 |
 | C6 | Grafo completo con zoom y pan (§27) frente a "no cargar un roadmap enorme" (§79) | Dos niveles: grafo macro de unos 17 tracks más detalle bajo demanda (módulos al expandir, lecciones en el panel lateral) | ADR-010 |
-| C7 | Editor con rich text **y** Markdown (§31) frente a XSS (§77) y versionado (§56) | Markdown extendido como único formato (GFM, KaTeX, Mermaid, callouts, directiva de video). Preview con el mismo renderer que ve el estudiante. **HTML crudo prohibido** | ADR-005 |
+| C7 | Editor con rich text **y** Markdown (§31) frente a XSS (§77) y versionado (§56) | **Decisión del dueño del producto: TipTap como editor principal** sobre un documento estructurado (RichContent, JSON de ProseMirror versionado) con nodos de dominio (callout, fórmulas, Mermaid, video). Se valida con una lista blanca en el servidor y se renderiza con componentes React, **nunca como HTML**. El Markdown queda como formato de autoría del paquete de contenido | ADR-023 |
 | C8 | "Horas estudiadas" (§28) sin una forma fiable de medirlas | Se muestra **"tiempo estimado completado"** (la suma de `estimated_minutes` de lo completado) con esa etiqueta exacta. La medición activa (heartbeat) queda diferida. Mostrar otra cosa sería inventar un dato | — |
 | C9 | MASTERED sin definir (§26) | MASTERED exige **evidencia**: un quiz aprobado con umbral de maestría (90 % por defecto) o un proyecto completado. El contenido sin evaluación llega como máximo a COMPLETED | ADR-007 |
 | C10 | "Laravel Fortify/Breeze" (§48) | Breeze dejó de ser el camino oficial. Se usa el **starter kit oficial de React** (Fortify, Inertia 3, Laravel 13) | ADR-002 |
@@ -210,7 +209,7 @@ El registro completo, con contexto y alternativas, está en [architecture.md §1
 1. Monolito modular **Laravel 13 + Inertia 3 + React 19 + TypeScript** sobre el **starter kit oficial**.
 2. **PostgreSQL 16 en todos los entornos, tests incluidos** (se usan jsonb, índices parciales, CHECK y FTS).
 3. **El contenido es dato**: la BD es la fuente de verdad, el paquete de contenido solo arranca el sistema y el CMS lo hace crecer.
-4. **Markdown extendido** como único formato de contenido, sin HTML crudo.
+4. **Contenido enriquecido estructurado** (RichContent: JSON de ProseMirror) editado con **TipTap**, validado en el servidor y sin HTML guardado. El Markdown solo sirve para escribir el paquete de contenido.
 5. **Lecciones versionadas** con snapshots inmutables al publicar.
 6. **Estados calculados** (LOCKED/AVAILABLE) y **estados persistidos** (IN_PROGRESS/COMPLETED/MASTERED).
 7. **Dependencias con tipo** (REQUIRED/RECOMMENDED y umbral) en tres niveles (track, skill, lección), validadas como DAG.

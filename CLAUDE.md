@@ -16,7 +16,7 @@ Plataforma educativa **AI Engineer Roadmap** (Laravel 13 + Inertia 3 + React 19 
 - **Nada de funcionalidades simuladas**: ni botones sin backend, ni autenticación o admin falsos, ni lorem ipsum.
 - Las reglas de negocio (estados, progreso, desbloqueo) viven en PHP (`app/Domain`). React muestra lo que recibe y no recalcula.
 - Los textos de UI pasan por i18n (`resources/js/i18n`). Contenido en español; identificadores de código en inglés.
-- Markdown sin HTML crudo. Videos por proveedor e ID, nunca iframes guardados.
+- El contenido enriquecido es RichContent (JSON de ProseMirror validado en el servidor), nunca HTML guardado. Videos por proveedor e ID, nunca iframes.
 - Toda escritura se valida en un FormRequest, se autoriza en una Policy y se ejecuta en una Action.
 - Tests contra PostgreSQL, no SQLite.
 

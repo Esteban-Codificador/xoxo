@@ -61,7 +61,7 @@ Repositorio vacío y entorno inspeccionado. Hallazgos en [product-discovery §0]
 5. spatie/laravel-permission con los roles ADMIN, EDITOR, INSTRUCTOR y STUDENT, la matriz de permisos (§4 abajo) y un seeder.
 6. `AuditLogger` + observers.
 7. `DependencyGraph` (ciclos y orden topológico) con tests unitarios.
-8. `content:validate` y `content:import` con un **paquete mínimo de muestra** (2 tracks y 6 lecciones reales) y tests de idempotencia y protección de ediciones del CMS.
+8. RichContent: esquema, validador, texto plano y conversor Markdown → RichContent. `content:validate` y `content:import` con un **paquete mínimo de muestra** (2 tracks y 6 lecciones reales) y tests de idempotencia y protección de ediciones del CMS.
 9. `docker-compose.yml` (Postgres con pgvector, Redis y Mailpit). No se valida aquí; se deja como Known Issue.
 10. GitHub Actions con los jobs `php`, `js` y `content`.
 11. Hook SessionStart para que las sesiones cloud futuras arranquen Postgres y Redis e instalen dependencias.
@@ -70,14 +70,14 @@ Repositorio vacío y entorno inspeccionado. Hallazgos en [product-discovery §0]
 
 ### Fase 4 — Design system · estimación: 1 sesión
 
-Tokens semánticos (estados de nodo), tipografía, `AppLayout` y `AdminLayout` (sidebar y breadcrumbs), componentes base de dominio (`ProgressBar`, `StateBadge`, `EmptyState`, `ErrorState`, skeletons, `PageHeader`), página de error de Inertia, i18n tipado (`es`/`en`) y `MarkdownRenderer` con sus tests de sanitización.
+Tokens semánticos (estados de nodo), tipografía, `AppLayout` y `AdminLayout` (sidebar y breadcrumbs), componentes base de dominio (`ProgressBar`, `StateBadge`, `EmptyState`, `ErrorState`, skeletons, `PageHeader`), página de error de Inertia, i18n tipado (`es`/`en`) y `RichContentRenderer` con sus nodos compartidos y tests.
 
 **Criterio de salida:** los componentes tienen tests (Vitest + RTL), pasan contraste AA en ambos temas y **no hay componentes huérfanos**: cada uno tiene un consumidor planificado en la Fase 5.
 
 ### Fase 5 — MVP de punta a punta · estimación: 4–5 sesiones
 
 - **5a · Ruta del estudiante:** `RoadmapStateResolver`, `CompleteLesson`, `StartLesson`, `UncompleteLesson`, política de desbloqueo, recomendaciones por reglas (1–3), dashboard, roadmap (canvas + lista), track, lección y skills. Recursos visibles con su estado de enlace.
-- **5b · CMS:** CRUD de roadmaps, tracks, módulos, lecciones, skills y recursos. Editor Markdown con preview y checklist. `DependencyEditor`. Flujo de publicación y versiones. Usuarios y roles. Vista de auditoría.
+- **5b · CMS:** CRUD de roadmaps, tracks, módulos, lecciones, skills y recursos. Editor TipTap con nodos de dominio y checklist. `DependencyEditor`. Flujo de publicación y versiones. Usuarios y roles. Vista de auditoría.
 - **5c · Contenido:** paquete completo con 17 tracks, 50 módulos, 72 skills y dependencias, recursos oficiales y **≥ 100 lecciones publicadas**. Job de CI de verificación de enlaces.
 - **E2E:** los dos flujos de §78.
 
