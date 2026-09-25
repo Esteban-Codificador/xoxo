@@ -1,0 +1,49 @@
+- key: pro-git-book
+  title: Pro Git (2.ª edición)
+  url: https://git-scm.com/book/en/v2
+  type: BOOK
+  provider: Git (git-scm.com)
+  is_official: true
+  difficulty: BEGINNER
+  language: en
+  description: >-
+    Libro de Scott Chacon y Ben Straub publicado en el sitio oficial de Git.
+    Cubre el modelo interno, ramas, flujos de trabajo y GitHub.
+- key: git-reference-manual
+  title: Git Reference Manual
+  url: https://git-scm.com/docs
+  type: DOCUMENTATION
+  provider: Git (git-scm.com)
+  is_official: true
+  difficulty: BEGINNER
+  language: en
+  description: Referencia oficial de todos los comandos de Git.
+- key: git-rebase-reference
+  title: git-rebase
+  url: https://git-scm.com/docs/git-rebase
+  type: DOCUMENTATION
+  provider: Git (git-scm.com)
+  is_official: true
+  difficulty: INTERMEDIATE
+  language: en
+  description: Referencia oficial de git rebase, incluido el modo interactivo.
+- key: github-docs-pull-requests
+  title: GitHub Docs — Pull requests
+  url: https://docs.github.com/en/pull-requests
+  type: DOCUMENTATION
+  provider: GitHub
+  is_official: true
+  difficulty: BEGINNER
+  language: en
+  description: >-
+    Documentación oficial sobre ramas, pull requests, revisiones y reglas de
+    protección en GitHub.
+- key: conventional-commits
+  title: Conventional Commits 1.0.0
+  url: https://www.conventionalcommits.org/en/v1.0.0/
+  type: DOCUMENTATION
+  provider: Conventional Commits
+  is_official: true
+  difficulty: BEGINNER
+  language: en
+  description: Especificación del formato de mensajes de commit estructurados.

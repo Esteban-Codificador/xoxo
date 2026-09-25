@@ -1,0 +1,19 @@
+key: ai-engineer
+slug: ai-engineer
+title: AI Engineer
+locale: es
+unlock_policy: ADVISORY
+mastery_threshold: 90
+status: PUBLISHED
+summary: >-
+  Ruta completa para formarte como AI Engineer: de los fundamentos de
+  programación a diseñar, evaluar y operar sistemas de IA en producción.
+description: |
+  Este roadmap sigue una cadena de fundamentos a aplicaciones: Python,
+  matemáticas, Machine Learning, Deep Learning, Transformers, LLM Engineering,
+  RAG y agentes, con MLOps, cloud, seguridad y diseño de sistemas como capas
+  de producción.
+
+  Cada lección responde qué es, por qué importa, qué necesitas antes, cómo se
+  practica y cómo demuestras que lo aprendiste. Los proyectos de portfolio
+  convierten ese avance en evidencia verificable.

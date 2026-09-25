@@ -1,0 +1,22 @@
+- key: google-rules-of-ml
+  title: "Rules of Machine Learning: Best Practices for ML Engineering"
+  url: https://developers.google.com/machine-learning/guides/rules-of-ml
+  type: ARTICLE
+  provider: Google for Developers
+  is_official: true
+  difficulty: INTERMEDIATE
+  language: en
+  description: >-
+    Guía de Martin Zinkevich con reglas prácticas para llevar sistemas de ML a
+    producción: métricas, pipelines y monitoreo antes que modelos complejos.
+- key: google-cloud-mlops-pipelines
+  title: "MLOps: Continuous delivery and automation pipelines in machine learning"
+  url: https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning
+  type: ARTICLE
+  provider: Google Cloud
+  is_official: true
+  difficulty: INTERMEDIATE
+  language: en
+  description: >-
+    Describe los niveles de madurez de MLOps y cómo automatizar entrenamiento,
+    validación y despliegue de modelos.
