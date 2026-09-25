@@ -40,7 +40,7 @@ Nada.
 | KI-3 | ~~La descarga dist de Composer desde GitHub está bloqueada~~ | — | **Resuelto:** el hook instala desde git y reconstruye phpstan desde su repositorio |
 | KI-4 | `pgvector` no está instalado en el Postgres local | Ninguno hasta V2 | docker-compose y CI usan `pgvector/pgvector:pg16` |
 | KI-5 | Integración de Pest Browser con el Chromium del entorno sin probar | Riesgo en E2E | Se valida en la Fase 5, cuando existan los flujos E2E. *Fallback*: `@playwright/test` con `executablePath` |
-| KI-6 | `https://cloud.google.com/architecture/mlops-…` redirige a `docs.cloud.google.com` (detectado desde aquí) | Recurso válido, con URL no canónica | Actualizar la URL cuando CI confirme el destino |
+| KI-6 | ~~`cloud.google.com/architecture/mlops-…` redirige a `docs.cloud.google.com`~~ | — | **Resuelto:** CI confirmó el destino (HTTP 200) y la URL del paquete ahora es la canónica |
 
 ## Technical Debt
 
@@ -82,4 +82,4 @@ Decisiones técnicas tomadas durante la Fase 3 (sin impacto de producto):
 | Fase | Tests | Lint | Types | Build | Migraciones | Contenido | Notas |
 |---|---|---|---|---|---|---|---|
 | F0–F2 | N/A | N/A | N/A | N/A | N/A | Script ad hoc: 72 skills sin referencias rotas ni ciclos | Solo documentación. 10/10 diagramas Mermaid y 50/50 enlaces internos válidos |
-| F3 | **Pest 150/150** (349 aserciones) sobre PostgreSQL 16 · **Vitest 5/5** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums sincronizados ✅ | Vite ✅ | fresh + seed + rollback + migrate ✅ · importación idempotente comprobada | `content:validate`: 0 problemas · enlaces: 7 no concluyentes (sin red) → CI | Hook validado desde frío (servicios detenidos, sin vendor de phpstan ni `.env`): 18 s. Prueba de humo HTTP: `/up` y `/login` 200, fuente servida localmente, `lang="es"`. `composer run dev` verificado. CI: ver primer run tras el push |
+| F3 | **Pest 150/150** (349 aserciones) sobre PostgreSQL 16 · **Vitest 5/5** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums sincronizados ✅ | Vite ✅ | fresh + seed + rollback + migrate ✅ · importación idempotente comprobada | `content:validate`: 0 problemas · enlaces: 7 no concluyentes (sin red) → CI | Hook validado desde frío (servicios detenidos, sin vendor de phpstan ni `.env`): 18 s. Prueba de humo HTTP: `/up` y `/login` 200, fuente servida localmente, `lang="es"`. `composer run dev` verificado. **CI en GitHub Actions:** primer run con todo en verde salvo Vitest (el plugin de Laravel se niega a arrancar con `CI=true`); corregido cargando solo React bajo Vitest. **Workflow Content: 7/7 URLs verificadas** (6 OK y 1 redirigida, luego actualizada) |

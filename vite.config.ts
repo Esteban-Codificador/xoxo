@@ -4,26 +4,39 @@ import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
+// Vitest only needs React. The Laravel, Inertia and Wayfinder plugins start
+// dev-server machinery (Wayfinder runs artisan; the Laravel plugin refuses to
+// start when CI=true), which unit tests do not need.
+const isVitest = process.env.VITEST !== undefined;
+
 export default defineConfig({
-    plugins: lazyPlugins(() => [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.tsx'],
-            refresh: true,
-        }),
-        inertia(),
-        react(),
-        babel({
-            presets: [reactCompilerPreset()],
-        }),
-        tailwindcss(),
-        wayfinder({
-            formVariants: true,
-        }),
-    ]),
+    plugins: lazyPlugins(() =>
+        isVitest
+            ? [react()]
+            : [
+                  laravel({
+                      input: ['resources/css/app.css', 'resources/js/app.tsx'],
+                      refresh: true,
+                  }),
+                  inertia(),
+                  react(),
+                  babel({
+                      presets: [reactCompilerPreset()],
+                  }),
+                  tailwindcss(),
+                  wayfinder({
+                      formVariants: true,
+                  }),
+              ],
+    ),
     test: {
         environment: 'jsdom',
+        alias: {
+            '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
+        },
         include: ['resources/js/**/*.test.{ts,tsx}'],
         setupFiles: ['resources/js/test/setup.ts'],
         restoreMocks: true,
