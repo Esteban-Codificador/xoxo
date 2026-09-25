@@ -242,7 +242,7 @@ Capacidad de exponer funciones del sistema a un LLM de forma segura…
 | `content:validate {path}` | Valida el esquema del front matter y los enums. Comprueba claves únicas, referencias resolubles (skills, lecciones, recursos) y **aciclicidad** de los tres grafos, contrato pedagógico en lo que tenga `status: PUBLISHED`, y que el Markdown se convierta a un RichContent válido. Sale con código ≠ 0 y errores con archivo y línea. Corre en CI | 3 |
 | `content:import {path} [--dry-run] [--force] [--only=…]` | Upsert idempotente en una transacción. Resuelve la identidad por `(package, key)` en `content_import_records`. **Si el hash actual de la entidad difiere del `source_hash` registrado, se editó en el CMS y se salta** (con aviso) salvo `--force`. Convierte el Markdown a RichContent y crea `lesson_versions` para lo publicado. Registra `IMPORTED` en `audit_logs`. `--dry-run` informa de lo que crearía, actualizaría o saltaría | 3 |
 | `content:export {path}` | BD → paquete, con el mismo formato. Sirve para backup, revisión y migración entre entornos | 7 |
-| `content:verify-links [--source=db\|files]` | Verifica recursos (HEAD con fallback a GET, 3 reintentos con backoff, sigue redirecciones) y videos (YouTube oEmbed). Actualiza `link_status` | 5 (recursos), 6 (videos) |
+| `content:verify-links {path}` | Verifica las URLs de los recursos del paquete: HEAD con fallback a GET, 2 reintentos y seguimiento de redirecciones. Solo 404/410 hacen fallar el comando; timeouts, 5xx y bloqueos quedan como "no concluyentes" | 3 (archivos); 5 (modo BD que actualiza `link_status`); 6 (videos por oEmbed) |
 
 ## 8. Verificación de enlaces y videos
 

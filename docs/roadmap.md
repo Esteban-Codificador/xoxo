@@ -51,7 +51,7 @@ Repositorio vacío y entorno inspeccionado. Hallazgos en [product-discovery §0]
 ### Fase 2 — Arquitectura ✅
 [architecture.md](architecture.md), [database.md](database.md), [frontend-architecture.md](frontend-architecture.md), [content-architecture.md](content-architecture.md) y [curriculum.md](curriculum.md).
 
-### Fase 3 — Fundación y modelo de datos · estimación: 2 sesiones
+### Fase 3 — Fundación y modelo de datos ✅
 
 **Alcance:**
 1. Instalar el starter kit oficial de React (Laravel 13) en la raíz del repositorio sin perder `docs/`. Funciones de autenticación: registro, verificación de email, 2FA, passkeys y confirmación de contraseña.
@@ -63,7 +63,7 @@ Repositorio vacío y entorno inspeccionado. Hallazgos en [product-discovery §0]
 7. `DependencyGraph` (ciclos y orden topológico) con tests unitarios.
 8. RichContent: esquema, validador, texto plano y conversor Markdown → RichContent. `content:validate` y `content:import` con un **paquete mínimo de muestra** (2 tracks y 6 lecciones reales) y tests de idempotencia y protección de ediciones del CMS.
 9. `docker-compose.yml` (Postgres con pgvector, Redis y Mailpit). No se valida aquí; se deja como Known Issue.
-10. GitHub Actions con los jobs `php`, `js` y `content`.
+10. GitHub Actions: workflow `CI` (lint, tipos, build, migraciones y tests) y workflow `Content` (validación del paquete y verificación de enlaces).
 11. Hook SessionStart para que las sesiones cloud futuras arranquen Postgres y Redis e instalen dependencias.
 
 **Criterio de salida:** `migrate:fresh --seed` crea el esquema y los usuarios de ejemplo por rol. Puerta de validación en verde local. CI en verde en GitHub. README con la instalación verificada.

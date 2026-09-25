@@ -22,11 +22,24 @@ Plataforma educativa **AI Engineer Roadmap** (Laravel 13 + Inertia 3 + React 19 
 
 ## Entorno cloud (Claude Code on the web)
 
-- PostgreSQL y Redis no arrancan solos: `service postgresql start` y `redis-server --daemonize yes`.
-- Composer cae a `git clone` porque la descarga dist desde GitHub está bloqueada. Es lento pero funciona.
+- El hook `.claude/hooks/session-start.sh` deja todo listo al iniciar la sesión: PostgreSQL, Redis, bases, dependencias, `.env`, migraciones y build. Si algo falla, ejecútalo de nuevo con `CLAUDE_CODE_REMOTE=true .claude/hooks/session-start.sh`.
+- La API de GitHub está bloqueada: Composer instala desde git (`--prefer-source`) y el hook reconstruye phpstan desde su repo. Usa `COMPOSER_ALLOW_SUPERUSER=1`.
+- Tampoco hay acceso a sitios externos: `content:verify-links` dará "no concluyente" aquí; la verificación real ocurre en CI.
 - No hay daemon de Docker: `docker compose` no se puede probar aquí.
 - Chromium para E2E: `/opt/pw-browsers` (no ejecutes `playwright install`).
 
 ## Comandos
 
-Se completarán en la Fase 3, cuando existan y estén verificados.
+| Qué | Comando |
+|---|---|
+| Tests backend (Pest, PostgreSQL) | `php artisan test` · uno: `./vendor/bin/pest --filter="nombre"` |
+| Tests frontend (Vitest) | `npm run test` |
+| Lint PHP / JS | `composer lint:check` / `npm run check` (corregir: `composer lint`, `npm run check:fix`) |
+| Tipos PHP / TS | `composer types:check` (PHPStan nivel 7) / `npm run types:check` |
+| Enums PHP → TS | `php artisan types:enums` (CI: `--check`) |
+| Build | `npm run build` |
+| BD desde cero | `php artisan migrate:fresh --seed` |
+| Contenido | `php artisan content:validate` · `content:import [--dry-run] [--force]` · `content:verify-links` |
+| App en desarrollo | `composer run dev` (http://localhost:8000) |
+
+Puerta de validación completa: `docs/roadmap.md` §2. Encadena los comandos con `&&` y revisa el código de salida: un `| tail` oculta los fallos.

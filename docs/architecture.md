@@ -71,13 +71,14 @@ flowchart LR
 | Estilos | Tailwind CSS | 4.x | |
 | Componentes | shadcn/ui (Radix) | — | Copiados en `components/ui`, no son una dependencia |
 | Editor de contenido | TipTap (ProseMirror) | 3.31 | Editor enriquecido del CMS (ADR-023) |
-| Toolchain JS | Vite 8 + vite-plus (oxlint, oxfmt) | 8.x / 0.3 | Viene del starter kit oficial |
+| Toolchain JS | Vite 8 + vite-plus (oxlint, oxfmt, Vitest) | 8.x / 0.3 | Viene del starter kit oficial |
+| Tipografía | @fontsource-variable (Instrument Sans, JetBrains Mono) | 5.3 | Autoalojada (ADR-025) |
 | Grafo | @xyflow/react + @dagrejs/dagre | 12.x / 3.x | |
 | Base de datos | PostgreSQL | 16 | Extensiones: `pg_trgm`, `unaccent`, `citext`. `pgvector` en V2 |
 | Caché / colas / sesiones | Redis | 7 | |
 | Permisos | spatie/laravel-permission | 8.x | |
-| Tests backend | Pest (sobre PHPUnit 12) + plugin browser | 5.x | E2E sobre Playwright |
-| Tests frontend | Vitest + React Testing Library | 5.x / 16.x | |
+| Tests backend | Pest (sobre PHPUnit 13) + plugin browser | 5.2 | E2E sobre Playwright (plugin en la Fase 5) |
+| Tests frontend | Vitest (incluido en vite-plus) + React Testing Library | 4.1 / 16.x | |
 | Análisis estático | Larastan (PHPStan), Pint, oxlint, `tsc` | | |
 | IA (V2) | laravel/ai | 1.x | SDK oficial multiproveedor |
 | Infraestructura local | Docker Compose (solo infraestructura) | | Validación pendiente: el entorno actual no tiene daemon |
@@ -155,7 +156,7 @@ app/
 │   ├── Practice/                # Labs, Projects (Fase 6)
 │   ├── Gamification/            # ActivityRecorder, XpLedger, StreakCalculator, BadgeRules/* (Fase 7)
 │   ├── Search/                  # SearchIndex (interfaz), PostgresSearchIndex (Fase 7)
-│   ├── Content/                 # PackageReader, PackageValidator, PackageImporter, LinkVerifier
+│   ├── Content/                 # Package/ (reader, validator, importer), Links/ (LinkChecker)
 │   │   └── RichContent/         # Documento estructurado: esquema, validador, texto plano, Markdown → RichContent
 │   ├── Audit/                   # AuditLogger, observers
 │   └── Ai/                      # V2
@@ -377,3 +378,6 @@ Formato: **Decisión** · *alternativas descartadas* · consecuencias.
 | 022 | **Un motor de tipos de pregunta compartido entre ejercicios y quizzes** (strategy) | Dos motores | Un solo lugar para calificar. Los ejercicios abiertos usan autoevaluación con rúbrica |
 | 023 | **Contenido enriquecido como documento estructurado (RichContent: JSON de ProseMirror con sobre versionado `{version, doc}`), editado con TipTap.** Esquema propio y extensible: nodos base (párrafo, encabezados H2–H4, listas, cita, código, tabla, separador) y nodos de dominio (`callout`, `blockMath`/`inlineMath`, `diagram` Mermaid, `video`). El Markdown queda **solo como formato de autoría del paquete de contenido** y se convierte a RichContent al importar | Markdown como formato único (ADR-005); HTML guardado desde un editor WYSIWYG; bloques propios sin ProseMirror | Edición visual para perfiles no técnicos y nodos de dominio de primera clase. Costos: un conversor Markdown → RichContent en PHP (sobre el AST de league/commonmark), un validador de esquema en el servidor y **dos renderizadores que deben coincidir** (el del lector y las NodeViews del editor), que se mitiga con componentes React compartidos. Los diffs entre versiones se muestran sobre el texto plano extraído |
 | 024 | **Currículo en cadena lineal estricta (§25)**: cada eslabón Python → Matemáticas → ML → DL → Transformers → LLM Engineering → RAG → Agents es REQUIRED (decisión del dueño del producto, 2026-09-25). El esquema **conserva** `kind` REQUIRED/RECOMMENDED | Ruta "aplicaciones primero" con LLM Engineering dependiendo solo de Python | Con la política ADVISORY (D1) la cadena genera avisos y ordena las recomendaciones, pero no bloquea. Volver a una ruta alternativa es un cambio de datos (el `kind` de una arista), no de código |
+| 025 | **Fuentes autoalojadas vía `@fontsource`** en lugar del plugin de fuentes del starter, que las descarga de fonts.bunny.net al compilar | Mantener el CDN de Bunny | El build no depende de un tercero (falló en el entorno de desarrollo) y la CSP de la Fase 8 no necesita permitir dominios de fuentes. Coste: unos KB más en el bundle |
+| 026 | **Roles y permisos se sincronizan en una migración** (`2026_09_25_000150`), no solo en el seeder | Solo `db:seed` | Todo entorno migrado tiene los roles. El registro (que asigna STUDENT) no depende de que alguien recuerde ejecutar el seeder. Un cambio de la matriz se acompaña de una migración que vuelve a sincronizar |
+| 027 | **`content:verify-links` (modo archivos) adelantado a la Fase 3** y ejecutado en el workflow `Content` | Esperar a la Fase 5 | El paquete de muestra ya tiene URLs que el entorno de desarrollo no puede verificar. Solo 404/410 bloquean; timeouts, 5xx y bloqueos anti-bot son "no concluyentes". El modo BD (actualizar `link_status`) queda en la Fase 5 |

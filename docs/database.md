@@ -152,7 +152,8 @@ Notación: `FK→tabla (acción)`, `UK` = único, `IX` = índice, `CK` = check.
 
 ```text
 users                         (extiende la tabla del starter kit)
-  + username          citext UK NULL      -- requerido para el portfolio público; citext = único sin distinguir mayúsculas
+  + username          varchar(40) UK NULL -- requerido para el portfolio público
+                                          CK users_username_format: ^[a-z0-9](?:[a-z0-9-]{1,38})[a-z0-9]$ (minúsculas: sin citext)
   + locale            varchar(5) DEFAULT 'es'
   + timezone          varchar(64) DEFAULT 'UTC'
   + bio               text NULL
@@ -253,7 +254,7 @@ Relaciones que la BD no puede garantizar y que valida el dominio (`DependencyGra
 ### 4.3 Recursos y medios (recursos: Fase 3; resto: Fase 6)
 
 ```text
-resources
+resources                                         -- modelo App\Models\ExternalResource (no "Resource": choca con el tipo resource de PHP)
   id, title, url varchar(2048) UK, type enum ResourceType, provider varchar(120)
   description text, difficulty enum Difficulty NULL, language varchar(5) DEFAULT 'en'
   is_official boolean DEFAULT false
@@ -435,7 +436,8 @@ audit_logs                                        -- solo INSERT (la app nunca a
 content_import_records                            -- trazabilidad del paquete de contenido
   id, package varchar(64), key varchar(191)
   importable_type varchar(32), importable_id bigint
-  source_hash char(64)                            -- hash del contenido importado; si la entidad cambió en el CMS, no se sobrescribe
+  source_hash char(64)                            -- hash del archivo fuente: si no cambió, la entidad queda igual
+  entity_hash char(64)                            -- hash del estado importado: si difiere del actual, se editó en el CMS y no se sobrescribe
   imported_at
   UK (package, key) · IX (importable_type, importable_id)
 
@@ -475,7 +477,7 @@ settings (opcional, si hace falta)                -- `content_version` vive en c
 
 ## 7. Orden de migraciones
 
-1. **Fase 3:** extensión de `users` → spatie → `roadmaps` → `tracks` → `track_dependencies` → `modules` → `lessons` → `lesson_versions` (más la FK diferida `lessons.published_version_id`) → `lesson_dependencies` → `skills` → `skill_dependencies` → `lesson_skill` → `resources` → `resource_links` → `lesson_progress` → `learning_activities` → `audit_logs` → `content_import_records`. También las extensiones `pg_trgm`, `unaccent` y `citext` y la configuración de texto `es_unaccent`.
+1. **Fase 3:** extensión de `users` → spatie → sincronización de roles y permisos (migración de datos, ADR-026) → `roadmaps` → `tracks` → `track_dependencies` → `modules` → `lessons` → `lesson_versions` (más la FK diferida `lessons.published_version_id`) → `lesson_dependencies` → `skills` → `skill_dependencies` → `lesson_skill` → `resources` → `resource_links` → `lesson_progress` → `learning_activities` → `audit_logs` → `content_import_records`. Las extensiones `pg_trgm` y `unaccent` y la configuración `es_unaccent` se crean en la Fase 7, junto con `search_documents`, que es su único consumidor.
 2. **Fase 6:** `videos`, `video_links`, `media_assets`, `exercises`, `exercise_attempts`, `quizzes`, `quiz_questions`, `quiz_attempts`, `quiz_attempt_answers`, `labs`, `lab_progress`, `projects`, `project_skill`, `project_milestones`, `user_projects`, `user_project_milestones`.
 3. **Fase 7:** `bookmarks`, `notes`, `badges`, `user_badges`, `certificates`, `topics`, `lesson_topic`, `technologies`, `technology_links`, `search_documents`.
 

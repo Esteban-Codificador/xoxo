@@ -1,0 +1,56 @@
+name: Content
+
+# Validates the content package and checks that every external resource
+# URL still exists. A 404/410 blocks pull requests that touch content/.
+# The weekly run reports link rot without blocking anyone.
+on:
+  push:
+    paths:
+      - 'content/**'
+      - 'app/Domain/Content/**'
+      - '.github/workflows/content.yml'
+  pull_request:
+    paths:
+      - 'content/**'
+      - 'app/Domain/Content/**'
+      - '.github/workflows/content.yml'
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  content:
+    name: Validate package and verify links
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, intl
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+
+      - name: Validate content package
+        run: php artisan content:validate
+
+      - name: Verify resource links
+        continue-on-error: ${{ github.event_name == 'schedule' }}
+        run: php artisan content:verify-links
