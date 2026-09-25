@@ -85,6 +85,12 @@ Es Markdown compatible con GitHub, así que se ve igual en un PR. Se convierte a
 
 No se admiten HTML crudo, encabezados H1 (el título ya lo es) ni, hasta la Fase 6, imágenes.
 
+**Lenguajes con resaltado:** `python`, `bash`, `javascript`, `typescript`, `tsx`, `jsx`, `json`, `yaml`, `toml`, `ini`, `sql`, `php`, `html`, `css`, `xml`, `markdown`, `dockerfile`, `diff`, `go`, `rust`, `java`, `c` y `cpp`, más alias comunes (`py`, `sh`, `shell`, `console`, `js`, `ts`, `yml`, `md`, `docker`). Cualquier otro se muestra como texto plano con su etiqueta.
+
+**Diagramas legibles:** el lector reduce un diagrama ancho hasta el 75 % de su tamaño y, a partir de ahí, lo desplaza en horizontal. En móvil, un `flowchart LR` de más de 4 nodos obliga a desplazarse. Prefiere `flowchart TD` para procesos largos y deja `LR` para 2–4 nodos.
+
+**Revisar cómo se ve:** en local, `/_dev/design-system?lesson=<slug>` renderiza cualquier lección publicada con el mismo componente que verá el estudiante, en claro, oscuro y móvil.
+
 ## Recursos externos
 
 ```yaml

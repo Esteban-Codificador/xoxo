@@ -15,7 +15,8 @@ log() { echo "[session-start] $*" >&2; }
 # 1. Services: PostgreSQL 16 and Redis are installed but not running.
 log "Starting PostgreSQL and Redis"
 service postgresql start >/dev/null 2>&1 || true
-redis-cli ping >/dev/null 2>&1 || redis-server --daemonize yes >/dev/null
+# Cache and sessions only: no snapshots (they would land in the repository).
+redis-cli ping >/dev/null 2>&1 || redis-server --daemonize yes --save '' --appendonly no --dir /tmp >/dev/null
 for _ in $(seq 1 30); do
     pg_isready -h 127.0.0.1 -q && break
     sleep 1

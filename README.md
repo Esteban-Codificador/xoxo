@@ -10,7 +10,7 @@ Llevar a una persona desde "sé programar" hasta "diseño, evalúo y opero siste
 
 ## Estado
 
-**Fase 3 (fundación y modelo de datos) completada.** Hay autenticación, esquema de datos, publicación versionada, auditoría, roles y un importador de contenido con un currículo de muestra. **Aún no hay pantallas propias del producto**: el roadmap, las lecciones y el CMS llegan en las Fases 4 y 5.
+**Fase 4 (design system) completada.** Hay autenticación, esquema de datos, publicación versionada, auditoría, roles, un importador de contenido con un currículo de muestra, la interfaz en español (i18n tipado), un dashboard con los tracks publicados, un resumen de contenido para el equipo editorial y el renderizador de lecciones (código resaltado, fórmulas, diagramas y video). **Aún no hay progreso del estudiante, páginas de lección ni CMS**: llegan en la Fase 5. En local, `/_dev/design-system` muestra los componentes y las lecciones reales.
 
 El estado vivo está en [`docs/progress.md`](docs/progress.md). Las capturas se añadirán cuando existan pantallas propias (Fase 5).
 

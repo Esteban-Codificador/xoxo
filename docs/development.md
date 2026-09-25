@@ -24,6 +24,7 @@ El hook `.claude/hooks/session-start.sh` prepara cada sesión en la nube: arranc
 | Regenerar tipos TS de los enums | `php artisan types:enums` |
 | Regenerar rutas tipadas (Wayfinder) | `php artisan wayfinder:generate --with-form` (también lo hace el build) |
 | Formatear PHP / JS | `composer lint` / `npm run check:fix` |
+| Revisar el design system y una lección real (solo `APP_ENV=local`) | http://localhost:8000/_dev/design-system |
 
 ## Convenciones de código
 
@@ -34,6 +35,9 @@ El hook `.claude/hooks/session-start.sh` prepara cada sesión en la nube: arranc
 - **Migraciones:** reversibles, con CHECKs e índices en la BD. No referencies enums PHP dentro de una migración (los valores se escriben literales para que la migración no cambie con el código).
 - **Modelos:** modo estricto activo fuera de producción (lazy loading prohibido y atributos no rellenables rechazados). Usa `with()` o `loadMissing()`.
 - **Idioma:** textos de UI y mensajes al usuario en español (y preparados para i18n); identificadores, commits y comentarios de código en inglés.
+- **Textos de interfaz:** siempre con `t('clave')` desde `resources/js/i18n`. Una clave nueva va en `es.ts` y en `en.ts` (tsc y un test fallan si falta en uno). Si el orden de las palabras cambia entre idiomas, la clave es la frase completa con `{parámetros}`, no fragmentos concatenados.
+- **Colores:** solo tokens de `resources/css/app.css` (`bg-state-completed-soft`, `text-callout-tip`…), nunca literales. Un token nuevo que se usa como texto se añade a `resources/js/test/contrast.test.ts`.
+- **Modelos:** si una columna tiene `default` en la BD y el código la lee justo después de `create()`, refleja ese valor en `$attributes` del modelo; con el modo estricto, leer un atributo no cargado lanza una excepción.
 
 ## Estructura del paquete de contenido
 

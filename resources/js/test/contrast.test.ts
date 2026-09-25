@@ -60,6 +60,7 @@ function contrast(a: string, b: string): number {
 }
 
 const states = ['locked', 'available', 'in-progress', 'completed', 'mastered'];
+const callouts = ['note', 'tip', 'important', 'warning', 'caution'];
 
 describe.each([':root', '.dark'] as const)(
     'design tokens in %s',
@@ -96,6 +97,31 @@ describe.each([':root', '.dark'] as const)(
                 ).toBeGreaterThanOrEqual(3);
             },
         );
+
+        it.each(callouts)(
+            '%s callout label is readable on the page and on its panel (4.5:1)',
+            (variant) => {
+                expect(
+                    t[`callout-${variant}`],
+                    `callout-${variant}`,
+                ).toBeDefined();
+                expect(
+                    contrast(t[`callout-${variant}`], t.background),
+                ).toBeGreaterThanOrEqual(4.5);
+                expect(
+                    contrast(t[`callout-${variant}`], t.muted),
+                ).toBeGreaterThanOrEqual(4.5);
+            },
+        );
+
+        it('keeps error text readable and the logo mark visible', () => {
+            expect(
+                contrast(t.destructive, t.background),
+            ).toBeGreaterThanOrEqual(4.5);
+            expect(
+                contrast(t['sidebar-primary-foreground'], t['sidebar-primary']),
+            ).toBeGreaterThanOrEqual(4.5);
+        });
 
         it('keeps body and secondary text readable', () => {
             expect(contrast(t.foreground, t.background)).toBeGreaterThanOrEqual(

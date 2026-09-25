@@ -40,6 +40,6 @@ Plataforma educativa **AI Engineer Roadmap** (Laravel 13 + Inertia 3 + React 19 
 | Build | `npm run build` |
 | BD desde cero | `php artisan migrate:fresh --seed` |
 | Contenido | `php artisan content:validate` · `content:import [--dry-run] [--force]` · `content:verify-links` |
-| App en desarrollo | `composer run dev` (http://localhost:8000) |
+| App en desarrollo | `composer run dev` (http://localhost:8000) · galería local: `/_dev/design-system` |
 
 Puerta de validación completa: `docs/roadmap.md` §2. Encadena los comandos con `&&` y revisa el código de salida: un `| tail` oculta los fallos.

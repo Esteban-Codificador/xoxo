@@ -6,10 +6,12 @@ import {
     ContentStatusBadge,
     LinkStatusBadge,
 } from '@/features/publishing/status-badges';
+import type { ActivityEntry } from '@/features/admin/activity';
+import { activitySentence } from '@/features/admin/activity';
 import { t } from '@/i18n';
 import { formatDateTime } from '@/lib/format';
 import { dashboard } from '@/routes/admin';
-import type { AuditAction, ContentStatus, LinkStatus } from '@/types/enums';
+import type { ContentStatus, LinkStatus } from '@/types/enums';
 
 type Entity = 'roadmap' | 'track' | 'module' | 'lesson' | 'skill' | 'resource';
 
@@ -20,26 +22,11 @@ type Props = {
         total: number;
     }[];
     links: Record<LinkStatus, number>;
-    activity: {
-        id: number;
-        action: AuditAction;
-        entity: string;
-        label: string | null;
-        user: string | null;
-        created_at: string;
-    }[];
+    activity: ActivityEntry[];
 };
 
 const statuses: ContentStatus[] = ['DRAFT', 'REVIEW', 'PUBLISHED', 'ARCHIVED'];
 const linkStatuses: LinkStatus[] = ['UNCHECKED', 'OK', 'REDIRECTED', 'BROKEN'];
-
-function entityLabel(entity: string): string {
-    return (
-        ['roadmap', 'track', 'module', 'lesson', 'skill', 'resource'] as const
-    ).includes(entity as Entity)
-        ? t(`admin.entities.${entity as Entity}`)
-        : entity;
-}
 
 export default function AdminDashboard({ content, links, activity }: Props) {
     setLayoutProps({
@@ -99,7 +86,7 @@ export default function AdminDashboard({ content, links, activity }: Props) {
                                             scope="row"
                                             className="px-4 py-2 text-left font-normal"
                                         >
-                                            {entityLabel(row.entity)}
+                                            {t(`admin.entities.${row.entity}`)}
                                         </th>
                                         {statuses.map((status) => (
                                             <td
@@ -162,18 +149,7 @@ export default function AdminDashboard({ content, links, activity }: Props) {
                                     key={entry.id}
                                     className="flex flex-col gap-1 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
                                 >
-                                    <p>
-                                        <span className="font-medium">
-                                            {entry.user ?? t('admin.system')}
-                                        </span>{' '}
-                                        {t(`admin.actions.${entry.action}`)}{' '}
-                                        <span className="text-muted-foreground">
-                                            {entityLabel(
-                                                entry.entity,
-                                            ).toLowerCase()}
-                                        </span>
-                                        {entry.label && <> «{entry.label}»</>}
-                                    </p>
+                                    <p>{activitySentence(entry)}</p>
                                     <time
                                         dateTime={entry.created_at}
                                         className="shrink-0 text-xs text-muted-foreground"

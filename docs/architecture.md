@@ -73,6 +73,7 @@ flowchart LR
 | Editor de contenido | TipTap (ProseMirror) | 3.31 | Editor enriquecido del CMS (ADR-023) |
 | Toolchain JS | Vite 8 + vite-plus (oxlint, oxfmt, Vitest) | 8.x / 0.3 | Viene del starter kit oficial |
 | Tipografía | @fontsource-variable (Instrument Sans, JetBrains Mono) | 5.3 | Autoalojada (ADR-025) |
+| Lector de contenido | Shiki (core + motor JS) · KaTeX · Mermaid · @tailwindcss/typography | 4.4 · 0.16 · 12.0 · 0.5 | Carga diferida por uso. KaTeX fijado en 0.16 para compartir copia con Mermaid (ADR-028) |
 | Grafo | @xyflow/react + @dagrejs/dagre | 12.x / 3.x | |
 | Base de datos | PostgreSQL | 16 | Extensiones: `pg_trgm`, `unaccent`, `citext`. `pgvector` en V2 |
 | Caché / colas / sesiones | Redis | 7 | |
@@ -381,3 +382,5 @@ Formato: **Decisión** · *alternativas descartadas* · consecuencias.
 | 025 | **Fuentes autoalojadas vía `@fontsource`** en lugar del plugin de fuentes del starter, que las descarga de fonts.bunny.net al compilar | Mantener el CDN de Bunny | El build no depende de un tercero (falló en el entorno de desarrollo) y la CSP de la Fase 8 no necesita permitir dominios de fuentes. Coste: unos KB más en el bundle |
 | 026 | **Roles y permisos se sincronizan en una migración** (`2026_09_25_000150`), no solo en el seeder | Solo `db:seed` | Todo entorno migrado tiene los roles. El registro (que asigna STUDENT) no depende de que alguien recuerde ejecutar el seeder. Un cambio de la matriz se acompaña de una migración que vuelve a sincronizar |
 | 027 | **`content:verify-links` (modo archivos) adelantado a la Fase 3** y ejecutado en el workflow `Content` | Esperar a la Fase 5 | El paquete de muestra ya tiene URLs que el entorno de desarrollo no puede verificar. Solo 404/410 bloquean; timeouts, 5xx y bloqueos anti-bot son "no concluyentes". El modo BD (actualizar `link_status`) queda en la Fase 5 |
+| 028 | **Excepción acotada a "sin HTML inyectado" en el lector de RichContent: KaTeX escribe su DOM con `katex.render` en un elemento sin hijos de React, y Mermaid inserta el SVG que devuelve `mermaid.render`.** El resto del documento se construye con elementos React (Shiki devuelve tokens, no HTML). Salvaguardas: el servidor valida LaTeX y fuente del diagrama (longitud y tipo), KaTeX corre con `trust: false` y `maxExpand` limitado, Mermaid con `securityLevel: 'strict'` (DOMPurify, sin clics ni etiquetas HTML) y ambos se prueban con entradas maliciosas | Reimplementar la salida de KaTeX y Mermaid como árboles React; renderizarlos en el servidor | Se reutilizan dos bibliotecas maduras sin mantener un traductor propio. El riesgo queda en su saneamiento interno, que se sigue con `npm audit` y sus avisos de seguridad. La CSP de la Fase 8 debe permitir los estilos en línea que ambas generan |
+

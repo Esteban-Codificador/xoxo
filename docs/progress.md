@@ -2,7 +2,7 @@
 
 > **Protocolo de sesión (§82):** 1) leer este archivo; 2) determinar la fase; 3) continuar desde ahí; 4) no rehacer trabajo correcto; 5) pasar la puerta de validación ([roadmap §2](roadmap.md#2-puerta-de-validación-obligatoria-al-cerrar-cada-fase)); 6) actualizar este archivo.
 
-**Fase actual:** Fase 3 cerrada. **Siguiente: Fase 4, Design system.**
+**Fase actual:** Fase 4 cerrada. **Siguiente: Fase 5a, ruta del estudiante.**
 
 Última actualización: 2026-09-25.
 
@@ -17,19 +17,25 @@
 | 2026-09-25 | F2 Arquitectura | `architecture.md`, `database.md`, `frontend-architecture.md`, `content-architecture.md`, `curriculum.md` y `roadmap.md` |
 | 2026-09-25 | Decisiones | D1–D7 confirmadas por el dueño del producto. D2 y D3 cambiadas (ADR-023 y ADR-024) |
 | 2026-09-25 | **F3 Fundación** | Starter kit oficial (Laravel 13, Inertia 3, React 19, Fortify con 2FA y passkeys) sobre PostgreSQL y Redis. 13 migraciones con CHECKs, FKs e índices parciales. Modelos, enums, factories y *morph map* forzado. Roles y permisos (matriz de roadmap §4) sincronizados en una migración. `AuditLogger` con observers. `DependencyGraph`. RichContent (esquema, validador y conversor Markdown → RichContent). `LessonReadiness` + `PublishLesson` (versiones inmutables). Paquete de contenido: lector, validador e importador idempotente que respeta el CMS. Comandos `content:validate`, `content:import`, `content:verify-links` y `types:enums`. Paquete de muestra real: 2 tracks, 2 módulos, **6 lecciones de nivel B**, 3 skills y 7 recursos oficiales. `docker-compose.yml`, workflows `CI` y `Content`, hook de sesión y documentación (README, development, testing, content-authoring y contributing) |
+| 2026-09-25 | **F4 Design system** | Tokens de estado y de callout en claro y oscuro con **test de contraste AA** que lee `app.css`. i18n tipado (`es` fuente, `en` con la misma forma) guiado por `<html lang>`, middleware `SetLocale` y `lang/es` (validación incluida). UI del starter traducida. `AppLayout` y `AdminLayout` con navegación real según permisos. Página de error de Inertia (403/404/419/500/503). Dashboard del estudiante (tracks publicados con lecciones visibles) y resumen del admin (contenido por estado, enlaces y actividad). Componentes de dominio con tests. **`RichContentRenderer`** con Shiki, KaTeX, Mermaid, video, tablas, callouts y enlaces seguros. Galería local `/_dev/design-system` con lecciones reales. Revisión visual con Playwright en claro, oscuro y móvil |
 
 ## In Progress
 
 Nada.
 
-## Next (Fase 4: Design system, en este orden)
+## Next (Fase 5a: ruta del estudiante, en este orden)
 
-1. Tokens semánticos de estado (LOCKED…MASTERED) en `resources/css/app.css`, en claro y oscuro, con contraste AA verificado.
-2. i18n tipado (`resources/js/i18n/es.ts`, `en.ts`, `t()`) y `lang/es` del backend, incluida la traducción de `validation.php` (hoy los mensajes del validador del paquete salen en inglés).
-3. `AppLayout` y `AdminLayout` (sidebar y breadcrumbs) sobre los del starter; página de error de Inertia (403, 404, 419, 500 y 503).
-4. Componentes de dominio con tests: `ProgressBar`, `StateBadge`, `EmptyState`, `ErrorState`, skeletons y `PageHeader`.
-5. `RichContentRenderer` con los nodos compartidos (`Callout`, `CodeBlock` con Shiki, `MathBlock`/`MathInline` con KaTeX, `MermaidDiagram`, `VideoEmbed`) y sus tests, incluidos XSS y nodos desconocidos.
-6. Puerta de validación y actualización de este archivo.
+1. **Motor de estados:** `RoadmapStateResolver` (LOCKED y AVAILABLE calculados; IN_PROGRESS, COMPLETED y MASTERED persistidos, ADR-007) y política ADVISORY (D1) sobre la cadena lineal (D2). Tests de dominio primero: es la regla de negocio central.
+2. **Acciones de progreso:** `StartLesson`, `CompleteLesson` y `UncompleteLesson`, cada una con FormRequest, Policy y Action, y su evento en `learning_activities`.
+3. **Página de lección** (`lessons/show`): cabecera, por qué importa, objetivos, prerrequisitos, `RichContentRenderer`, tabla de contenidos con `collectHeadings`, recursos con su estado de enlace, botón completar y siguientes pasos.
+4. **Página de track** y **dashboard con progreso** (`StateBadge`, `ProgressBar`, skeletons con props diferidos).
+5. **Roadmap visual** (React Flow + dagre, dos niveles) y su vista de lista accesible.
+6. **Skills** (índice y detalle) y recomendaciones por reglas 1–3.
+7. **E2E del estudiante** con Pest Browser (resuelve KI-5) y puerta de validación.
+
+Después: 5b (CMS con TipTap) y 5c (contenido completo).
+
+**Pendiente del dueño del producto:** revisión de las 6 lecciones de muestra (en curso). Nota para esa revisión: el diagrama de "El ciclo de vida de un sistema de IA" es un `flowchart LR` de 6 nodos; en móvil obliga a desplazarse en horizontal. Pasarlo a `flowchart TD` lo hace legible sin desplazamiento (guía nueva en `content-authoring.md`).
 
 ## Known Issues
 
@@ -41,21 +47,26 @@ Nada.
 | KI-4 | `pgvector` no está instalado en el Postgres local | Ninguno hasta V2 | docker-compose y CI usan `pgvector/pgvector:pg16` |
 | KI-5 | Integración de Pest Browser con el Chromium del entorno sin probar | Riesgo en E2E | Se valida en la Fase 5, cuando existan los flujos E2E. *Fallback*: `@playwright/test` con `executablePath` |
 | KI-6 | ~~`cloud.google.com/architecture/mlops-…` redirige a `docs.cloud.google.com`~~ | — | **Resuelto:** CI confirmó el destino (HTTP 200) y la URL del paquete ahora es la canónica |
+| KI-8 | ~~`dump.rdb` (volcado de Redis) versionado desde la Fase 3: el hook arrancaba Redis con la raíz del repositorio como directorio~~ | — | **Resuelto:** fuera del índice, en `.gitignore`, y el hook arranca Redis sin snapshots (`--save ''`, `--dir /tmp`). Solo contenía caché y sesiones locales de desarrollo |
+| KI-7 | En el tema oscuro de Mermaid, las etiquetas de los commits de un `gitGraph` tienen poco contraste | Cosmético; el diagrama se entiende | Ajustar `themeVariables` de Mermaid en la Fase 8, junto con la auditoría axe |
 
 ## Technical Debt
 
 | # | Deuda | Cuándo se paga |
 |---|---|---|
-| TD-1 | Los mensajes de validación del framework salen en inglés (falta `lang/es/validation.php`) | Fase 4 |
+| TD-1 | ~~Los mensajes de validación del framework salen en inglés~~ | **Pagada en la Fase 4** (`lang/es`) |
 | TD-2 | `axllent/mailpit:latest` sin versión fijada en docker-compose | Al validar KI-1 |
 | TD-3 | Tooling pre-1.0 heredado del starter: vite-plus 0.3 y Wayfinder 0.1 | Revisar en cada actualización. El lockfile las fija |
 | TD-4 | Borrar un archivo del paquete no elimina la entidad de la BD. Es intencional (la BD es la fuente de verdad), pero no se avisa | Fase 7, con `content:export`, que mostrará las diferencias |
 | TD-5 | El esquema RichContent se valida solo en el servidor: aún no existe el editor TipTap | Fase 5b: un test de paridad entre los nombres de nodo del editor y la lista blanca del servidor |
 | TD-6 | Las relaciones de una lección (skills, recursos, dependencias) no se versionan (R10) | Aceptado para V1 |
+| TD-7 | `overrides.lodash-es: ^4.18.1` en `package.json`: Mermaid 12 arrastra `lodash-es@4.17.23` (vía chevrotain), con dos avisos altos (GHSA-r5fr-rjxr-66jc y GHSA-f23m-r3pf-42rh). El "arreglo" de `npm audit` era bajar a Mermaid 11 | Quitar el override cuando Mermaid publique una versión con `lodash-es` ≥ 4.18; revisar en cada actualización |
+| TD-8 | El iframe de YouTube carga el reproductor completo (con `loading="lazy"`); no hay fachada con miniatura | Fase 8 (rendimiento y CSP) |
+| TD-9 | El script de capturas de la revisión visual vive fuera del repositorio | Fase 5, al integrar Pest Browser |
 
 ## Decisions
 
-El registro completo está en [architecture.md §14](architecture.md#14-registro-de-decisiones-adr) (ADR-001 a ADR-027).
+El registro completo está en [architecture.md §14](architecture.md#14-registro-de-decisiones-adr) (ADR-001 a ADR-028).
 
 Decisiones confirmadas por el dueño del producto el 2026-09-25:
 
@@ -68,6 +79,16 @@ Decisiones confirmadas por el dueño del producto el 2026-09-25:
 | D5 | Progreso de skill y track calculado | ✅ Aceptada |
 | D6 | Sin `AiProviderInterface` en V1 | ✅ Aceptada |
 | D7 | Dos niveles de profundidad del contenido (A/B) | ✅ Aceptada |
+
+Decisiones técnicas tomadas durante la Fase 4 (sin impacto de producto):
+
+- **ADR-028:** KaTeX y Mermaid escriben su propio DOM (excepción acotada a "sin HTML inyectado", con `trust: false` y `securityLevel: 'strict'`). Todo lo demás del lector son elementos React; Shiki entrega tokens, no HTML.
+- **KaTeX fijado en 0.16** (no 0.18) para compartir una sola copia con Mermaid: evita descargar dos veces 78 kB gzip.
+- **Shiki "fine-grained":** núcleo + motor de expresiones regulares en JS (sin WASM) y una gramática por lenguaje cargada al primer uso, en lugar del bundle completo.
+- **Tokens del starter corregidos por el test de contraste:** `--muted-foreground` en claro, `--destructive` en oscuro (valor de shadcn v4; el botón destructivo lo atenúa con `dark:bg-destructive/60`) y el logo en oscuro.
+- **Idioma por `<html lang>`** en lugar de un contexto de React: el servidor lo fija por usuario y `t()` lo lee siempre del mismo sitio que los lectores de pantalla.
+- **Galería `/_dev/design-system` solo en `APP_ENV=local`:** herramienta de revisión, no una función del producto.
+- **Dos bugs encontrados por los tests nuevos:** `User` no reflejaba los defaults de columna (con el modo estricto, `SetLocale` fallaba justo después de `create()`), y el scope `visibleToLearners` no calificaba sus columnas (ambiguas en el `has-many-through` de `Track::visibleLessons()`).
 
 Decisiones técnicas tomadas durante la Fase 3 (sin impacto de producto):
 
@@ -83,3 +104,4 @@ Decisiones técnicas tomadas durante la Fase 3 (sin impacto de producto):
 |---|---|---|---|---|---|---|---|
 | F0–F2 | N/A | N/A | N/A | N/A | N/A | Script ad hoc: 72 skills sin referencias rotas ni ciclos | Solo documentación. 10/10 diagramas Mermaid y 50/50 enlaces internos válidos |
 | F3 | **Pest 150/150** (349 aserciones) sobre PostgreSQL 16 · **Vitest 5/5** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums sincronizados ✅ | Vite ✅ | fresh + seed + rollback + migrate ✅ · importación idempotente comprobada | `content:validate`: 0 problemas · enlaces: 7 no concluyentes (sin red) → CI | Hook validado desde frío (servicios detenidos, sin vendor de phpstan ni `.env`): 18 s. Prueba de humo HTTP: `/up` y `/login` 200, fuente servida localmente, `lang="es"`. `composer run dev` verificado. **CI en GitHub Actions:** primer run con todo en verde salvo Vitest (el plugin de Laravel se niega a arrancar con `CI=true`); corregido cargando solo React bajo Vitest. **Run #2 (`eab9002`): CI ✅ y Content ✅.** Workflow Content: 7/7 URLs verificadas (6 OK y 1 redirigida, luego actualizada) |
+| F4 | **Pest 170/170** (547 aserciones) · **Vitest 97/97** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums sincronizados ✅ | Vite ✅ (Shiki, KaTeX y Mermaid en chunks diferidos; el bundle principal no los incluye) | fresh + seed + rollback + migrate ✅ | `content:validate`: 0 problemas · importación ✅ | `npm audit`: 0 vulnerabilidades (tras TD-7). **Revisión visual con Playwright** (Chromium del entorno): bienvenida, login (con error), dashboard, admin, 403, 404 y las 6 lecciones en la galería, en claro, oscuro y móvil (390 px). Sin errores de consola ni desbordamiento horizontal. Defectos encontrados y corregidos en la revisión: logo invisible en oscuro, texto de error ilegible en oscuro, frases de actividad agramaticales ("publicó lecciones «X»") y diagramas anchos ilegibles en móvil (reducidos al 24 %) |

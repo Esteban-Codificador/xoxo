@@ -68,11 +68,13 @@ Repositorio vacío y entorno inspeccionado. Hallazgos en [product-discovery §0]
 
 **Criterio de salida:** `migrate:fresh --seed` crea el esquema y los usuarios de ejemplo por rol. Puerta de validación en verde local. CI en verde en GitHub. README con la instalación verificada.
 
-### Fase 4 — Design system · estimación: 1 sesión
+### Fase 4 — Design system ✅
 
 Tokens semánticos (estados de nodo), tipografía, `AppLayout` y `AdminLayout` (sidebar y breadcrumbs), componentes base de dominio (`ProgressBar`, `StateBadge`, `EmptyState`, `ErrorState`, skeletons, `PageHeader`), página de error de Inertia, i18n tipado (`es`/`en`) y `RichContentRenderer` con sus nodos compartidos y tests.
 
 **Criterio de salida:** los componentes tienen tests (Vitest + RTL), pasan contraste AA en ambos temas y **no hay componentes huérfanos**: cada uno tiene un consumidor planificado en la Fase 5.
+
+**Cerrada el 2026-09-25.** Consumidores ya activos: `EmptyState` y `PageHeader` (dashboard), insignias de estado de publicación y de enlace (admin), `RichContentRenderer` (galería local). Consumidores en la 5a: `StateBadge`, `ProgressBar` y skeletons (dashboard, track y roadmap con progreso), `ErrorState` (props diferidos) y `collectHeadings` (tabla de contenidos de la lección).
 
 ### Fase 5 — MVP de punta a punta · estimación: 4–5 sesiones
 
