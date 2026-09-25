@@ -180,7 +180,7 @@ class Lesson extends Model
 
     /**
      * Lessons a learner can see: they have a published version, are not
-     * archived and belong to a published module and track.
+     * archived and belong to a published module, track and roadmap.
      *
      * @param  Builder<static>  $query
      */
@@ -192,6 +192,8 @@ class Lesson extends Model
             ->where($this->qualifyColumn('status'), '!=', ContentStatus::Archived->value)
             ->whereHas('module', fn (Builder $module) => $module
                 ->published()
-                ->whereHas('track', fn (Builder $track) => $track->published()));
+                ->whereHas('track', fn (Builder $track) => $track
+                    ->published()
+                    ->whereHas('roadmap', fn (Builder $roadmap) => $roadmap->published())));
     }
 }

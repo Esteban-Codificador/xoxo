@@ -1,9 +1,10 @@
-import { Head, setLayoutProps } from '@inertiajs/react';
+import { Head, Link, setLayoutProps } from '@inertiajs/react';
 import { BookOpen, Clock } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { t } from '@/i18n';
 import { dashboard } from '@/routes';
+import { show as showTrack } from '@/routes/tracks';
 import type { Difficulty } from '@/types/enums';
 
 type RoadmapSummary = { slug: string; title: string; summary: string };
@@ -45,7 +46,7 @@ export default function Dashboard({
                     }
                 />
 
-                {tracks.length === 0 ? (
+                {roadmap === null || tracks.length === 0 ? (
                     <EmptyState
                         icon={BookOpen}
                         title={t('dashboard.emptyTitle')}
@@ -60,7 +61,7 @@ export default function Dashboard({
                             {tracks.map((track) => (
                                 <li
                                     key={track.slug}
-                                    className="flex flex-col gap-3 rounded-xl border bg-card p-5"
+                                    className="relative flex flex-col gap-3 rounded-xl border bg-card p-5 transition-colors hover:bg-muted/40"
                                 >
                                     <div className="flex items-baseline gap-3">
                                         <span className="font-mono text-xs text-muted-foreground tabular-nums">
@@ -70,7 +71,16 @@ export default function Dashboard({
                                             )}
                                         </span>
                                         <h2 className="font-medium">
-                                            {track.title}
+                                            {/* The whole card is the link; the title names it. */}
+                                            <Link
+                                                href={showTrack({
+                                                    roadmap: roadmap.slug,
+                                                    track: track.slug,
+                                                })}
+                                                className="after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring"
+                                            >
+                                                {track.title}
+                                            </Link>
                                         </h2>
                                     </div>
                                     <p className="flex-1 text-sm text-muted-foreground">

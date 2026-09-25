@@ -12,7 +12,7 @@
 | Nivel | Herramienta | Ubicación | Qué cubre hoy |
 |---|---|---|---|
 | Unitario (PHP) | Pest | `tests/Unit` | `DependencyGraph`, `RichContentValidator`, conversor Markdown → RichContent |
-| Feature (PHP) | Pest + PostgreSQL | `tests/Feature` | Autenticación (starter), restricciones del esquema, roles y permisos, auditoría, publicación y versiones, validador e importador de paquetes, comandos `content:*`, verificación de enlaces, sincronía de enums, dashboard del estudiante (solo contenido visible), resumen del admin y acceso por rol, páginas de error de Inertia, idioma por usuario y galería local |
+| Feature (PHP) | Pest + PostgreSQL | `tests/Feature` | Autenticación (starter), restricciones del esquema, roles y permisos, auditoría, publicación y versiones, validador e importador de paquetes, comandos `content:*`, verificación de enlaces, sincronía de enums, dashboard del estudiante (solo contenido visible), páginas de track y de lección (versión publicada, orden de estudio, anterior/siguiente, prerrequisitos, skills y recursos publicados, 404 para todo lo no visible), resumen del admin y acceso por rol, páginas de error de Inertia, idioma por usuario y galería local |
 | Frontend | Vitest + React Testing Library | `resources/js/**/*.test.{ts,tsx}` | `t()` y paridad de diccionarios, contraste AA de los tokens (lee `app.css`), `StateBadge`, `ProgressBar`, estados de pantalla, frases de auditoría y `RichContentRenderer` (29 casos: marcas, enlaces peligrosos, nodos desconocidos, tablas, callouts, video, Shiki y KaTeX reales, Mermaid simulado) |
 | E2E | Pest Browser (Playwright) | `tests/Browser` (Fase 5) | Flujos de §78: estudiante y editorial |
 

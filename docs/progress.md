@@ -2,7 +2,7 @@
 
 > **Protocolo de sesión (§82):** 1) leer este archivo; 2) determinar la fase; 3) continuar desde ahí; 4) no rehacer trabajo correcto; 5) pasar la puerta de validación ([roadmap §2](roadmap.md#2-puerta-de-validación-obligatoria-al-cerrar-cada-fase)); 6) actualizar este archivo.
 
-**Fase actual:** Fase 4 cerrada. **Siguiente: Fase 5a, ruta del estudiante.**
+**Fase actual:** Fase 5a en curso. Camino de lectura listo (dashboard → track → lección). **Siguiente: motor de estados (`RoadmapStateResolver`).**
 
 Última actualización: 2026-09-25.
 
@@ -18,17 +18,27 @@
 | 2026-09-25 | Decisiones | D1–D7 confirmadas por el dueño del producto. D2 y D3 cambiadas (ADR-023 y ADR-024) |
 | 2026-09-25 | **F3 Fundación** | Starter kit oficial (Laravel 13, Inertia 3, React 19, Fortify con 2FA y passkeys) sobre PostgreSQL y Redis. 13 migraciones con CHECKs, FKs e índices parciales. Modelos, enums, factories y *morph map* forzado. Roles y permisos (matriz de roadmap §4) sincronizados en una migración. `AuditLogger` con observers. `DependencyGraph`. RichContent (esquema, validador y conversor Markdown → RichContent). `LessonReadiness` + `PublishLesson` (versiones inmutables). Paquete de contenido: lector, validador e importador idempotente que respeta el CMS. Comandos `content:validate`, `content:import`, `content:verify-links` y `types:enums`. Paquete de muestra real: 2 tracks, 2 módulos, **6 lecciones de nivel B**, 3 skills y 7 recursos oficiales. `docker-compose.yml`, workflows `CI` y `Content`, hook de sesión y documentación (README, development, testing, content-authoring y contributing) |
 | 2026-09-25 | **F4 Design system** | Tokens de estado y de callout en claro y oscuro con **test de contraste AA** que lee `app.css`. i18n tipado (`es` fuente, `en` con la misma forma) guiado por `<html lang>`, middleware `SetLocale` y `lang/es` (validación incluida). UI del starter traducida. `AppLayout` y `AdminLayout` con navegación real según permisos. Página de error de Inertia (403/404/419/500/503). Dashboard del estudiante (tracks publicados con lecciones visibles) y resumen del admin (contenido por estado, enlaces y actividad). Componentes de dominio con tests. **`RichContentRenderer`** con Shiki, KaTeX, Mermaid, video, tablas, callouts y enlaces seguros. Galería local `/_dev/design-system` con lecciones reales. Revisión visual con Playwright en claro, oscuro y móvil |
+| 2026-09-25 | **F5a · camino de lectura** | Páginas de track y de lección sobre la versión publicada, dashboard enlazado, visibilidad con 404, `TrackOutline` para el orden de estudio. El dueño del producto ya puede revisar las 6 lecciones dentro de la plataforma |
 
 ## In Progress
 
-Nada.
+**Fase 5a, ruta del estudiante.** Orden cambiado el 2026-09-25 a pedido del dueño del producto: revisa el contenido **dentro de la plataforma**, así que el camino de lectura va antes que el motor de estados.
+
+- [x] **Camino de lectura:** tarjetas del dashboard enlazadas; página de track (temario por módulo en orden de estudio, prerrequisitos, "por qué importa", descripción y botón para empezar); página de lección (versión publicada, objetivos, prerrequisitos, índice con la sección activa, skills, recursos con aviso de enlace roto y navegación anterior/siguiente). Tests de backend y frontend. Recorrido en navegador real en claro, oscuro y móvil.
+- [ ] Motor de estados y política ADVISORY.
+- [ ] Acciones de progreso (iniciar, completar, desmarcar) y su botón en la lección.
+- [ ] Dashboard y track con progreso.
+- [ ] Roadmap visual y vista de lista.
+- [ ] Skills y recomendaciones 1–3.
+- [ ] E2E del estudiante.
 
 ## Next (Fase 5a: ruta del estudiante, en este orden)
 
+0. ~~Página de lección y página de track~~ (adelantadas: ver In Progress).
 1. **Motor de estados:** `RoadmapStateResolver` (LOCKED y AVAILABLE calculados; IN_PROGRESS, COMPLETED y MASTERED persistidos, ADR-007) y política ADVISORY (D1) sobre la cadena lineal (D2). Tests de dominio primero: es la regla de negocio central.
 2. **Acciones de progreso:** `StartLesson`, `CompleteLesson` y `UncompleteLesson`, cada una con FormRequest, Policy y Action, y su evento en `learning_activities`.
-3. **Página de lección** (`lessons/show`): cabecera, por qué importa, objetivos, prerrequisitos, `RichContentRenderer`, tabla de contenidos con `collectHeadings`, recursos con su estado de enlace, botón completar y siguientes pasos.
-4. **Página de track** y **dashboard con progreso** (`StateBadge`, `ProgressBar`, skeletons con props diferidos).
+3. **Botón completar** en la lección y **estados en el temario del track** (`StateBadge`).
+4. **Dashboard con progreso** (`ProgressBar`, skeletons con props diferidos).
 5. **Roadmap visual** (React Flow + dagre, dos niveles) y su vista de lista accesible.
 6. **Skills** (índice y detalle) y recomendaciones por reglas 1–3.
 7. **E2E del estudiante** con Pest Browser (resuelve KI-5) y puerta de validación.
@@ -80,6 +90,13 @@ Decisiones confirmadas por el dueño del producto el 2026-09-25:
 | D6 | Sin `AiProviderInterface` en V1 | ✅ Aceptada |
 | D7 | Dos niveles de profundidad del contenido (A/B) | ✅ Aceptada |
 
+Decisiones técnicas tomadas durante la Fase 5a (sin impacto de producto):
+
+- **URLs:** `/roadmaps/{roadmap}/tracks/{track}` (el slug de un track es único dentro de su roadmap, con bindings encadenados) y `/lessons/{lesson}` (el slug de una lección es único global; coincide con `POST /lessons/{slug}/complete` de architecture §8).
+- **El estudiante lee la versión publicada** (`lesson_versions`), nunca la copia de trabajo: título, resumen, cuerpo, objetivos y minutos salen del snapshot. Las relaciones (skills, recursos, prerrequisitos) no se versionan (TD-6) y se filtran a lo publicado.
+- **Una sola regla de visibilidad:** `Lesson::visibleToLearners()` (ahora también exige roadmap publicado). `LessonPolicy::view` consulta ese mismo scope y responde **404**, no 403, para no revelar borradores. `TrackPolicy::view` exige track y roadmap publicados.
+- **`TrackOutline`** (`app/Domain/Curriculum/Queries`) define el orden de estudio: módulos publicados por posición y lecciones visibles por posición, sin módulos vacíos. El temario del track y la navegación anterior/siguiente de la lección salen de ahí, así que no pueden discrepar.
+
 Decisiones técnicas tomadas durante la Fase 4 (sin impacto de producto):
 
 - **ADR-028:** KaTeX y Mermaid escriben su propio DOM (excepción acotada a "sin HTML inyectado", con `trust: false` y `securityLevel: 'strict'`). Todo lo demás del lector son elementos React; Shiki entrega tokens, no HTML.
@@ -105,3 +122,4 @@ Decisiones técnicas tomadas durante la Fase 3 (sin impacto de producto):
 | F0–F2 | N/A | N/A | N/A | N/A | N/A | Script ad hoc: 72 skills sin referencias rotas ni ciclos | Solo documentación. 10/10 diagramas Mermaid y 50/50 enlaces internos válidos |
 | F3 | **Pest 150/150** (349 aserciones) sobre PostgreSQL 16 · **Vitest 5/5** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums sincronizados ✅ | Vite ✅ | fresh + seed + rollback + migrate ✅ · importación idempotente comprobada | `content:validate`: 0 problemas · enlaces: 7 no concluyentes (sin red) → CI | Hook validado desde frío (servicios detenidos, sin vendor de phpstan ni `.env`): 18 s. Prueba de humo HTTP: `/up` y `/login` 200, fuente servida localmente, `lang="es"`. `composer run dev` verificado. **CI en GitHub Actions:** primer run con todo en verde salvo Vitest (el plugin de Laravel se niega a arrancar con `CI=true`); corregido cargando solo React bajo Vitest. **Run #2 (`eab9002`): CI ✅ y Content ✅.** Workflow Content: 7/7 URLs verificadas (6 OK y 1 redirigida, luego actualizada) |
 | F4 | **Pest 170/170** (547 aserciones) · **Vitest 97/97** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums sincronizados ✅ | Vite ✅ (Shiki, KaTeX y Mermaid en chunks diferidos; el bundle principal no los incluye) | fresh + seed + rollback + migrate ✅ | `content:validate`: 0 problemas · importación ✅ | `npm audit`: 0 vulnerabilidades (tras TD-7). **Revisión visual con Playwright** (Chromium del entorno): bienvenida, login (con error), dashboard, admin, 403, 404 y las 6 lecciones en la galería, en claro, oscuro y móvil (390 px). Sin errores de consola ni desbordamiento horizontal. Defectos encontrados y corregidos en la revisión: logo invisible en oscuro, texto de error ilegible en oscuro, frases de actividad agramaticales ("publicó lecciones «X»") y diagramas anchos ilegibles en móvil (reducidos al 24 %) |
+| F5a · lectura | **Pest 188/188** (755 aserciones) · **Vitest 108/108** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums ✅ | Vite ✅ | fresh + seed + rollback ✅ | `content:validate`: 0 problemas | `npm audit`: 0. **Recorrido en navegador real** con el usuario estudiante: clic en la tarjeta del dashboard, "Empezar" y "Siguiente" hasta el final del track, en claro, oscuro y móvil (390 px). Sin errores de consola, sin desbordamiento horizontal, una petición por navegación y 404 para una lección inexistente |

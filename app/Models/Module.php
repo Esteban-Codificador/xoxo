@@ -53,4 +53,14 @@ class Module extends Model
     {
         return $this->hasMany(Lesson::class)->orderBy('position');
     }
+
+    /**
+     * Lessons a learner can open, in study order (see Lesson::visibleToLearners()).
+     *
+     * @return HasMany<Lesson, $this>
+     */
+    public function visibleLessons(): HasMany
+    {
+        return $this->lessons()->visibleToLearners()->orderBy('id');
+    }
 }

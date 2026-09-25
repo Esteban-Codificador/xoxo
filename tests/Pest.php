@@ -3,6 +3,7 @@
 use App\Domain\Content\RichContent\RichContent;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
 use Database\Factories\LessonFactory;
@@ -19,11 +20,13 @@ pest()->extend(TestCase::class)
 
 /**
  * A lesson that satisfies the publishing contract. Without a module it gets
- * its own published module and track.
+ * its own published module, track and roadmap.
  */
 function publishableLesson(array $attributes = [], ?Module $module = null): Lesson
 {
-    $module ??= Module::factory()->published()->for(Track::factory()->published())->create();
+    $module ??= Module::factory()->published()
+        ->for(Track::factory()->published()->for(Roadmap::factory()->published()))
+        ->create();
     $paragraph = str_repeat('Git guarda la historia como instantáneas encadenadas por hash. ', 30);
 
     $lesson = Lesson::factory()->for($module)->create([
