@@ -56,9 +56,9 @@ it('reports invalid field values', function () {
     $this->fixture->lesson('01-primera', ['key' => 'base.primera', 'slug' => 'Primera Lección', 'type' => 'QUIZ', 'estimated_minutes' => 0]);
 
     expect(packageIssues($this->fixture))
-        ->toContain('slug field format is invalid')
-        ->toContain('type is invalid')
-        ->toContain('estimated minutes field must be between 1 and 600');
+        ->toContain('El formato del campo slug no es válido.')
+        ->toContain('El valor seleccionado en tipo no es válido.')
+        ->toContain('El campo minutos estimados debe estar entre 1 y 600.');
 });
 
 it('only accepts https resources', function () {
@@ -67,7 +67,7 @@ it('only accepts https resources', function () {
         'provider' => 'Example', 'is_official' => true, 'language' => 'en', 'description' => 'Documentación.',
     ]]);
 
-    expect(packageIssues($this->fixture))->toContain('url field must be a valid URL');
+    expect(packageIssues($this->fixture))->toContain('El campo URL debe ser una URL válida.');
 });
 
 it('rejects markdown outside the rich content schema', function () {

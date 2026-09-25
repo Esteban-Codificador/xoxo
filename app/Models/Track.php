@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 /**
@@ -72,6 +73,24 @@ class Track extends Model
     public function modules(): HasMany
     {
         return $this->hasMany(Module::class)->orderBy('position');
+    }
+
+    /**
+     * @return HasManyThrough<Lesson, Module, $this>
+     */
+    public function lessons(): HasManyThrough
+    {
+        return $this->hasManyThrough(Lesson::class, Module::class);
+    }
+
+    /**
+     * Lessons a learner can open (see Lesson::visibleToLearners()).
+     *
+     * @return HasManyThrough<Lesson, Module, $this>
+     */
+    public function visibleLessons(): HasManyThrough
+    {
+        return $this->lessons()->visibleToLearners();
     }
 
     /**

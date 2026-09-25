@@ -187,10 +187,11 @@ class Lesson extends Model
     #[Scope]
     protected function visibleToLearners(Builder $query): void
     {
-        $query->whereNotNull('published_version_id')
-            ->where('status', '!=', ContentStatus::Archived->value)
+        // Qualified: callers join modules (Track::lessons() is has-many-through).
+        $query->whereNotNull($this->qualifyColumn('published_version_id'))
+            ->where($this->qualifyColumn('status'), '!=', ContentStatus::Archived->value)
             ->whereHas('module', fn (Builder $module) => $module
-                ->where('status', ContentStatus::Published->value)
-                ->whereHas('track', fn (Builder $track) => $track->where('status', ContentStatus::Published->value)));
+                ->published()
+                ->whereHas('track', fn (Builder $track) => $track->published()));
     }
 }

@@ -1,46 +1,12 @@
 <?php
 
-use App\Domain\Content\RichContent\RichContent;
 use App\Domain\Curriculum\Actions\PublishLesson;
 use App\Domain\Curriculum\Publishing\LessonNotReadyToPublish;
 use App\Enums\AuditAction;
 use App\Enums\ContentStatus;
 use App\Models\AuditLog;
 use App\Models\Lesson;
-use App\Models\Module;
-use App\Models\Skill;
-use App\Models\Track;
 use App\Models\User;
-use Database\Factories\LessonFactory;
-
-/**
- * A lesson that satisfies the publishing contract.
- */
-function publishableLesson(array $attributes = []): Lesson
-{
-    $module = Module::factory()->published()->for(Track::factory()->published())->create();
-    $paragraph = str_repeat('Git guarda la historia como instantáneas encadenadas por hash. ', 30);
-
-    $lesson = Lesson::factory()->for($module)->create([
-        'summary' => str_repeat('Resumen claro de la lección. ', 4),
-        'why_it_matters' => str_repeat('Importa porque se usa a diario. ', 4),
-        'body' => LessonFactory::body([$paragraph]),
-        ...$attributes,
-    ]);
-
-    $lesson->body = RichContent::fromDocument([
-        'type' => 'doc',
-        'content' => [
-            ...$lesson->body->doc['content'],
-            ['type' => 'heading', 'attrs' => ['level' => 2], 'content' => [['type' => 'text', 'text' => 'Práctica']]],
-            ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Crea un repositorio y haz tres commits.']]],
-        ],
-    ]);
-    $lesson->save();
-    $lesson->skills()->attach(Skill::factory()->create(), ['weight' => 2]);
-
-    return $lesson->refresh();
-}
 
 it('snapshots the working copy into version 1', function () {
     $lesson = publishableLesson(['title' => 'Commits']);

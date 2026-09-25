@@ -46,6 +46,19 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
+     * Mirrors the column defaults so a freshly created user (not reloaded
+     * from the database) can be read under strict attribute access.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'locale' => 'es',
+        'timezone' => 'UTC',
+        'profile_visibility' => 'PRIVATE',
+        'xp_total' => 0,
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

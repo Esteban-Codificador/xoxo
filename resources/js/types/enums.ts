@@ -84,6 +84,16 @@ export const LinkStatus = {
 
 export type LinkStatus = (typeof LinkStatus)[keyof typeof LinkStatus];
 
+export const NodeState = {
+    Locked: 'LOCKED',
+    Available: 'AVAILABLE',
+    InProgress: 'IN_PROGRESS',
+    Completed: 'COMPLETED',
+    Mastered: 'MASTERED',
+} as const;
+
+export type NodeState = (typeof NodeState)[keyof typeof NodeState];
+
 export const Permission = {
     AdminAccess: 'admin.access',
     ContentViewAny: 'content.view_any',

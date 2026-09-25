@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, setLayoutProps } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
@@ -10,31 +10,39 @@ import {
     store as confirmStore,
 } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController';
 import PasskeyVerify from '@/components/passkey-verify';
+import { t } from '@/i18n';
 
 export default function ConfirmPassword() {
+    setLayoutProps({
+        title: t('auth.confirmPassword.title'),
+        description: t('auth.confirmPassword.description'),
+    });
+
     return (
         <>
-            <Head title="Confirm password" />
+            <Head title={t('auth.confirmPassword.head')} />
 
             <PasskeyVerify
                 routes={{
                     options: confirmOptions(),
                     submit: confirmStore(),
                 }}
-                label="Confirm with passkey"
-                loadingLabel="Confirming..."
-                separator="Or confirm with password"
+                label={t('auth.confirmPassword.passkeyLabel')}
+                loadingLabel={t('auth.confirmPassword.passkeyLoading')}
+                separator={t('auth.confirmPassword.passkeySeparator')}
             />
 
             <Form {...store.form()} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
                     <div className="space-y-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">
+                                {t('auth.fields.password')}
+                            </Label>
                             <PasswordInput
                                 id="password"
                                 name="password"
-                                placeholder="Password"
+                                placeholder={t('auth.fields.password')}
                                 autoComplete="current-password"
                                 autoFocus
                             />
@@ -49,7 +57,7 @@ export default function ConfirmPassword() {
                                 data-test="confirm-password-button"
                             >
                                 {processing && <Spinner />}
-                                Confirm password
+                                {t('auth.confirmPassword.submit')}
                             </Button>
                         </div>
                     </div>
@@ -58,9 +66,3 @@ export default function ConfirmPassword() {
         </>
     );
 }
-
-ConfirmPassword.layout = {
-    title: 'Confirm password',
-    description:
-        'This is a secure area of the application. Please confirm your password before continuing.',
-};

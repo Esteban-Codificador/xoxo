@@ -2,6 +2,8 @@
 
 @import 'tw-animate-css';
 
+@plugin '@tailwindcss/typography';
+
 /* Fuentes autoalojadas: el build no depende de CDNs externos. */
 @import '@fontsource-variable/instrument-sans/wght.css';
 @import '@fontsource-variable/jetbrains-mono/wght.css';
@@ -66,6 +68,20 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+    /* Learning states (docs/frontend-architecture.md §5). Each state has a
+       strong color (text, icons, progress fill) and a soft background.
+       Contrast is enforced by resources/js/test/contrast.test.ts. */
+    --color-state-locked: var(--state-locked);
+    --color-state-locked-soft: var(--state-locked-soft);
+    --color-state-available: var(--state-available);
+    --color-state-available-soft: var(--state-available-soft);
+    --color-state-in-progress: var(--state-in-progress);
+    --color-state-in-progress-soft: var(--state-in-progress-soft);
+    --color-state-completed: var(--state-completed);
+    --color-state-completed-soft: var(--state-completed-soft);
+    --color-state-mastered: var(--state-mastered);
+    --color-state-mastered-soft: var(--state-mastered-soft);
 }
 
 :root {
@@ -80,7 +96,8 @@
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
+    /* 0.52 (starter: 0.556) so secondary text on muted surfaces meets AA 4.5:1. */
+    --muted-foreground: oklch(0.52 0 0);
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
@@ -102,6 +119,17 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.87 0 0);
+
+    --state-locked: oklch(0.48 0 0);
+    --state-locked-soft: oklch(0.96 0 0);
+    --state-available: oklch(0.3 0.02 260);
+    --state-available-soft: oklch(0.96 0.01 260);
+    --state-in-progress: oklch(0.5 0.17 258);
+    --state-in-progress-soft: oklch(0.95 0.03 258);
+    --state-completed: oklch(0.49 0.12 152);
+    --state-completed-soft: oklch(0.95 0.04 152);
+    --state-mastered: oklch(0.5 0.11 65);
+    --state-mastered-soft: oklch(0.95 0.05 85);
 }
 
 .dark {
@@ -137,6 +165,17 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(0.269 0 0);
     --sidebar-ring: oklch(0.439 0 0);
+
+    --state-locked: oklch(0.7 0 0);
+    --state-locked-soft: oklch(0.24 0 0);
+    --state-available: oklch(0.92 0.01 260);
+    --state-available-soft: oklch(0.26 0.02 260);
+    --state-in-progress: oklch(0.76 0.12 255);
+    --state-in-progress-soft: oklch(0.27 0.06 258);
+    --state-completed: oklch(0.77 0.14 155);
+    --state-completed-soft: oklch(0.27 0.05 155);
+    --state-mastered: oklch(0.82 0.13 85);
+    --state-mastered-soft: oklch(0.29 0.05 80);
 }
 
 @layer base {

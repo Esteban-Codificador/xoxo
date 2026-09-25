@@ -9,6 +9,7 @@ use App\Enums\ContentType;
 use App\Enums\DependencyKind;
 use App\Enums\Difficulty;
 use App\Enums\LinkStatus;
+use App\Enums\NodeState;
 use App\Enums\Permission;
 use App\Enums\ProfileVisibility;
 use App\Enums\ProgressStatus;
@@ -39,6 +40,7 @@ class GenerateEnumTypesCommand extends Command
         DependencyKind::class,
         Difficulty::class,
         LinkStatus::class,
+        NodeState::class,
         Permission::class,
         ProfileVisibility::class,
         ProgressStatus::class,
