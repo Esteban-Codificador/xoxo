@@ -191,6 +191,11 @@ return [
         'last_reviewed' => 'fecha de última revisión',
         'unlock_policy' => 'política de desbloqueo',
         'mastery_threshold' => 'umbral de maestría',
+        'learning_objectives' => 'objetivos de aprendizaje',
+        'learning_objectives.*' => 'objetivo',
+        'content_type' => 'tipo de contenido',
+        'body' => 'contenido',
+        'change_note' => 'nota de cambio',
     ],
 
 ];

@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Domain\Learning\State\RoadmapStateResolver;
+use App\Enums\Permission;
 use App\Models\Lesson;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -39,5 +40,33 @@ class LessonPolicy
         return $this->states->resolve($user, $roadmap)->canProgress($lesson)
             ? Response::allow()
             : Response::deny(__('progress.locked'));
+    }
+
+    /** The CMS lesson list (admin.access is checked by the route group). */
+    public function viewAny(User $user): bool
+    {
+        return $user->can(Permission::ContentViewAny->value);
+    }
+
+    /**
+     * Editors and admins edit any lesson; instructors only the ones they
+     * created (roadmap §4). Imported lessons have no author, so only
+     * editors and admins can change them.
+     */
+    public function update(User $user, Lesson $lesson): Response
+    {
+        if ($user->can(Permission::ContentUpdateAny->value)) {
+            return Response::allow();
+        }
+
+        return $user->can(Permission::ContentUpdateOwn->value) && $lesson->created_by === $user->id
+            ? Response::allow()
+            : Response::deny();
+    }
+
+    /** Publishing makes the working copy what learners read. */
+    public function publish(User $user, Lesson $lesson): bool
+    {
+        return $user->can(Permission::ContentPublish->value);
     }
 }

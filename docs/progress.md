@@ -2,7 +2,7 @@
 
 > **Protocolo de sesión (§82):** 1) leer este archivo; 2) determinar la fase; 3) continuar desde ahí; 4) no rehacer trabajo correcto; 5) pasar la puerta de validación ([roadmap §2](roadmap.md#2-puerta-de-validación-obligatoria-al-cerrar-cada-fase)); 6) actualizar este archivo.
 
-**Fase actual:** Fase 5a cerrada en lo esencial (lectura, progreso, E2E y roadmap visual). **Siguiente: Fase 5b, CMS, empezando por editar y publicar lecciones.**
+**Fase actual:** Fase 5b (CMS) en curso: editar y publicar lecciones está hecho. **Siguiente: editar tracks y módulos, y las relaciones de la lección (paso 3).**
 
 Última actualización: 2026-09-29.
 
@@ -20,6 +20,7 @@
 | 2026-09-25 | **F4 Design system** | Tokens de estado y de callout en claro y oscuro con **test de contraste AA** que lee `app.css`. i18n tipado (`es` fuente, `en` con la misma forma) guiado por `<html lang>`, middleware `SetLocale` y `lang/es` (validación incluida). UI del starter traducida. `AppLayout` y `AdminLayout` con navegación real según permisos. Página de error de Inertia (403/404/419/500/503). Dashboard del estudiante (tracks publicados con lecciones visibles) y resumen del admin (contenido por estado, enlaces y actividad). Componentes de dominio con tests. **`RichContentRenderer`** con Shiki, KaTeX, Mermaid, video, tablas, callouts y enlaces seguros. Galería local `/_dev/design-system` con lecciones reales. Revisión visual con Playwright en claro, oscuro y móvil |
 | 2026-09-25 | **F5a · camino de lectura** | Páginas de track y de lección sobre la versión publicada, dashboard enlazado, visibilidad con 404, `TrackOutline` para el orden de estudio. El dueño del producto ya puede revisar las 6 lecciones dentro de la plataforma |
 | 2026-09-29 | **F5a · E2E y roadmap visual** | Suite `tests/Browser` con Pest Browser sobre el paquete real (registro, recorrido completo con progreso y desbloqueo, roadmap) y en CI. Roadmap visual: grafo de tracks (React Flow + dagre) con estados, progreso y dependencias, panel lateral con requisitos, módulos, lecciones y "Continuar", vista de lista por niveles (móvil y accesibilidad) y acceso por teclado. "Roadmap" en el menú lateral y en el dashboard |
+| 2026-09-29 | **F5b · editar y publicar lecciones** | `/admin/lessons` (lista por track con estado, versión y "cambios sin publicar") y edición de la copia de trabajo: formulario estructurado (título, resumen, por qué importa, objetivos, tipo, dificultad, minutos) y **cuerpo con TipTap** limitado a la lista blanca de RichContent, con barra de herramientas, callouts, tablas, fórmulas, diagramas Mermaid y videos por ID. `UpdateLessonRequest` + `LessonPolicy::update` (instructor: solo las suyas) + `UpdateLesson`, con auditoría. Checklist de publicación, **publicar** con nota de cambio (`PublishLessonRequest` + `LessonPolicy::publish`), historial de versiones y "Ver como estudiante". Aviso de cambios sin guardar. Paridad editor ↔ servidor probada en ambos lados (TD-5). E2E editorial |
 | 2026-09-29 | **F5a · progreso** | `RoadmapStateResolver` (estados de lección y track, % de track, requisitos pendientes, ADVISORY/STRICT) en 5 consultas fijas. Acciones `StartLesson`, `CompleteLesson` y `UncompleteLesson` con FormRequest, Policy y registro en `learning_activities`. Lección: estado, aviso de requisitos, inicio al abrirla, botón completar/desmarcar y siguiente lección. Track: barra de progreso, estado por lección y "Continuar". Dashboard: "Continúa donde lo dejaste" y progreso por track. Contenido: diagrama del ciclo de vida en vertical (versión 2 publicada) |
 
 ## In Progress
@@ -34,19 +35,18 @@
 - [x] Roadmap visual y vista de lista.
 - [ ] Skills y recomendaciones 1–3 → **después del CMS** (decisión del dueño del producto, 2026-09-29).
 
-**Fase 5b, CMS (siguiente).** El dueño del producto pidió trabajar ya el lado de administración: con D8 el editor es la herramienta para mejorar las 6 lecciones sin pasar por archivos del repositorio.
+**Fase 5b, CMS.** El dueño del producto pidió trabajar ya el lado de administración: con D8 el editor es la herramienta para mejorar las 6 lecciones sin pasar por archivos del repositorio.
 
-## Next (Fase 5a: ruta del estudiante, en este orden)
+- [x] 1. Editar una lección existente (formulario estructurado + cuerpo con TipTap, paridad de esquema, FormRequest, Policy, Action y auditoría).
+- [x] 2. Checklist de publicación, publicar con nota de cambio, "cambios sin publicar" e historial de versiones.
 
 ## Next (Fase 5b: CMS, en este orden)
 
-1. **Editar una lección existente**: lista de lecciones en `/admin`, formulario estructurado (título, resumen, por qué importa, objetivos, tipo, dificultad, minutos) y **cuerpo con TipTap** configurado con la lista blanca de RichContent (test de paridad, TD-5). FormRequest, Policy y Action; auditoría.
-2. **Checklist de publicación en vivo** (`LessonReadiness`) y **publicar** (nueva versión con nota de cambio); "cambios sin publicar" cuando la copia de trabajo difiere de la publicada. Historial de versiones.
-3. **Editar tracks y módulos**; skills y recursos de la lección; dependencias (`DependencyEditor`).
-4. **Crear** lecciones, módulos y tracks nuevos, y el flujo de revisión (INSTRUCTOR envía, EDITOR publica).
+3. **Editar tracks y módulos**; skills y recursos de la lección; dependencias (`DependencyEditor`); slug y estado en el formulario de la lección.
+4. **Crear** lecciones, módulos y tracks nuevos, y el flujo de revisión (INSTRUCTOR envía, EDITOR publica). Vista de una versión y diff de texto.
 5. Usuarios y roles; vista de auditoría.
 
-Después: skills y recomendaciones 1–3 (5a pendiente). La 5c queda redefinida por D8: pulir las 6 lecciones, no agregar más.
+Después: skills y recomendaciones 1–3 (5a pendiente). La 5c queda redefinida por D8: pulir las 6 lecciones, no agregar más; desde ahora se hace en `/admin/lessons` (usuario `editor@ai-roadmap.test` en local).
 
 **Pendiente del dueño del producto:** observaciones de la revisión de las 6 lecciones dentro de la plataforma. El diagrama de "El ciclo de vida de un sistema de IA" ya está en vertical.
 
@@ -71,7 +71,7 @@ Después: skills y recomendaciones 1–3 (5a pendiente). La 5c queda redefinida 
 | TD-2 | `axllent/mailpit:latest` sin versión fijada en docker-compose | Al validar KI-1 |
 | TD-3 | Tooling pre-1.0 heredado del starter: vite-plus 0.3 y Wayfinder 0.1 | Revisar en cada actualización. El lockfile las fija |
 | TD-4 | Borrar un archivo del paquete no elimina la entidad de la BD. Es intencional (la BD es la fuente de verdad), pero no se avisa | Fase 7, con `content:export`, que mostrará las diferencias |
-| TD-5 | El esquema RichContent se valida solo en el servidor: aún no existe el editor TipTap | Fase 5b: un test de paridad entre los nombres de nodo del editor y la lista blanca del servidor |
+| TD-5 | ~~El esquema RichContent se valida solo en el servidor: aún no existe el editor TipTap~~ | **Pagada en la Fase 5b:** `allowlist.json` con paridad probada en Pest (contra `RichContentSchema`) y en Vitest (contra el esquema del editor), más ida y vuelta de un documento con todos los nodos |
 | TD-6 | Las relaciones de una lección (skills, recursos, dependencias) no se versionan (R10) | Aceptado para V1 |
 | TD-7 | `overrides.lodash-es: ^4.18.1` en `package.json`: Mermaid 12 arrastra `lodash-es@4.17.23` (vía chevrotain), con dos avisos altos (GHSA-r5fr-rjxr-66jc y GHSA-f23m-r3pf-42rh). El "arreglo" de `npm audit` era bajar a Mermaid 11 | Quitar el override cuando Mermaid publique una versión con `lodash-es` ≥ 4.18; revisar en cada actualización |
 | TD-8 | El iframe de YouTube carga el reproductor completo (con `loading="lazy"`); no hay fachada con miniatura | Fase 8 (rendimiento y CSP) |
@@ -79,6 +79,7 @@ Después: skills y recomendaciones 1–3 (5a pendiente). La 5c queda redefinida 
 | TD-10 | La caché de estados por `progress_version` (architecture §6) no está implementada: cada página recalcula (5 consultas) | Cuando el roadmap crezca o una medición lo pida |
 | TD-11 | Roadmap visual sin buscador, filtros, minimapa ni expansión a módulos (§27): con 2 tracks no aportan (D8). El panel lateral ya lista módulos y lecciones | Cuando haya más de ~8 tracks |
 | TD-12 | Pest deja huérfano su servidor de Playwright; `scripts/test-browser.sh` lo cierra | Revisar en cada actualización de `pestphp/pest-plugin-browser` |
+| TD-13 | El editor no conserva la alineación de columnas de tabla (TipTap 3.31 la ofrece; RichContent no la modela) | Si el contenido la necesita: ampliar esquema, validador, lector y `allowlist.json` a la vez |
 
 ## Decisions
 
@@ -96,6 +97,15 @@ Decisiones confirmadas por el dueño del producto el 2026-09-25:
 | D6 | Sin `AiProviderInterface` en V1 | ✅ Aceptada |
 | D7 | Dos niveles de profundidad del contenido (A/B) | ✅ Aceptada |
 | D8 | (2026-09-29) "No quiero más lecciones sino mejorar lo que ya hay" | ✅ **La V1 se cierra con las 6 lecciones actuales pulidas.** La 5c ya no busca ≥ 100 lecciones. Las metas de volumen de la Fase 6 (155 lecciones) quedan en suspenso hasta que el dueño decida |
+
+Decisiones técnicas tomadas durante la Fase 5b (sin impacto de producto):
+
+- **La lista blanca se comparte como JSON** (`resources/js/features/rich-content/allowlist.json`) en lugar de generarla: Pest la ata a `RichContentSchema` y Vitest al esquema del editor, así que cambiar un lado sin el otro rompe un test.
+- **Lo que TipTap añade y el servidor no acepta se elimina en el editor** (`title` de enlaces, `align` de celdas, `target`/`rel`/`class` pegados, lenguajes de código inválidos), no se amplía el esquema.
+- **El checklist se calcula sobre la copia guardada**, no mientras se escribe: las reglas de publicación viven solo en PHP. "Publicar" exige guardar antes.
+- **Guardar sin editar el cuerpo no lo reescribe:** el formulario envía el cuerpo del servidor hasta que el editor informa una edición real.
+- **Instructor:** ve la lista, edita solo las lecciones que creó y no publica (`content.update_own`, sin `content.publish`).
+- **"Ver como estudiante" abre la versión publicada**, que es lo que leen los estudiantes; el panel explica si hay cambios pendientes.
 
 Decisiones técnicas tomadas durante la Fase 5a (sin impacto de producto):
 
@@ -142,5 +152,6 @@ Decisiones técnicas tomadas durante la Fase 3 (sin impacto de producto):
 | F4 | **Pest 170/170** (547 aserciones) · **Vitest 97/97** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums sincronizados ✅ | Vite ✅ (Shiki, KaTeX y Mermaid en chunks diferidos; el bundle principal no los incluye) | fresh + seed + rollback + migrate ✅ | `content:validate`: 0 problemas · importación ✅ | `npm audit`: 0 vulnerabilidades (tras TD-7). **Revisión visual con Playwright** (Chromium del entorno): bienvenida, login (con error), dashboard, admin, 403, 404 y las 6 lecciones en la galería, en claro, oscuro y móvil (390 px). Sin errores de consola ni desbordamiento horizontal. Defectos encontrados y corregidos en la revisión: logo invisible en oscuro, texto de error ilegible en oscuro, frases de actividad agramaticales ("publicó lecciones «X»") y diagramas anchos ilegibles en móvil (reducidos al 24 %) |
 | F5a · lectura | **Pest 188/188** (755 aserciones) · **Vitest 108/108** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums ✅ | Vite ✅ | fresh + seed + rollback ✅ | `content:validate`: 0 problemas | `npm audit`: 0. **Recorrido en navegador real** con el usuario estudiante: clic en la tarjeta del dashboard, "Empezar" y "Siguiente" hasta el final del track, en claro, oscuro y móvil (390 px). Sin errores de consola, sin desbordamiento horizontal, una petición por navegación y 404 para una lección inexistente |
 | F5a · progreso | **Pest 209/209** (918 aserciones) · **Vitest 115/115** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums ✅ | Vite ✅ | fresh + seed + rollback ✅ | `content:validate`: 0 problemas · importación publicó la versión 2 del ciclo de vida | `npm audit`: 0. **Recorrido real** con el estudiante demo: dashboard → Empezar → la lección pasa a En curso → Marcar como completada → Desmarcar → volver a completar; lección con requisito pendiente muestra el aviso ADVISORY; track al 33 %; dashboard con "Continúa donde lo dejaste". Claro, oscuro y móvil sin errores de consola ni desbordamiento. Defecto encontrado y corregido: el botón "Siguiente: <título largo>" se salía de la tarjeta en móvil |
+| F5b · lecciones | **Pest 229/229** (1126 aserciones) · **Vitest 139/139** · **E2E 7/7** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums ✅ | Vite ✅ (editor en un chunk diferido de 151 kB gzip) | fresh + seed ✅ | `content:validate`: 0 problemas | `npm audit`: 0. **Recorrido real** con el editor demo: lista, edición, escribir en el cuerpo, fórmula por diálogo, callout y tabla, guardar (el servidor aceptó la salida del editor), publicar v2 con nota y leerla como estudiante; aviso de cambios sin guardar al salir. Claro, oscuro y móvil sin errores de consola ni desbordamiento. Defectos encontrados y corregidos: dentro del editor, el código de los bloques heredaba el estilo de código en línea (ilegible) y las celdas tenían márgenes de párrafo; la paridad detectó `title` en enlaces y `align` en celdas |
 | F5a · E2E y roadmap | **Pest 214/214** (960 aserciones) · **Vitest 123/123** · **E2E 5/5** (Pest Browser, Chromium real) | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums ✅ | Vite ✅ (React Flow en un chunk diferido) | fresh + seed + rollback ✅ | `content:validate`: 0 problemas | `npm audit`: 0. CI #9 con el E2E en verde en GitHub. Revisión visual del roadmap en claro, oscuro y móvil; teclado (Tab + Enter abre el panel, Esc lo cierra). Dos defectos encontrados por el E2E y corregidos: inicio al mirar lecciones bloqueadas y nodos no clicables |
 

@@ -46,16 +46,23 @@ const variants: Record<
     },
 };
 
+export const calloutVariants = Object.keys(variants) as CalloutVariant[];
+
 export function isCalloutVariant(value: unknown): value is CalloutVariant {
     return typeof value === 'string' && value in variants;
 }
 
-/** Icon and label carry the meaning; the color only reinforces it. */
+/**
+ * Icon and label carry the meaning; the color only reinforces it. The
+ * editor passes its own `label` (a variant picker) next to the icon.
+ */
 export function Callout({
     variant,
+    label,
     children,
 }: {
     variant: CalloutVariant;
+    label?: ReactNode;
     children: ReactNode;
 }) {
     const { icon: Icon, className } = variants[variant];
@@ -70,7 +77,7 @@ export function Callout({
         >
             <p className="callout-label mb-1 flex items-center gap-2 text-sm font-semibold">
                 <Icon className="size-4 shrink-0" aria-hidden="true" />
-                {t(`callout.${variant}`)}
+                {label ?? t(`callout.${variant}`)}
             </p>
             <div className="rich-content prose max-w-none text-[0.95em] [&>:first-child]:mt-0 [&>:last-child]:mb-0">
                 {children}

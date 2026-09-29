@@ -235,3 +235,33 @@
     font-weight: var(--shiki-dark-font-weight) !important;
     text-decoration: var(--shiki-dark-text-decoration) !important;
 }
+
+/*
+ * CMS editor (TipTap). The editor reuses the lesson typography; these rules
+ * cover what the reader draws with its own components: code blocks, table
+ * cells, cell selection and clickable formulas.
+ */
+.tiptap pre {
+    @apply my-6 overflow-x-auto rounded-lg border bg-muted/40 p-4 font-mono text-sm leading-relaxed text-foreground;
+}
+
+.tiptap pre code {
+    @apply bg-transparent p-0 text-inherit;
+    font-size: inherit;
+}
+
+.tiptap :is(td, th) > p {
+    @apply my-0;
+}
+
+.tiptap .selectedCell {
+    @apply bg-primary/10;
+}
+
+.tiptap .tiptap-mathematics-render--editable {
+    @apply cursor-pointer rounded-sm hover:bg-muted;
+}
+
+.tiptap .ProseMirror-selectednode.tiptap-mathematics-render {
+    @apply ring-2 ring-ring;
+}

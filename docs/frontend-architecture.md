@@ -38,14 +38,15 @@ resources/js/
 │   ├── roadmap-graph/         # Canvas, nodos, aristas, layout dagre, panel lateral, vista de lista
 │   ├── progress/              # ProgressBar, StateBadge, CompleteLesson, BlockerNotice (requisitos pendientes)
 │   ├── lesson/                # Secciones de la lección: Overview, WhyItMatters, Prerequisites, NextSteps…
-│   ├── rich-content/          # RichContentRenderer y nodos compartidos (Callout, CodeBlock, MathBlock, MermaidDiagram, VideoEmbed)
+│   ├── rich-content/          # RichContentRenderer y nodos compartidos (Callout, CodeBlock, MathBlock, MermaidDiagram, VideoEmbed); allowlist.json
+│   ├── rich-content-editor/   # Editor TipTap: extensiones = lista blanca, barra, NodeViews de dominio, diálogo de valores
+│   ├── cms/                   # Formulario de lección: objetivos, panel de publicación, aviso de cambios sin guardar
 │   ├── recommendations/       # RecommendationCard y RecommendationList
 │   ├── dependencies/          # DependencyEditor reutilizable (track, skill, lección)
 │   ├── publishing/            # ContentStatusBadge, LinkStatusBadge (Fase 4); PublishActions, VersionHistory (5b)
 │   ├── admin/
 │   │   ├── activity.ts        # Frase de cada evento de auditoría (plantillas i18n completas)
-│   │   ├── data-table/        # Tabla dirigida por el servidor (orden, filtros, paginación)
-│   │   └── lesson-editor/     # Editor TipTap + formulario + checklist de publicación
+│   │   └── data-table/        # Tabla dirigida por el servidor (orden, filtros, paginación)
 │   └── search/                # CommandPalette (Fase 7)
 ├── components/
 │   ├── ui/                    # shadcn/ui (copiados; no se editan salvo con motivo)
@@ -179,6 +180,19 @@ Vive en `features/rich-content/`. Detalles que el diseño no fijaba:
 - Protección de cambios sin guardar: un aviso al navegar con el documento modificado.
 - Carga diferida: TipTap y sus extensiones solo se cargan en las páginas del admin que editan contenido.
 
+### Implementación (Fase 5b, pasos 1 y 2)
+
+`/admin/lessons` (lista por track con estado, versión publicada y "cambios sin publicar") y `/admin/lessons/{slug}/edit`. Lo que se construyó y en qué difiere del diseño:
+
+- **Paridad de esquema (TD-5 pagada).** `features/rich-content/allowlist.json` lista nodos, marcas y atributos. Un test de Pest lo compara con `RichContentSchema` y uno de Vitest con el esquema ProseMirror que generan las extensiones (`getSchema`). Un documento con todos los nodos (`every-node.fixture.json`) lo valida el servidor y el editor lo carga y guarda sin cambios. La paridad ya atrapó dos diferencias de TipTap 3.31: `title` en los enlaces y `align` en las celdas; el editor las elimina en lugar de ampliar el esquema del servidor.
+- **Extensiones:** StarterKit con títulos 2–4 y sin subrayado; `CodeBlock` que normaliza el lenguaje pegado (`language-JavaScript` → `javascript`, o nada si el servidor lo rechazaría); `Link` sin `title` y sin tomar `target`, `rel` ni `class` del HTML pegado (el lector decide cómo se abre un enlace por su `href`) y con `safeHref` como validador; tablas sin redimensionar; Mathematics con KaTeX sin `trust`; `Callout` (selector de tipo dentro del recuadro), `Diagram` y `Video` con los componentes del lector y botones Editar/Quitar.
+- **Valores por diálogo:** enlace, fórmula, diagrama y video se piden en un diálogo propio (no `window.prompt`) con validación: un video solo acepta un ID o un enlace de YouTube, del que se guarda el ID. Clic en una fórmula la edita.
+- **El cuerpo solo cambia con una edición real.** TipTap añade atributos por defecto al cargar; el formulario envía el cuerpo del servidor hasta que el editor emite un cambio, así que guardar sin tocarlo no genera "cambios sin publicar". El cuerpo vive fuera de `useForm` (sus atributos son `unknown`, no datos de formulario) y se añade con `transform` al enviar.
+- **Checklist sobre lo guardado, no en vivo.** Las reglas de `LessonReadiness` viven solo en PHP (React no recalcula reglas de negocio). La lista se actualiza al guardar y avisa que refleja lo último guardado; "Publicar" se desactiva mientras haya cambios sin guardar y explica por qué.
+- **Aviso de cambios sin guardar:** `beforeunload` y el evento `before` de Inertia en visitas GET, ignorando los *prefetch* al pasar el mouse por el menú (también disparan `before`).
+- **Peso:** el editor es un chunk diferido de 151 kB gzip (TipTap, ProseMirror y KaTeX) que solo descarga la página de edición.
+- **Diferido a los pasos 3–5:** slug, skills con peso, dependencias, recursos y estado en el formulario; menú `/`; pegar Markdown; imagen (Fase 6); vista de una versión y diff.
+
 ## 9. Formularios, tablas y feedback
 
 - Formularios con el componente `<Form>` y `useForm` de Inertia, más las *form variants* de Wayfinder. La validación la hacen los FormRequest del servidor; los errores se muestran por campo (`InputError`) y los botones indican el envío en curso.
@@ -215,7 +229,7 @@ export const en: Messages = { /* … */ };
 
 | Nivel | Herramienta | Qué se prueba |
 |---|---|---|
-| Unitario | Vitest | `useGraphLayout`, filtros del grafo, `t()`, contraste de los tokens y `RichContentRenderer` (nodos, enlaces peligrosos, nodos desconocidos, Shiki y KaTeX reales, Mermaid simulado porque jsdom no calcula geometría SVG) |
+| Unitario | Vitest | `useGraphLayout`, filtros del grafo, `t()`, contraste de los tokens, `RichContentRenderer` (nodos, enlaces peligrosos, nodos desconocidos, Shiki y KaTeX reales, Mermaid simulado porque jsdom no calcula geometría SVG) y paridad del esquema del editor TipTap con `allowlist.json` |
 | Componente | Vitest + React Testing Library | `ProgressBar`, `StateBadge` (texto accesible), `CompleteLessonButton` (estado de envío), `DependencyEditor`, formulario del editor de lecciones y `RecommendationCard` |
-| E2E | Pest Browser (Playwright) | Flujo del estudiante (registro, login → dashboard → lección → completar → progreso y desbloqueo → desmarcar) y roadmap (grafo, panel, lista), en `tests/Browser` con `composer test:browser`. El flujo editorial llega con el CMS |
+| E2E | Pest Browser (Playwright) | Flujo del estudiante (registro, login → dashboard → lección → completar → progreso y desbloqueo → desmarcar), roadmap (grafo, panel, lista) y flujo editorial (editar con TipTap, guardar, publicar, el estudiante lee la versión nueva), en `tests/Browser` con `composer test:browser` |
 | Estático | `tsc --noEmit`, `vp check` (oxlint + oxfmt) | Todo el código de `resources/js` |

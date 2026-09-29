@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, Gauge } from 'lucide-react';
+import { ArrowLeft, BookOpen, Gauge } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -12,15 +12,26 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useCurrentUrl } from '@/hooks/use-current-url';
 import { t } from '@/i18n';
 import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
+import { index as lessonsIndex } from '@/routes/admin/lessons';
 import type { NavItem } from '@/types';
 
 export function AdminSidebar() {
-    // CMS sections (tracks, lessons, skills…) join this list in phase 5b.
+    const { isCurrentOrParentUrl } = useCurrentUrl();
+
+    // CMS sections join this list as they ship (tracks, skills… in phase 5b).
     const adminNavItems: NavItem[] = [
         { title: t('nav.adminOverview'), href: adminDashboard(), icon: Gauge },
+        {
+            title: t('nav.lessons'),
+            href: lessonsIndex(),
+            icon: BookOpen,
+            // Also active while editing a lesson.
+            isActive: isCurrentOrParentUrl(lessonsIndex()),
+        },
     ];
 
     return (

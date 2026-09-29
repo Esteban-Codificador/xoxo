@@ -1,0 +1,249 @@
+{
+    "version": 1,
+    "doc": {
+        "type": "doc",
+        "content": [
+            {
+                "type": "heading",
+                "attrs": { "level": 2 },
+                "content": [{ "type": "text", "text": "Todos los nodos" }]
+            },
+            {
+                "type": "paragraph",
+                "content": [
+                    { "type": "text", "text": "Texto con " },
+                    {
+                        "type": "text",
+                        "text": "negrita",
+                        "marks": [{ "type": "bold" }]
+                    },
+                    { "type": "text", "text": ", " },
+                    {
+                        "type": "text",
+                        "text": "cursiva",
+                        "marks": [{ "type": "italic" }]
+                    },
+                    { "type": "text", "text": ", " },
+                    {
+                        "type": "text",
+                        "text": "tachado",
+                        "marks": [{ "type": "strike" }]
+                    },
+                    { "type": "text", "text": ", " },
+                    {
+                        "type": "text",
+                        "text": "git commit",
+                        "marks": [{ "type": "code" }]
+                    },
+                    { "type": "text", "text": ", un " },
+                    {
+                        "type": "text",
+                        "text": "enlace interno",
+                        "marks": [
+                            {
+                                "type": "link",
+                                "attrs": {
+                                    "href": "/roadmap",
+                                    "target": null,
+                                    "rel": null,
+                                    "class": null
+                                }
+                            }
+                        ]
+                    },
+                    { "type": "text", "text": ", la fórmula " },
+                    { "type": "inlineMath", "attrs": { "latex": "E = mc^2" } },
+                    { "type": "hardBreak" },
+                    { "type": "text", "text": "y un salto de línea." }
+                ]
+            },
+            {
+                "type": "heading",
+                "attrs": { "level": 3 },
+                "content": [{ "type": "text", "text": "Listas" }]
+            },
+            {
+                "type": "bulletList",
+                "content": [
+                    {
+                        "type": "listItem",
+                        "content": [
+                            {
+                                "type": "paragraph",
+                                "content": [{ "type": "text", "text": "Uno" }]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "listItem",
+                        "content": [
+                            {
+                                "type": "paragraph",
+                                "content": [{ "type": "text", "text": "Dos" }]
+                            },
+                            {
+                                "type": "orderedList",
+                                "attrs": { "start": 3, "type": null },
+                                "content": [
+                                    {
+                                        "type": "listItem",
+                                        "content": [
+                                            {
+                                                "type": "paragraph",
+                                                "content": [
+                                                    {
+                                                        "type": "text",
+                                                        "text": "Anidado"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "heading",
+                "attrs": { "level": 4 },
+                "content": [{ "type": "text", "text": "Bloques" }]
+            },
+            {
+                "type": "blockquote",
+                "content": [
+                    {
+                        "type": "paragraph",
+                        "content": [{ "type": "text", "text": "Una cita." }]
+                    }
+                ]
+            },
+            {
+                "type": "codeBlock",
+                "attrs": { "language": "python" },
+                "content": [{ "type": "text", "text": "print(\"hola\")" }]
+            },
+            { "type": "horizontalRule" },
+            {
+                "type": "callout",
+                "attrs": { "variant": "warning" },
+                "content": [
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Cuidado con el force push."
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "blockMath",
+                "attrs": { "latex": "\\sum_{i=1}^{n} x_i" }
+            },
+            {
+                "type": "diagram",
+                "attrs": { "kind": "mermaid", "source": "graph LR\n  A --> B" }
+            },
+            {
+                "type": "video",
+                "attrs": { "provider": "youtube", "videoId": "aircAruvnKk" }
+            },
+            {
+                "type": "table",
+                "content": [
+                    {
+                        "type": "tableRow",
+                        "content": [
+                            {
+                                "type": "tableHeader",
+                                "attrs": {
+                                    "colspan": 1,
+                                    "rowspan": 1,
+                                    "colwidth": null
+                                },
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Comando"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "tableHeader",
+                                "attrs": {
+                                    "colspan": 1,
+                                    "rowspan": 1,
+                                    "colwidth": null
+                                },
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            { "type": "text", "text": "Efecto" }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "tableRow",
+                        "content": [
+                            {
+                                "type": "tableCell",
+                                "attrs": {
+                                    "colspan": 1,
+                                    "rowspan": 1,
+                                    "colwidth": null
+                                },
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "git add"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "tableCell",
+                                "attrs": {
+                                    "colspan": 1,
+                                    "rowspan": 1,
+                                    "colwidth": null
+                                },
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Prepara cambios"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "type": "paragraph",
+                "content": [{ "type": "text", "text": "Fin." }]
+            }
+        ]
+    }
+}

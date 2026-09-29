@@ -2,6 +2,8 @@
 
 use App\Enums\Permission;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\LessonController as AdminLessonController;
+use App\Http\Controllers\Admin\PublishLessonController;
 use App\Http\Controllers\Dev\DesignSystemController;
 use App\Http\Controllers\Learn\CurrentRoadmapController;
 use App\Http\Controllers\Learn\DashboardController;
@@ -33,6 +35,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('can:'.Permission::AdminAccess->value)
         ->group(function () {
             Route::get('/', AdminDashboardController::class)->name('dashboard');
+
+            Route::get('lessons', [AdminLessonController::class, 'index'])->name('lessons.index');
+            Route::get('lessons/{lesson:slug}/edit', [AdminLessonController::class, 'edit'])->name('lessons.edit');
+            Route::put('lessons/{lesson:slug}', [AdminLessonController::class, 'update'])->name('lessons.update');
+            Route::post('lessons/{lesson:slug}/publish', PublishLessonController::class)->name('lessons.publish');
         });
 });
 

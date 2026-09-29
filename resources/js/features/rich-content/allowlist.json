@@ -1,0 +1,31 @@
+{
+    "nodes": {
+        "doc": [],
+        "paragraph": [],
+        "text": [],
+        "hardBreak": [],
+        "heading": ["level"],
+        "bulletList": [],
+        "orderedList": ["start", "type"],
+        "listItem": [],
+        "blockquote": [],
+        "codeBlock": ["language"],
+        "horizontalRule": [],
+        "table": [],
+        "tableRow": [],
+        "tableHeader": ["colspan", "rowspan", "colwidth"],
+        "tableCell": ["colspan", "rowspan", "colwidth"],
+        "callout": ["variant"],
+        "blockMath": ["latex"],
+        "inlineMath": ["latex"],
+        "diagram": ["kind", "source"],
+        "video": ["provider", "videoId"]
+    },
+    "marks": {
+        "bold": [],
+        "italic": [],
+        "strike": [],
+        "code": [],
+        "link": ["href", "target", "rel", "class"]
+    }
+}
