@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\LessonController as AdminLessonController;
 use App\Http\Controllers\Admin\LessonRelationsController;
 use App\Http\Controllers\Admin\LessonStatusController;
+use App\Http\Controllers\Admin\LessonVersionController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
 use App\Http\Controllers\Admin\ModuleOrderController;
 use App\Http\Controllers\Admin\ModuleStatusController;
@@ -57,6 +58,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('lessons/{lesson:slug}/status', LessonStatusController::class)->name('lessons.status');
             Route::get('lessons/{lesson:slug}/relations', [LessonRelationsController::class, 'edit'])->name('lessons.relations.edit');
             Route::put('lessons/{lesson:slug}/relations', [LessonRelationsController::class, 'update'])->name('lessons.relations.update');
+            Route::get('lessons/{lesson:slug}/changes', [LessonVersionController::class, 'changes'])->name('lessons.changes');
+            Route::get('lessons/{lesson:slug}/versions/{version:version}', [LessonVersionController::class, 'show'])
+                ->scopeBindings()
+                ->name('lessons.versions.show');
 
             // Tracks and modules by id: their slugs are only unique inside the parent and editable.
             Route::get('tracks', [AdminTrackController::class, 'index'])->name('tracks.index');

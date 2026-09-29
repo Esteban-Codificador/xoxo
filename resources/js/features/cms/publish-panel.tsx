@@ -1,5 +1,5 @@
-import { useForm } from '@inertiajs/react';
-import { CircleAlert, CircleCheck, Send } from 'lucide-react';
+import { Link, useForm } from '@inertiajs/react';
+import { CircleAlert, CircleCheck, GitCompare, Send } from 'lucide-react';
 import { useId } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,12 @@ import { StatusActions } from '@/components/publishing/status-actions';
 import { ContentStatusBadge } from '@/components/publishing/status-badges';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/format';
-import { publish, status as statusRoute } from '@/routes/admin/lessons';
+import {
+    changes,
+    publish,
+    status as statusRoute,
+} from '@/routes/admin/lessons';
+import { show as showVersion } from '@/routes/admin/lessons/versions';
 import type { ContentStatus } from '@/types/enums';
 
 export type Readiness = { code: string; message: string }[];
@@ -116,6 +121,19 @@ export function PublishPanel({
                                         : t('cms.edit.upToDate')}
                                 </p>
                             )}
+                            {publication.version !== null &&
+                                publication.has_unpublished_changes && (
+                                    <Link
+                                        href={changes(lessonSlug)}
+                                        className="inline-flex items-center gap-1.5 font-medium text-foreground underline-offset-4 hover:underline"
+                                    >
+                                        <GitCompare
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+                                        {t('cms.versions.viewChanges')}
+                                    </Link>
+                                )}
                             {publication.version !== null &&
                                 !publication.visible_to_learners && (
                                     <p>{t('cms.edit.notVisible')}</p>
@@ -235,9 +253,17 @@ export function PublishPanel({
                         {versions.map((entry) => (
                             <li key={entry.version} className="space-y-0.5 p-3">
                                 <p className="flex items-center gap-2 font-medium">
-                                    {t('cms.edit.version', {
-                                        version: entry.version,
-                                    })}
+                                    <Link
+                                        href={showVersion({
+                                            lesson: lessonSlug,
+                                            version: entry.version,
+                                        })}
+                                        className="underline-offset-4 hover:underline"
+                                    >
+                                        {t('cms.edit.version', {
+                                            version: entry.version,
+                                        })}
+                                    </Link>
                                     {entry.current && (
                                         <span className="rounded-md bg-state-completed-soft px-1.5 py-0.5 text-xs text-state-completed">
                                             {t('cms.edit.current')}

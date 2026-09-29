@@ -75,6 +75,25 @@ class LessonVersion extends Model
     }
 
     /**
+     * Same shape as Lesson::versionedFields(), so snapshots compare.
+     *
+     * @return array<string, mixed>
+     */
+    public function versionedFields(): array
+    {
+        return [
+            'title' => $this->title,
+            'summary' => $this->summary,
+            'why_it_matters' => $this->why_it_matters,
+            'learning_objectives' => $this->learning_objectives,
+            'body' => $this->body->toArray(),
+            'content_type' => $this->content_type->value,
+            'difficulty' => $this->difficulty->value,
+            'estimated_minutes' => $this->estimated_minutes,
+        ];
+    }
+
+    /**
      * @return BelongsTo<Lesson, $this>
      */
     public function lesson(): BelongsTo

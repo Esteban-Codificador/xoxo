@@ -487,6 +487,31 @@ export const en: Messages = {
             publishedOn: 'Published on {date}',
             noNote: 'No change note.',
         },
+        versions: {
+            changes: 'Changes',
+            head: 'Version {version}: {lesson}',
+            title: 'Version {version}',
+            changesHead: 'Unpublished changes: {lesson}',
+            changesTitle: 'Unpublished changes',
+            changesDescription:
+                'The saved working copy against version {version}: what learners will see change once it is published.',
+            comparedTo: 'Changes since version {version}',
+            firstVersion:
+                'This is the first version: there is nothing to compare it with.',
+            neverPublished:
+                'This lesson has not been published yet: all of its content is new.',
+            noChanges: 'No content changes.',
+            content: 'Content of this version',
+            backToEditor: 'Back to the editor',
+            viewChanges: 'View unpublished changes',
+            bodyAsMarkdown:
+                'The content is compared as Markdown, one block per paragraph.',
+            skipped: '{count} unchanged lines',
+            skippedOne: '1 unchanged line',
+            added: 'Added: ',
+            removed: 'Removed: ',
+            becomes: 'becomes',
+        },
         tracks: {
             head: 'Tracks',
             title: 'Tracks',

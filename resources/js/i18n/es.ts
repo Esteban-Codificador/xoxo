@@ -496,6 +496,31 @@ export const es = {
             publishedOn: 'Publicada el {date}',
             noNote: 'Sin nota de cambio.',
         },
+        versions: {
+            changes: 'Cambios',
+            head: 'Versión {version}: {lesson}',
+            title: 'Versión {version}',
+            changesHead: 'Cambios sin publicar: {lesson}',
+            changesTitle: 'Cambios sin publicar',
+            changesDescription:
+                'La copia de trabajo guardada frente a la versión {version}: es lo que cambiará para los estudiantes al publicar.',
+            comparedTo: 'Cambios respecto a la versión {version}',
+            firstVersion:
+                'Es la primera versión: no hay otra con qué compararla.',
+            neverPublished:
+                'Esta lección todavía no se ha publicado: todo su contenido es nuevo.',
+            noChanges: 'Sin cambios en el contenido.',
+            content: 'Contenido de esta versión',
+            backToEditor: 'Volver al editor',
+            viewChanges: 'Ver cambios sin publicar',
+            bodyAsMarkdown:
+                'El contenido se compara como Markdown, un bloque por párrafo.',
+            skipped: '{count} líneas sin cambios',
+            skippedOne: '1 línea sin cambios',
+            added: 'Añadido: ',
+            removed: 'Eliminado: ',
+            becomes: 'pasa a',
+        },
         tracks: {
             head: 'Tracks',
             title: 'Tracks',
