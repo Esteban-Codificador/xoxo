@@ -1,19 +1,28 @@
-import { Head, Link, setLayoutProps } from '@inertiajs/react';
-import { ArrowLeft, BookOpen, Clock, Signal } from 'lucide-react';
-import { useMemo } from 'react';
+import { Head, Link, router, setLayoutProps } from '@inertiajs/react';
+import { ArrowLeft, BookOpen, CircleCheck, Clock, Signal } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 import type { LessonLink } from '@/features/lesson/lesson-pager';
 import { LessonPager } from '@/features/lesson/lesson-pager';
 import type { ResourceLink } from '@/features/lesson/resource-list';
 import { ResourceList } from '@/features/lesson/resource-list';
 import { TableOfContents } from '@/features/lesson/table-of-contents';
+import { BlockerNotice } from '@/features/progress/blocker-notice';
+import { CompleteLesson } from '@/features/progress/complete-lesson';
+import { StateBadge } from '@/features/progress/state-badge';
+import type { LessonProgress } from '@/features/progress/types';
 import { collectHeadings, RichContentRenderer } from '@/features/rich-content';
 import type { RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';
 import { formatDate, formatMinutes } from '@/lib/format';
 import { dashboard } from '@/routes';
-import { show as showLesson } from '@/routes/lessons';
+import { show as showLesson, start } from '@/routes/lessons';
 import { show as showTrack } from '@/routes/tracks';
-import type { ContentType, DependencyKind, Difficulty } from '@/types/enums';
+import type {
+    ContentType,
+    DependencyKind,
+    Difficulty,
+    NodeState,
+} from '@/types/enums';
 
 type Props = {
     roadmap: { slug: string; title: string };
@@ -32,12 +41,16 @@ type Props = {
         version: number;
         published_at: string;
     };
-    prerequisites: (LessonLink & { kind: DependencyKind })[];
+    prerequisites: (LessonLink & { kind: DependencyKind; state: NodeState })[];
     skills: { slug: string; name: string }[];
     resources: ResourceLink[];
     previous: LessonLink | null;
     next: LessonLink | null;
+    progress: LessonProgress;
 };
+
+const isDone = (state: NodeState) =>
+    state === 'COMPLETED' || state === 'MASTERED';
 
 export default function LessonShow({
     roadmap,
@@ -49,6 +62,7 @@ export default function LessonShow({
     resources,
     previous,
     next,
+    progress,
 }: Props) {
     const trackHref = showTrack({ roadmap: roadmap.slug, track: track.slug });
 
@@ -64,6 +78,26 @@ export default function LessonShow({
         () => collectHeadings(lesson.body.doc),
         [lesson.body],
     );
+    const notStarted =
+        progress.state === 'AVAILABLE' || progress.state === 'LOCKED';
+
+    // Opening a lesson starts it (IN_PROGRESS). The server decides whether
+    // that is allowed and never moves a lesson backwards.
+    useEffect(() => {
+        if (notStarted && progress.can_progress) {
+            router.post(
+                start.url(lesson.slug),
+                {},
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    only: ['progress'],
+                    async: true,
+                    showProgress: false,
+                },
+            );
+        }
+    }, [lesson.slug, notStarted, progress.can_progress]);
 
     return (
         <>
@@ -81,7 +115,10 @@ export default function LessonShow({
                         <h1 className="text-3xl font-semibold tracking-tight text-balance">
                             {lesson.title}
                         </h1>
-                        <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                        <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                            <li>
+                                <StateBadge state={progress.state} />
+                            </li>
                             <li className="flex items-center gap-1.5">
                                 <BookOpen
                                     className="size-4"
@@ -102,6 +139,16 @@ export default function LessonShow({
                             {lesson.summary}
                         </p>
                     </header>
+
+                    {!isDone(progress.state) && (
+                        <BlockerNotice
+                            blockers={progress.blockers}
+                            roadmapSlug={roadmap.slug}
+                            strict={progress.policy === 'STRICT'}
+                            scope="lesson"
+                            className="max-w-[72ch]"
+                        />
+                    )}
 
                     <div className="grid max-w-[72ch] gap-4 md:grid-cols-2">
                         <section
@@ -148,6 +195,14 @@ export default function LessonShow({
                                             href={showLesson(prerequisite.slug)}
                                             className="inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm hover:bg-muted/50"
                                         >
+                                            {isDone(prerequisite.state) && (
+                                                <CircleCheck
+                                                    className="size-4 text-state-completed"
+                                                    aria-label={t(
+                                                        'states.COMPLETED',
+                                                    )}
+                                                />
+                                            )}
                                             {prerequisite.title}
                                             <span className="text-xs text-muted-foreground">
                                                 {t(
@@ -210,6 +265,11 @@ export default function LessonShow({
                     )}
 
                     <footer className="max-w-[72ch] space-y-6 border-t pt-6">
+                        <CompleteLesson
+                            lessonSlug={lesson.slug}
+                            progress={progress}
+                            next={next}
+                        />
                         <LessonPager previous={previous} next={next} />
                         <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
                             <Link

@@ -4,6 +4,7 @@ use App\Enums\Permission;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Dev\DesignSystemController;
 use App\Http\Controllers\Learn\DashboardController;
+use App\Http\Controllers\Learn\LessonProgressController;
 use App\Http\Controllers\Learn\ShowLessonController;
 use App\Http\Controllers\Learn\ShowTrackController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->scopeBindings()
         ->name('tracks.show');
     Route::get('lessons/{lesson:slug}', ShowLessonController::class)->name('lessons.show');
+
+    Route::controller(LessonProgressController::class)->prefix('lessons/{lesson:slug}')->name('lessons.')->group(function () {
+        Route::post('start', 'start')->name('start');
+        Route::post('complete', 'complete')->name('complete');
+        Route::delete('complete', 'uncomplete')->name('uncomplete');
+    });
 
     Route::prefix('admin')
         ->name('admin.')

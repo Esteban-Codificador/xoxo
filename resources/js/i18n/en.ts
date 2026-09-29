@@ -240,8 +240,6 @@ export const en: Messages = {
             'The tracks of the {roadmap} roadmap, in the recommended study order.',
         lessons: '{count} lessons',
         oneLesson: '1 lesson',
-        progressSoon:
-            'Progress tracking and unlocks are coming in the next release.',
         emptyTitle: 'No published content yet',
         emptyDescription: 'The first published track will appear here.',
     },
@@ -379,6 +377,28 @@ export const en: Messages = {
     },
     progress: {
         label: 'Progress: {value}%',
+        lessonsDone: '{completed} of {total} lessons',
+        finishTitle: 'Done with this lesson?',
+        finishDescription:
+            'Mark it as completed to update your progress and unlock what depends on it.',
+        complete: 'Mark as completed',
+        saving: 'Saving…',
+        completedOn: 'You completed this lesson on {date}.',
+        uncomplete: 'Unmark',
+        nextUp: 'Next: {lesson}',
+        nextLesson: 'Next lesson',
+        advisoryTitle: 'Before this lesson, it helps to complete',
+        advisoryTrackTitle: 'Before this track, it helps to complete',
+        advisoryHint:
+            'You can go ahead anyway: the roadmap recommends this order, it does not enforce it.',
+        strictTitle: 'This roadmap requires completing first',
+        trackBlocker: '{track} ({progress}% done, {required}% required)',
+        continueTitle: 'Pick up where you left off',
+        startTitle: 'Start here',
+        continueAction: 'Continue',
+        startAction: 'Start',
+        allDone: 'You completed every published lesson.',
+        trackContinue: 'Continue: {lesson}',
     },
     callout: {
         note: 'Note',

@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Content\RichContent\RichContent;
+use App\Domain\Curriculum\Actions\PublishLesson;
 use App\Models\Lesson;
 use App\Models\Module;
 use App\Models\Roadmap;
@@ -46,6 +47,17 @@ function publishableLesson(array $attributes = [], ?Module $module = null): Less
     ]);
     $lesson->save();
     $lesson->skills()->attach(Skill::factory()->create(), ['weight' => 2]);
+
+    return $lesson->refresh();
+}
+
+/**
+ * A lesson published through PublishLesson, visible to learners.
+ */
+function publishedLesson(array $attributes = [], ?Module $module = null): Lesson
+{
+    $lesson = publishableLesson($attributes, $module);
+    app(PublishLesson::class)->handle($lesson);
 
     return $lesson->refresh();
 }

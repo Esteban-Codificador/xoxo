@@ -245,8 +245,6 @@ export const es = {
             'Los tracks del roadmap {roadmap}, en el orden en que se recomienda estudiarlos.',
         lessons: '{count} lecciones',
         oneLesson: '1 lección',
-        progressSoon:
-            'El seguimiento de tu progreso y los desbloqueos se activan en la próxima versión.',
         emptyTitle: 'Todavía no hay contenido publicado',
         emptyDescription:
             'Cuando el equipo publique el primer track, aparecerá aquí.',
@@ -387,6 +385,28 @@ export const es = {
     },
     progress: {
         label: 'Progreso: {value} %',
+        lessonsDone: '{completed} de {total} lecciones',
+        finishTitle: '¿Terminaste la lección?',
+        finishDescription:
+            'Márcala como completada para actualizar tu progreso y desbloquear lo que depende de ella.',
+        complete: 'Marcar como completada',
+        saving: 'Guardando…',
+        completedOn: 'Completaste esta lección el {date}.',
+        uncomplete: 'Desmarcar',
+        nextUp: 'Siguiente: {lesson}',
+        nextLesson: 'Siguiente lección',
+        advisoryTitle: 'Antes de esta lección conviene completar',
+        advisoryTrackTitle: 'Antes de este track conviene completar',
+        advisoryHint:
+            'Puedes seguir igual: la ruta recomienda este orden, no lo exige.',
+        strictTitle: 'Esta ruta exige completar antes',
+        trackBlocker: '{track} (llevas {progress} %, se requiere {required} %)',
+        continueTitle: 'Continúa donde lo dejaste',
+        startTitle: 'Empieza por aquí',
+        continueAction: 'Continuar',
+        startAction: 'Empezar',
+        allDone: 'Completaste todas las lecciones publicadas.',
+        trackContinue: 'Continuar: {lesson}',
     },
     callout: {
         note: 'Nota',

@@ -36,7 +36,7 @@ resources/js/
 │   └── dev/design-system.tsx  # Galería de revisión; la ruta solo existe en APP_ENV=local
 ├── features/                  # Lógica y UI por dominio (lo que hace cada página)
 │   ├── roadmap-graph/         # Canvas, nodos, aristas, layout dagre, panel lateral, vista de lista
-│   ├── progress/              # ProgressBar, StateBadge, CompleteLessonButton, TrackProgressList
+│   ├── progress/              # ProgressBar, StateBadge, CompleteLesson, BlockerNotice (requisitos pendientes)
 │   ├── lesson/                # Secciones de la lección: Overview, WhyItMatters, Prerequisites, NextSteps…
 │   ├── rich-content/          # RichContentRenderer y nodos compartidos (Callout, CodeBlock, MathBlock, MermaidDiagram, VideoEmbed)
 │   ├── recommendations/       # RecommendationCard y RecommendationList

@@ -34,7 +34,7 @@ actualizan sus modelos. Por eso el ciclo de vida es un **bucle**: lo que se
 observa en producción alimenta la siguiente iteración.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A[Definir problema y métrica] --> B[Datos y contexto]
     B --> C[Modelo o adaptación]
     C --> D[Evaluación offline]

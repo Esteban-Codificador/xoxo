@@ -1,23 +1,13 @@
 <?php
 
-use App\Domain\Curriculum\Actions\PublishLesson;
 use App\Enums\ContentStatus;
 use App\Enums\DependencyKind;
 use App\Enums\LinkStatus;
 use App\Models\ExternalResource;
-use App\Models\Lesson;
 use App\Models\Module;
 use App\Models\Skill;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
-
-function publishedLesson(array $attributes = [], ?Module $module = null): Lesson
-{
-    $lesson = publishableLesson($attributes, $module);
-    app(PublishLesson::class)->handle($lesson);
-
-    return $lesson->refresh();
-}
 
 it('sends guests to the login page', function () {
     publishedLesson(['slug' => 'commits']);
@@ -91,7 +81,7 @@ it('shows only visible prerequisites and published skills and resources', functi
         ->get('/lessons/ramas')
         ->assertInertia(fn (Assert $page) => $page
             ->has('prerequisites', 1)
-            ->where('prerequisites.0', ['slug' => 'commits', 'title' => 'Commits', 'kind' => 'REQUIRED'])
+            ->where('prerequisites.0', ['slug' => 'commits', 'title' => 'Commits', 'kind' => 'REQUIRED', 'state' => 'AVAILABLE'])
             ->where('skills', [
                 ['slug' => Skill::firstWhere('name', 'Git')->slug, 'name' => 'Git'],
                 ['slug' => Skill::firstWhere('name', 'Bash')->slug, 'name' => 'Bash'],

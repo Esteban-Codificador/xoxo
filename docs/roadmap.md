@@ -80,10 +80,10 @@ Tokens semánticos (estados de nodo), tipografía, `AppLayout` y `AdminLayout` (
 
 - **5a · Ruta del estudiante:** `RoadmapStateResolver`, `CompleteLesson`, `StartLesson`, `UncompleteLesson`, política de desbloqueo, recomendaciones por reglas (1–3), dashboard, roadmap (canvas + lista), track, lección y skills. Recursos visibles con su estado de enlace.
 - **5b · CMS:** CRUD de roadmaps, tracks, módulos, lecciones, skills y recursos. Editor TipTap con nodos de dominio y checklist. `DependencyEditor`. Flujo de publicación y versiones. Usuarios y roles. Vista de auditoría.
-- **5c · Contenido:** paquete completo con 17 tracks, 50 módulos, 72 skills y dependencias, recursos oficiales y **≥ 100 lecciones publicadas**. Job de CI de verificación de enlaces.
+- ~~**5c · Contenido:** paquete completo con 17 tracks, 50 módulos, 72 skills y dependencias, recursos oficiales y ≥ 100 lecciones publicadas.~~ **Redefinida por D8 (2026-09-29): no se agregan lecciones; se pulen las 6 existentes** con la revisión del dueño del producto dentro de la plataforma. El job de CI de verificación de enlaces ya existe (ADR-027).
 - **E2E:** los dos flujos de §78.
 
-**Criterio de salida:** un estudiante nuevo puede registrarse, recorrer el roadmap, estudiar, completar lecciones y ver cómo cambian el progreso y los desbloqueos. Un editor puede crear y publicar una lección que el estudiante ve de inmediato. Todo cubierto por tests. **Aquí queda cerrada la V1.**
+**Criterio de salida:** un estudiante nuevo puede registrarse, recorrer el roadmap, estudiar, completar lecciones y ver cómo cambian el progreso y los desbloqueos (**hecho** en la 5a, salvo el roadmap visual). Un editor puede crear y publicar una lección que el estudiante ve de inmediato. Todo cubierto por tests. **Aquí queda cerrada la V1.**
 
 ### Fase 6 — Práctica y evaluación · estimación: 3–4 sesiones
 

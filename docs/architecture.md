@@ -214,6 +214,7 @@ Track T desbloqueado ⇔ ∀ dependencia REQUIRED (P → T, min_progress m): pro
 
 Track T:
   MASTERED    ⇔ 100 % completado ∧ todos los quizzes publicados del track aprobados ∧ (T sin proyectos ∨ ≥1 proyecto del track COMPLETED)
+                ∧ el track tiene al menos una evidencia publicada (quiz o proyecto)   ← ADR-029
   COMPLETED   ⇔ 100 % de lecciones publicadas completadas
   IN_PROGRESS ⇔ alguna lección con progreso
   AVAILABLE   ⇔ desbloqueado
@@ -228,6 +229,8 @@ Skill S: progreso = Σ weight(L)·[L ≥ COMPLETED] / Σ weight(L), sobre las le
 ```
 
 El desbloqueo de un track depende del **progreso** de sus prerequisitos, no de su *estado de desbloqueo*. Por eso el cálculo no es recursivo: una sola pasada O(V+E).
+
+**Implementación (Fase 5a):** `app/Domain/Learning/State/RoadmapStateResolver` calcula todos los estados de un roadmap para un estudiante con **5 consultas fijas** (tracks, lecciones visibles con su título publicado, progreso del usuario, dependencias REQUIRED de lección y de track), sin importar el tamaño del roadmap; un test lo fija. El porcentaje se redondea hacia abajo, así que 100 % siempre significa todas las lecciones. Un prerequisito no publicado se ignora: el estudiante nunca podría cumplirlo. Abrir una lección la inicia (`POST /lessons/{slug}/start`, lanzado por la página), y ni iniciar ni volver a abrir retroceden una lección completada. La caché por `progress_version` de la tabla de abajo **aún no está implementada** (TD-10): con el volumen actual no hace falta.
 
 ### Política de desbloqueo (ADR-009)
 
@@ -383,4 +386,4 @@ Formato: **Decisión** · *alternativas descartadas* · consecuencias.
 | 026 | **Roles y permisos se sincronizan en una migración** (`2026_09_25_000150`), no solo en el seeder | Solo `db:seed` | Todo entorno migrado tiene los roles. El registro (que asigna STUDENT) no depende de que alguien recuerde ejecutar el seeder. Un cambio de la matriz se acompaña de una migración que vuelve a sincronizar |
 | 027 | **`content:verify-links` (modo archivos) adelantado a la Fase 3** y ejecutado en el workflow `Content` | Esperar a la Fase 5 | El paquete de muestra ya tiene URLs que el entorno de desarrollo no puede verificar. Solo 404/410 bloquean; timeouts, 5xx y bloqueos anti-bot son "no concluyentes". El modo BD (actualizar `link_status`) queda en la Fase 5 |
 | 028 | **Excepción acotada a "sin HTML inyectado" en el lector de RichContent: KaTeX escribe su DOM con `katex.render` en un elemento sin hijos de React, y Mermaid inserta el SVG que devuelve `mermaid.render`.** El resto del documento se construye con elementos React (Shiki devuelve tokens, no HTML). Salvaguardas: el servidor valida LaTeX y fuente del diagrama (longitud y tipo), KaTeX corre con `trust: false` y `maxExpand` limitado, Mermaid con `securityLevel: 'strict'` (DOMPurify, sin clics ni etiquetas HTML) y ambos se prueban con entradas maliciosas | Reimplementar la salida de KaTeX y Mermaid como árboles React; renderizarlos en el servidor | Se reutilizan dos bibliotecas maduras sin mantener un traductor propio. El riesgo queda en su saneamiento interno, que se sigue con `npm audit` y sus avisos de seguridad. La CSP de la Fase 8 debe permitir los estilos en línea que ambas generan |
-
+| 029 | **Un track solo llega a MASTERED con al menos una evidencia publicada (quiz o proyecto).** Sin evaluaciones, el máximo es COMPLETED | La regla literal de §6 ("todos los quizzes aprobados ∧ (sin proyectos ∨ …)"), que sin quizzes ni proyectos se cumple por vacío | Coherente con ADR-007 ("MASTERED exige evidencia") y con la regla de lección. Hasta la Fase 6 nada llega a MASTERED; el motor y la UI ya soportan el estado |

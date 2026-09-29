@@ -2,6 +2,10 @@ import { Head, Link, setLayoutProps } from '@inertiajs/react';
 import { ArrowRight, BookOpen, Clock, Signal } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import { Button } from '@/components/ui/button';
+import { BlockerNotice } from '@/features/progress/blocker-notice';
+import { ProgressBar } from '@/features/progress/progress-bar';
+import { StateBadge } from '@/features/progress/state-badge';
+import type { TrackProgress } from '@/features/progress/types';
 import { RichContentRenderer } from '@/features/rich-content';
 import type { RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';
@@ -9,7 +13,13 @@ import { formatMinutes } from '@/lib/format';
 import { dashboard } from '@/routes';
 import { show as showLesson } from '@/routes/lessons';
 import { show as showTrack } from '@/routes/tracks';
-import type { ContentType, DependencyKind, Difficulty } from '@/types/enums';
+import type {
+    ContentType,
+    DependencyKind,
+    Difficulty,
+    NodeState,
+    UnlockPolicy,
+} from '@/types/enums';
 
 type LessonItem = {
     slug: string;
@@ -18,6 +28,7 @@ type LessonItem = {
     content_type: ContentType;
     difficulty: Difficulty;
     estimated_minutes: number;
+    state: NodeState;
 };
 
 type Props = {
@@ -34,6 +45,9 @@ type Props = {
         lessons_count: number;
         total_minutes: number;
     };
+    progress: TrackProgress;
+    policy: UnlockPolicy;
+    continue: { slug: string; title: string } | null;
     prerequisites: { slug: string; title: string; kind: DependencyKind }[];
     modules: {
         slug: string;
@@ -48,6 +62,9 @@ const pad = (value: number) => String(value).padStart(2, '0');
 export default function TrackShow({
     roadmap,
     track,
+    progress,
+    policy,
+    continue: next,
     prerequisites,
     modules,
 }: Props) {
@@ -61,7 +78,7 @@ export default function TrackShow({
         ],
     });
 
-    const firstLesson = modules[0]?.lessons[0];
+    const started = progress.completed > 0 || progress.state === 'IN_PROGRESS';
     // Lessons are numbered across the whole track, in study order.
     const offsets = modules.map((_, index) =>
         modules
@@ -75,9 +92,14 @@ export default function TrackShow({
 
             <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-8 md:px-6">
                 <header className="space-y-4">
-                    <p className="font-mono text-xs text-muted-foreground">
-                        {t('track.eyebrow', { position: pad(track.position) })}
-                    </p>
+                    <div className="flex items-center gap-3">
+                        <p className="font-mono text-xs text-muted-foreground">
+                            {t('track.eyebrow', {
+                                position: pad(track.position),
+                            })}
+                        </p>
+                        <StateBadge state={progress.state} />
+                    </div>
                     <h1 className="text-3xl font-semibold tracking-tight text-balance">
                         {track.title}
                     </h1>
@@ -113,17 +135,49 @@ export default function TrackShow({
                             })}
                         </p>
                     )}
-                    {firstLesson && (
-                        <Button asChild>
-                            <Link href={showLesson(firstLesson.slug)}>
-                                {t('track.start', {
-                                    lesson: firstLesson.title,
+                    {progress.total > 0 && (
+                        <div className="max-w-md space-y-1.5">
+                            <ProgressBar
+                                value={progress.progress}
+                                state={
+                                    progress.state === 'COMPLETED'
+                                        ? 'COMPLETED'
+                                        : 'IN_PROGRESS'
+                                }
+                                showValue
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                {t('progress.lessonsDone', {
+                                    completed: progress.completed,
+                                    total: progress.total,
                                 })}
+                            </p>
+                        </div>
+                    )}
+                    {next && (
+                        // Lesson titles can be long: let the label wrap on phones.
+                        <Button
+                            asChild
+                            className="h-auto max-w-full py-2 text-left whitespace-normal"
+                        >
+                            <Link href={showLesson(next.slug)}>
+                                {started
+                                    ? t('progress.trackContinue', {
+                                          lesson: next.title,
+                                      })
+                                    : t('track.start', { lesson: next.title })}
                                 <ArrowRight aria-hidden="true" />
                             </Link>
                         </Button>
                     )}
                 </header>
+
+                <BlockerNotice
+                    blockers={progress.blockers}
+                    roadmapSlug={roadmap.slug}
+                    strict={policy === 'STRICT'}
+                    scope="track"
+                />
 
                 <section
                     aria-labelledby="why"
@@ -206,48 +260,49 @@ export default function TrackShow({
                                 </div>
                                 <ol className="divide-y rounded-xl border">
                                     {module.lessons.map(
-                                        (lesson, lessonIndex) => {
-                                            const number =
-                                                offsets[moduleIndex] +
-                                                lessonIndex +
-                                                1;
-
-                                            return (
-                                                <li
-                                                    key={lesson.slug}
-                                                    className="relative flex gap-4 p-4 hover:bg-muted/40"
-                                                >
-                                                    <span className="pt-0.5 font-mono text-xs text-muted-foreground tabular-nums">
-                                                        {pad(number)}
-                                                    </span>
-                                                    <div className="min-w-0 flex-1 space-y-1">
-                                                        <Link
-                                                            href={showLesson(
-                                                                lesson.slug,
+                                        (lesson, lessonIndex) => (
+                                            <li
+                                                key={lesson.slug}
+                                                className="relative flex gap-4 p-4 hover:bg-muted/40"
+                                            >
+                                                <span className="pt-0.5 font-mono text-xs text-muted-foreground tabular-nums">
+                                                    {pad(
+                                                        offsets[moduleIndex] +
+                                                            lessonIndex +
+                                                            1,
+                                                    )}
+                                                </span>
+                                                <div className="min-w-0 flex-1 space-y-1">
+                                                    <Link
+                                                        href={showLesson(
+                                                            lesson.slug,
+                                                        )}
+                                                        className="font-medium after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring"
+                                                    >
+                                                        {lesson.title}
+                                                    </Link>
+                                                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                                                        {lesson.summary}
+                                                    </p>
+                                                    <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                                                        <span>
+                                                            {t(
+                                                                `contentType.${lesson.content_type}`,
                                                             )}
-                                                            className="font-medium after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring"
-                                                        >
-                                                            {lesson.title}
-                                                        </Link>
-                                                        <p className="line-clamp-2 text-sm text-muted-foreground">
-                                                            {lesson.summary}
-                                                        </p>
-                                                        <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                                                            <span>
-                                                                {t(
-                                                                    `contentType.${lesson.content_type}`,
-                                                                )}
-                                                            </span>
-                                                            <span>
-                                                                {formatMinutes(
-                                                                    lesson.estimated_minutes,
-                                                                )}
-                                                            </span>
-                                                        </p>
-                                                    </div>
-                                                </li>
-                                            );
-                                        },
+                                                        </span>
+                                                        <span>
+                                                            {formatMinutes(
+                                                                lesson.estimated_minutes,
+                                                            )}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                <StateBadge
+                                                    state={lesson.state}
+                                                    className="self-start"
+                                                />
+                                            </li>
+                                        ),
                                     )}
                                 </ol>
                             </div>

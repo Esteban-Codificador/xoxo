@@ -3,20 +3,24 @@
 namespace App\Http\Controllers\Learn;
 
 use App\Domain\Curriculum\Queries\TrackOutline;
+use App\Domain\Learning\State\Blocker;
+use App\Domain\Learning\State\RoadmapStateResolver;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\LessonLinkResource;
 use App\Http\Resources\LessonPageResource;
 use App\Http\Resources\ResourceLinkResource;
 use App\Models\Lesson;
+use App\Models\LessonProgress;
 use App\Models\Pivots\LessonDependency;
 use App\Models\Skill;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ShowLessonController extends Controller
 {
-    public function __invoke(Lesson $lesson): Response
+    public function __invoke(Request $request, Lesson $lesson, RoadmapStateResolver $states): Response
     {
         Gate::authorize('view', $lesson);
 
@@ -24,6 +28,10 @@ class ShowLessonController extends Controller
         $module = $lesson->module;
         $track = $module->track;
         $neighbours = TrackOutline::for($track)->neighboursOf($lesson);
+        $user = $request->user();
+        $state = $states->resolve($user, $track->roadmap);
+        $lessonState = $state->lesson($lesson);
+        $row = LessonProgress::query()->whereBelongsTo($user)->whereBelongsTo($lesson)->first();
 
         $prerequisites = $lesson->prerequisites()
             ->visibleToLearners()
@@ -44,6 +52,7 @@ class ShowLessonController extends Controller
             'prerequisites' => $prerequisites->map(fn (Lesson $prerequisite) => [
                 ...LessonLinkResource::make($prerequisite)->resolve(),
                 'kind' => LessonDependency::of($prerequisite)->kind->value,
+                'state' => $state->lesson($prerequisite)->state->value,
             ])->values()->all(),
             // Ordered by how much the lesson develops each skill.
             'skills' => $skills->map(fn (Skill $skill) => [
@@ -53,6 +62,13 @@ class ShowLessonController extends Controller
             'resources' => ResourceLinkResource::collection($lesson->resources()->published()->get())->resolve(),
             'previous' => $neighbours['previous'] === null ? null : LessonLinkResource::make($neighbours['previous'])->resolve(),
             'next' => $neighbours['next'] === null ? null : LessonLinkResource::make($neighbours['next'])->resolve(),
+            'progress' => [
+                'state' => $lessonState->state->value,
+                'blockers' => array_map(fn (Blocker $blocker) => $blocker->toArray(), $lessonState->blockers),
+                'policy' => $state->policy->value,
+                'can_progress' => $state->canProgress($lesson),
+                'completed_at' => $row?->completed_at?->toIso8601String(),
+            ],
         ]);
     }
 }
