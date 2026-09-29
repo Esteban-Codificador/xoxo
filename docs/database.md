@@ -39,7 +39,8 @@
 | `UserProjectStatus` | IN_PROGRESS, SUBMITTED, COMPLETED | `user_projects` |
 | `ActivityType` | LESSON_STARTED, LESSON_COMPLETED, LESSON_MASTERED, EXERCISE_SOLVED, QUIZ_PASSED, QUIZ_FAILED, LAB_COMPLETED, MILESTONE_COMPLETED, PROJECT_COMPLETED, SKILL_MASTERED, TRACK_COMPLETED, BADGE_EARNED, CERTIFICATE_ISSUED | `learning_activities` |
 | `ProfileVisibility` | PRIVATE, PUBLIC | `users` |
-| `AuditAction` | CREATED, UPDATED, DELETED, SUBMITTED, PUBLISHED, UNPUBLISHED, ARCHIVED, RESTORED, ROLE_ASSIGNED, ROLE_REVOKED, IMPORTED | `audit_logs` |
+| `AuditAction` | CREATED, UPDATED, DELETED, SUBMITTED, RETURNED, PUBLISHED, UNPUBLISHED, ARCHIVED, RESTORED, ROLE_ASSIGNED, ROLE_REVOKED, IMPORTED | `audit_logs` |
+| `ReviewResolution` | PUBLISHED, RETURNED, WITHDRAWN | `lesson_reviews` |
 
 ## 3. Diagramas entidad-relación
 
@@ -222,6 +223,16 @@ lesson_versions                                   -- SNAPSHOT INMUTABLE (solo IN
   change_note varchar NULL
   published_by FK→users (SET NULL), published_at timestamp, created_at
   UK (lesson_id, version)
+
+lesson_reviews                                    -- un envío a revisión por fila (ADR-032)
+  id, lesson_id FK→lessons (CASCADE)
+  submitted_by FK→users (SET NULL), note text NULL, submitted_at
+  previous_status varchar CHECK (DRAFT | PUBLISHED)  -- a dónde vuelve si no se publica
+  content_hash char(64)                           -- copia de trabajo al enviarla
+  resolution varchar NULL CHECK (PUBLISHED | RETURNED | WITHDRAWN)   -- NULL = abierta
+  resolved_by FK→users (SET NULL), comment text NULL (obligatorio si RETURNED), resolved_at NULL
+  lesson_version_id FK→lesson_versions NULL (SET NULL)   -- la versión que publicó
+  IX (lesson_id, submitted_at) · UK parcial (lesson_id) WHERE resolution IS NULL
 
 lesson_dependencies
   lesson_id FK→lessons (CASCADE), prerequisite_lesson_id FK→lessons (CASCADE)

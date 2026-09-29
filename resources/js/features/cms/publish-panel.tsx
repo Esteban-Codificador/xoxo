@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { StatusActions } from '@/components/publishing/status-actions';
 import { ContentStatusBadge } from '@/components/publishing/status-badges';
+import type { ReviewPermissions, ReviewState } from './review-panel';
+import { ReviewPanel } from './review-panel';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/format';
 import {
@@ -51,6 +53,8 @@ export function PublishPanel({
     publication,
     versions,
     canPublish,
+    review,
+    reviewCan,
     statusActions,
     dirty,
     error,
@@ -63,6 +67,8 @@ export function PublishPanel({
     publication: Publication;
     versions: VersionEntry[];
     canPublish: boolean;
+    review: ReviewState;
+    reviewCan: ReviewPermissions;
     dirty: boolean;
     error?: string;
 }) {
@@ -175,6 +181,15 @@ export function PublishPanel({
                 )}
             </section>
 
+            <ReviewPanel
+                lessonSlug={lessonSlug}
+                lessonTitle={lessonTitle}
+                hasPublishedVersion={publication.version !== null}
+                review={review}
+                can={reviewCan}
+                dirty={dirty}
+            />
+
             {canPublish && (
                 <form onSubmit={submit} className="space-y-3">
                     <div className="grid gap-2">
@@ -221,7 +236,7 @@ export function PublishPanel({
                     <InputError message={error} />
                 </form>
             )}
-            {!canPublish && (
+            {!canPublish && !reviewCan.submit && (
                 <p className="text-sm text-muted-foreground">{blocked}</p>
             )}
 

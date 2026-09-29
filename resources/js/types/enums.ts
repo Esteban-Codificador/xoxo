@@ -23,6 +23,7 @@ export const AuditAction = {
     Updated: 'UPDATED',
     Deleted: 'DELETED',
     Submitted: 'SUBMITTED',
+    Returned: 'RETURNED',
     Published: 'PUBLISHED',
     Unpublished: 'UNPUBLISHED',
     Archived: 'ARCHIVED',

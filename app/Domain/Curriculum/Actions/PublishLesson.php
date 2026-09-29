@@ -8,6 +8,7 @@ use App\Domain\Curriculum\Publishing\LessonNotReadyToPublish;
 use App\Domain\Curriculum\Publishing\LessonReadiness;
 use App\Enums\AuditAction;
 use App\Enums\ContentStatus;
+use App\Enums\ReviewResolution;
 use App\Models\Lesson;
 use App\Models\LessonVersion;
 use Illuminate\Support\Facades\Auth;
@@ -52,6 +53,8 @@ final readonly class PublishLesson
                     ])->save());
                 }
 
+                $this->closeReview($lesson, $current);
+
                 return $current;
             }
 
@@ -73,7 +76,20 @@ final readonly class PublishLesson
                 'published_at' => $publishedAt,
             ])->save());
 
+            $this->closeReview($lesson, $version);
+
             return $lesson->setRelation('publishedVersion', $version)->publishedVersion;
         });
+    }
+
+    /** Publishing a lesson in review is the review's outcome (ADR-032). */
+    private function closeReview(Lesson $lesson, LessonVersion $version): void
+    {
+        $lesson->openReview()->update([
+            'resolution' => ReviewResolution::Published,
+            'resolved_by' => Auth::id(),
+            'lesson_version_id' => $version->id,
+            'resolved_at' => now(),
+        ]);
     }
 }

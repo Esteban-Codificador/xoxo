@@ -44,6 +44,19 @@ return [
     ],
     'skill_created' => 'Skill creada como borrador.',
     'skill_saved' => 'Skill guardada. Los estudiantes ven el cambio de inmediato.',
+    'review' => [
+        'submitted' => 'Enviada a revisión. Un editor la publicará o te la devolverá con comentarios.',
+        'returned' => 'Lección devuelta con tus comentarios.',
+        'withdrawn' => 'Envío retirado: la lección se puede editar de nuevo.',
+        'frozen' => 'La lección está en revisión: no se puede editar hasta que un editor la publique o la devuelva. Si necesitas cambiarla, retira el envío.',
+        'not_in_review' => 'La lección no está en revisión.',
+        'blocked' => [
+            'in_review' => 'La lección ya está en revisión.',
+            'archived' => 'La lección está archivada: restáurala antes de enviarla.',
+            'nothing_to_review' => 'No hay cambios sin publicar que revisar.',
+            'not_ready' => 'Todavía no cumple los requisitos para publicarse. Revisa la lista.',
+        ],
+    ],
     'skill_status' => [
         'PUBLISHED' => 'Skill publicada: aparece en las lecciones que la desarrollan.',
         'DRAFT' => 'La skill quedó en borrador: no aparece en las lecciones.',

@@ -10,6 +10,7 @@ enum AuditAction: string
     case Updated = 'UPDATED';
     case Deleted = 'DELETED';
     case Submitted = 'SUBMITTED';
+    case Returned = 'RETURNED';
     case Published = 'PUBLISHED';
     case Unpublished = 'UNPUBLISHED';
     case Archived = 'ARCHIVED';

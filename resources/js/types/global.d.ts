@@ -16,6 +16,8 @@ declare module '@inertiajs/core' {
             can: {
                 accessAdmin: boolean;
             };
+            /** Lessons waiting for review; null for who does not review. */
+            pendingReviews: number | null;
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

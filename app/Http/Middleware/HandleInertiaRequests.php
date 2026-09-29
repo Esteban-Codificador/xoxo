@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Enums\Permission;
+use App\Models\LessonReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Inertia\Middleware;
@@ -47,6 +48,10 @@ class HandleInertiaRequests extends Middleware
             'can' => [
                 'accessAdmin' => (bool) $request->user()?->can(Permission::AdminAccess->value),
             ],
+            // Lessons waiting for review, for whoever reviews them (admin menu).
+            'pendingReviews' => fn () => $request->user()?->can(Permission::ContentPublish->value)
+                ? LessonReview::query()->open()->count()
+                : null,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

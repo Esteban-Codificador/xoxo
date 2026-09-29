@@ -52,10 +52,52 @@ class LessonPolicy
         return $user->can(Permission::ContentViewAny->value);
     }
 
-    /** Editors and admins edit any lesson; instructors only their own. */
-    public function update(User $user, Lesson $lesson): Response
+    /**
+     * Opens the editor, relations and history. Editors and admins edit any
+     * lesson; instructors only their own.
+     */
+    public function edit(User $user, Lesson $lesson): Response
     {
         return $this->editRule($user, $lesson->created_by);
+    }
+
+    /**
+     * Saves content or relations. In review the lesson is frozen for its
+     * author: what gets published is what was reviewed (ADR-032). Whoever
+     * publishes can still fix it.
+     */
+    public function update(User $user, Lesson $lesson): Response
+    {
+        $edit = $this->edit($user, $lesson);
+
+        if ($edit->allowed() && $lesson->status === ContentStatus::Review && ! $user->can(Permission::ContentPublish->value)) {
+            return Response::deny(__('cms.review.frozen'));
+        }
+
+        return $edit;
+    }
+
+    public function submitForReview(User $user, Lesson $lesson): Response
+    {
+        return $user->can(Permission::ContentSubmitReview->value) ? $this->edit($user, $lesson) : Response::deny();
+    }
+
+    /** The queue of lessons waiting for review. */
+    public function reviewQueue(User $user): bool
+    {
+        return $user->can(Permission::ContentPublish->value);
+    }
+
+    /** Returning with changes requested is the reviewer's call. */
+    public function returnFromReview(User $user, Lesson $lesson): bool
+    {
+        return $user->can(Permission::ContentPublish->value);
+    }
+
+    /** Whoever can edit it (its author, a reviewer) can take it out of review. */
+    public function withdrawReview(User $user, Lesson $lesson): Response
+    {
+        return $this->edit($user, $lesson);
     }
 
     /** Publishing makes the working copy what learners read. */

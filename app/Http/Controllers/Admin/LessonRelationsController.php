@@ -12,6 +12,7 @@ use App\Models\Lesson;
 use App\Models\Pivots\LessonDependency;
 use App\Models\Skill;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,9 +23,9 @@ use Inertia\Response;
  */
 class LessonRelationsController extends Controller
 {
-    public function edit(Lesson $lesson): Response
+    public function edit(Request $request, Lesson $lesson): Response
     {
-        Gate::authorize('update', $lesson);
+        Gate::authorize('edit', $lesson);
 
         $lesson->load(['module.track', 'skills', 'prerequisites', 'resources']);
 
@@ -76,6 +77,8 @@ class LessonRelationsController extends Controller
                 'link_status' => $resource->link_status->value,
                 'published' => $resource->status === ContentStatus::Published,
             ])->values()->all(),
+            // Frozen for the author while in review (ADR-032).
+            'can' => ['save' => $request->user()?->can('update', $lesson) ?? false],
         ]);
     }
 

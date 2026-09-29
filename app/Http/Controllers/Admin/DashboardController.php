@@ -100,7 +100,8 @@ class DashboardController extends Controller
         }
 
         foreach (['title', 'name', 'url'] as $attribute) {
-            $value = $subject->getAttribute($attribute);
+            // Skills have a name, not a title: strict models throw on missing attributes.
+            $value = $subject->getAttributes()[$attribute] ?? null;
 
             if (is_string($value) && $value !== '') {
                 return $value;

@@ -18,6 +18,8 @@ export type RichContentEditorProps = {
     invalid?: boolean;
     /** Short fields (a track description) do not need a tall empty area. */
     compact?: boolean;
+    /** Shown but not editable (a lesson in review, for its author). */
+    readOnly?: boolean;
 };
 
 /**
@@ -41,6 +43,7 @@ function Editor({
     describedBy,
     invalid = false,
     compact = false,
+    readOnly = false,
 }: RichContentEditorProps) {
     const ask = useAsk();
     const contentId = useId();
@@ -53,12 +56,14 @@ function Editor({
                 editMathRef.current(kind, pos, latex),
         }),
         content: value.doc,
+        editable: !readOnly,
         shouldRerenderOnTransaction: false,
         editorProps: {
             attributes: {
                 id: contentId,
                 role: 'textbox',
                 'aria-multiline': 'true',
+                'aria-readonly': readOnly ? 'true' : 'false',
                 'aria-labelledby': labelledBy,
                 ...(describedBy === undefined
                     ? {}
@@ -72,6 +77,13 @@ function Editor({
                 doc: current.getJSON() as RichNode,
             }),
     });
+
+    useEffect(() => {
+        // Without `false` TipTap emits an update, which reads as an edit.
+        if (editor.isEditable === readOnly) {
+            editor.setEditable(!readOnly, false);
+        }
+    }, [editor, readOnly]);
 
     useEffect(() => {
         onChangeRef.current = onChange;
@@ -97,7 +109,7 @@ function Editor({
                 invalid && 'border-destructive',
             )}
         >
-            <Toolbar editor={editor} controls={contentId} />
+            {!readOnly && <Toolbar editor={editor} controls={contentId} />}
             <EditorContent editor={editor} />
         </div>
     );

@@ -4,6 +4,7 @@ use App\Enums\Permission;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\LessonController as AdminLessonController;
 use App\Http\Controllers\Admin\LessonRelationsController;
+use App\Http\Controllers\Admin\LessonReviewController;
 use App\Http\Controllers\Admin\LessonStatusController;
 use App\Http\Controllers\Admin\LessonVersionController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\PublishLessonController;
 use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Admin\ResourceStatusController;
 use App\Http\Controllers\Admin\ResourceVerificationController;
+use App\Http\Controllers\Admin\ReviewQueueController;
 use App\Http\Controllers\Admin\SkillController as AdminSkillController;
 use App\Http\Controllers\Admin\SkillDependencyController;
 use App\Http\Controllers\Admin\SkillStatusController;
@@ -59,6 +61,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('lessons/{lesson:slug}/relations', [LessonRelationsController::class, 'edit'])->name('lessons.relations.edit');
             Route::put('lessons/{lesson:slug}/relations', [LessonRelationsController::class, 'update'])->name('lessons.relations.update');
             Route::get('lessons/{lesson:slug}/changes', [LessonVersionController::class, 'changes'])->name('lessons.changes');
+            Route::post('lessons/{lesson:slug}/review', [LessonReviewController::class, 'store'])->name('lessons.review.store');
+            Route::post('lessons/{lesson:slug}/review/return', [LessonReviewController::class, 'sendBack'])->name('lessons.review.return');
+            Route::delete('lessons/{lesson:slug}/review', [LessonReviewController::class, 'destroy'])->name('lessons.review.destroy');
+            Route::get('reviews', ReviewQueueController::class)->name('reviews.index');
             Route::get('lessons/{lesson:slug}/versions/{version:version}', [LessonVersionController::class, 'show'])
                 ->scopeBindings()
                 ->name('lessons.versions.show');

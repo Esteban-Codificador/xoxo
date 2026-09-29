@@ -29,6 +29,8 @@ type Props = {
     prerequisite_options: DependencyOption[];
     resources: number[];
     resource_options: ResourceOption[];
+    /** False while in review for its author (ADR-032). */
+    can: { save: boolean };
 };
 
 export default function AdminLessonRelations({
@@ -39,6 +41,7 @@ export default function AdminLessonRelations({
     prerequisite_options,
     resources,
     resource_options,
+    can,
 }: Props) {
     setLayoutProps({
         breadcrumbs: [
@@ -90,106 +93,121 @@ export default function AdminLessonRelations({
                     onSubmit={submit}
                     className="max-w-3xl min-w-0 space-y-10"
                 >
-                    <p className="rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                        {t('cms.relations.liveNotice')}
+                    <p
+                        role={can.save ? undefined : 'status'}
+                        className="rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground"
+                    >
+                        {can.save
+                            ? t('cms.relations.liveNotice')
+                            : t('cms.review.frozen')}
                     </p>
 
-                    <section
-                        aria-labelledby={`${id}-skills`}
-                        className="space-y-3"
+                    <fieldset
+                        disabled={!can.save}
+                        className="min-w-0 space-y-10 [&_:disabled]:cursor-not-allowed [&_:disabled]:opacity-50"
                     >
-                        <div className="space-y-1">
-                            <h2 id={`${id}-skills`} className="font-medium">
-                                {t('cms.relations.skills')}
-                            </h2>
-                            <p className="text-sm text-muted-foreground">
-                                {t('cms.relations.skillsHelp')}
-                            </p>
-                        </div>
-                        <SkillsEditor
-                            options={skill_options}
-                            value={form.data.skills}
-                            errorFor={(position) =>
-                                errors[`skills.${position}.id`] ??
-                                errors[`skills.${position}.weight`]
-                            }
-                            onChange={(rows) => {
-                                form.setData('skills', rows);
-                                changed();
-                            }}
-                        />
-                        <InputError message={errors.skills} />
-                    </section>
+                        <section
+                            aria-labelledby={`${id}-skills`}
+                            className="space-y-3"
+                        >
+                            <div className="space-y-1">
+                                <h2 id={`${id}-skills`} className="font-medium">
+                                    {t('cms.relations.skills')}
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    {t('cms.relations.skillsHelp')}
+                                </p>
+                            </div>
+                            <SkillsEditor
+                                options={skill_options}
+                                value={form.data.skills}
+                                errorFor={(position) =>
+                                    errors[`skills.${position}.id`] ??
+                                    errors[`skills.${position}.weight`]
+                                }
+                                onChange={(rows) => {
+                                    form.setData('skills', rows);
+                                    changed();
+                                }}
+                            />
+                            <InputError message={errors.skills} />
+                        </section>
 
-                    <section
-                        aria-labelledby={`${id}-prerequisites`}
-                        className="space-y-3"
-                    >
-                        <div className="space-y-1">
-                            <h2
-                                id={`${id}-prerequisites`}
-                                className="font-medium"
-                            >
-                                {t('cms.relations.prerequisites')}
-                            </h2>
-                            <p className="text-sm text-muted-foreground">
-                                {t('cms.relations.prerequisitesHelp')}
-                            </p>
-                        </div>
-                        <DependencyEditor
-                            options={prerequisite_options}
-                            value={form.data.prerequisites}
-                            withMinProgress={false}
-                            errorFor={(position) =>
-                                errors[`prerequisites.${position}.id`]
-                            }
-                            onChange={(rows) => {
-                                form.setData('prerequisites', rows);
-                                changed();
-                            }}
-                        />
-                        <InputError message={errors.prerequisites} />
-                    </section>
+                        <section
+                            aria-labelledby={`${id}-prerequisites`}
+                            className="space-y-3"
+                        >
+                            <div className="space-y-1">
+                                <h2
+                                    id={`${id}-prerequisites`}
+                                    className="font-medium"
+                                >
+                                    {t('cms.relations.prerequisites')}
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    {t('cms.relations.prerequisitesHelp')}
+                                </p>
+                            </div>
+                            <DependencyEditor
+                                options={prerequisite_options}
+                                value={form.data.prerequisites}
+                                withMinProgress={false}
+                                errorFor={(position) =>
+                                    errors[`prerequisites.${position}.id`]
+                                }
+                                onChange={(rows) => {
+                                    form.setData('prerequisites', rows);
+                                    changed();
+                                }}
+                            />
+                            <InputError message={errors.prerequisites} />
+                        </section>
 
-                    <section
-                        aria-labelledby={`${id}-resources`}
-                        className="space-y-3"
-                    >
-                        <div className="space-y-1">
-                            <h2 id={`${id}-resources`} className="font-medium">
-                                {t('cms.relations.resources')}
-                            </h2>
-                            <p className="text-sm text-muted-foreground">
-                                {t('cms.relations.resourcesHelp')}
+                        <section
+                            aria-labelledby={`${id}-resources`}
+                            className="space-y-3"
+                        >
+                            <div className="space-y-1">
+                                <h2
+                                    id={`${id}-resources`}
+                                    className="font-medium"
+                                >
+                                    {t('cms.relations.resources')}
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    {t('cms.relations.resourcesHelp')}
+                                </p>
+                            </div>
+                            <ResourcesEditor
+                                options={resource_options}
+                                value={form.data.resources}
+                                errorFor={(position) =>
+                                    errors[`resources.${position}`]
+                                }
+                                onChange={(ids) => {
+                                    form.setData('resources', ids);
+                                    changed();
+                                }}
+                            />
+                            <InputError message={errors.resources} />
+                            <p className="text-xs text-muted-foreground">
+                                {t('cms.resources.newHint')}{' '}
+                                <Link
+                                    href={createResource()}
+                                    className="underline underline-offset-4"
+                                >
+                                    {t('cms.resources.createAction')}
+                                </Link>
                             </p>
-                        </div>
-                        <ResourcesEditor
-                            options={resource_options}
-                            value={form.data.resources}
-                            errorFor={(position) =>
-                                errors[`resources.${position}`]
-                            }
-                            onChange={(ids) => {
-                                form.setData('resources', ids);
-                                changed();
-                            }}
-                        />
-                        <InputError message={errors.resources} />
-                        <p className="text-xs text-muted-foreground">
-                            {t('cms.resources.newHint')}{' '}
-                            <Link
-                                href={createResource()}
-                                className="underline underline-offset-4"
-                            >
-                                {t('cms.resources.createAction')}
-                            </Link>
-                        </p>
-                    </section>
+                        </section>
+                    </fieldset>
 
-                    <SaveBar
-                        dirty={form.isDirty}
-                        processing={form.processing}
-                    />
+                    {can.save && (
+                        <SaveBar
+                            dirty={form.isDirty}
+                            processing={form.processing}
+                        />
+                    )}
                 </form>
             </div>
         </>

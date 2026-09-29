@@ -6,8 +6,10 @@ use App\Domain\Curriculum\Actions\UpdateLesson;
 use App\Domain\Curriculum\Publishing\LessonDraft;
 use App\Domain\Curriculum\Publishing\LessonReadiness;
 use App\Domain\Curriculum\Publishing\ReadinessIssue;
+use App\Domain\Curriculum\Publishing\ReviewEligibility;
 use App\Enums\ContentStatus;
 use App\Enums\ContentType;
+use App\Enums\ReviewResolution;
 use App\Http\Controllers\Admin\Concerns\ListsStatusActions;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateLessonRequest;
@@ -50,16 +52,18 @@ class LessonController extends Controller
                 'version' => $lesson->publishedVersion?->version,
                 'has_unpublished_changes' => $lesson->published_version_id !== null && $lesson->hasUnpublishedChanges(),
                 'updated_at' => $lesson->updated_at?->toIso8601String(),
-                'can_edit' => $request->user()?->can('update', $lesson) ?? false,
+                'can_edit' => $request->user()?->can('edit', $lesson) ?? false,
             ])->values()->all(),
         ]);
     }
 
-    public function edit(Request $request, Lesson $lesson, LessonReadiness $readiness): Response
+    public function edit(Request $request, Lesson $lesson, LessonReadiness $readiness, ReviewEligibility $eligibility): Response
     {
-        Gate::authorize('update', $lesson);
+        Gate::authorize('edit', $lesson);
 
         $lesson->load(['module.track.roadmap', 'publishedVersion']);
+        $can = fn (string $ability): bool => $request->user()?->can($ability, $lesson) ?? false;
+        $latestReview = $lesson->reviews()->with(['submitter:id,name', 'resolver:id,name'])->first();
         $versions = $lesson->versions()->with('publisher:id,name')->orderByDesc('version')->get();
         $changed = $lesson->published_version_id === null || $lesson->hasUnpublishedChanges();
 
@@ -106,7 +110,29 @@ class LessonController extends Controller
                 'current' => $version->id === $lesson->published_version_id,
             ])->values()->all(),
             'content_types' => ContentType::lessonValues(),
-            'can' => ['publish' => $request->user()?->can('publish', $lesson) ?? false],
+            'review' => [
+                'open' => $latestReview !== null && $latestReview->resolution === null ? [
+                    'submitted_by' => $latestReview->submitter?->name,
+                    'submitted_at' => $latestReview->submitted_at->toIso8601String(),
+                    'note' => $latestReview->note,
+                    'edited_since' => $latestReview->content_hash !== $lesson->workingCopyHash(),
+                ] : null,
+                // Stays visible until the lesson is sent again or published.
+                'returned' => $latestReview?->resolution === ReviewResolution::Returned ? [
+                    'by' => $latestReview->resolver?->name,
+                    'at' => $latestReview->resolved_at?->toIso8601String(),
+                    'comment' => $latestReview->comment,
+                ] : null,
+                'submit_blocker' => $eligibility->blocker($lesson),
+            ],
+            'can' => [
+                'publish' => $can('publish'),
+                'save' => $can('update'),
+                // Whoever can publish does so directly; the rest send it for review.
+                'submit' => $can('submitForReview') && ! $can('publish'),
+                'return' => $can('returnFromReview'),
+                'withdraw' => $can('withdrawReview'),
+            ],
         ]);
     }
 

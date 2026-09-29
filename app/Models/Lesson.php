@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 /**
@@ -79,6 +80,24 @@ class Lesson extends Model
     public function module(): BelongsTo
     {
         return $this->belongsTo(Module::class);
+    }
+
+    /**
+     * Review submissions, newest first (ADR-032).
+     *
+     * @return HasMany<LessonReview, $this>
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(LessonReview::class)->orderByDesc('submitted_at')->orderByDesc('id');
+    }
+
+    /**
+     * @return HasOne<LessonReview, $this>
+     */
+    public function openReview(): HasOne
+    {
+        return $this->hasOne(LessonReview::class)->whereNull('resolution');
     }
 
     /**

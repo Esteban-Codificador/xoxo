@@ -23,6 +23,7 @@ import type {
     VersionEntry,
 } from '@/features/cms/publish-panel';
 import { PublishPanel } from '@/features/cms/publish-panel';
+import type { ReviewState } from '@/features/cms/review-panel';
 import { SaveBar } from '@/features/cms/save-bar';
 import { useUnsavedChangesGuard } from '@/features/cms/use-unsaved-changes-guard';
 import type { RichContent } from '@/features/rich-content';
@@ -61,7 +62,15 @@ type Props = {
     versions: VersionEntry[];
     content_types: ContentType[];
     status_actions: ContentStatus[];
-    can: { publish: boolean };
+    review: ReviewState;
+    can: {
+        publish: boolean;
+        /** False while in review for its author (ADR-032). */
+        save: boolean;
+        submit: boolean;
+        return: boolean;
+        withdraw: boolean;
+    };
 };
 
 export default function AdminLessonEdit({
@@ -71,6 +80,7 @@ export default function AdminLessonEdit({
     versions,
     content_types,
     status_actions,
+    review,
     can,
 }: Props) {
     setLayoutProps({
@@ -138,274 +148,305 @@ export default function AdminLessonEdit({
 
                 <LessonTabs slug={lesson.slug} current="content" />
 
+                {!can.save && (
+                    <p
+                        role="status"
+                        className="rounded-lg border bg-muted/40 p-3 text-sm"
+                    >
+                        {t('cms.review.frozen')}
+                    </p>
+                )}
+
                 <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
                     <form onSubmit={submit} className="min-w-0 space-y-8">
-                        <section
-                            aria-labelledby={`${id}-details`}
-                            className="space-y-5"
+                        {/* A disabled fieldset turns off every control inside. */}
+                        <fieldset
+                            disabled={!can.save}
+                            className="min-w-0 space-y-8 [&_:disabled]:cursor-not-allowed [&_:disabled]:opacity-50"
                         >
-                            <h2 id={`${id}-details`} className="font-medium">
-                                {t('cms.edit.details')}
-                            </h2>
-
-                            <div className="grid gap-5 sm:grid-cols-2">
-                                <Field
-                                    id={`${id}-title`}
-                                    label={t('cms.edit.fields.title')}
-                                    error={errors.title}
+                            <section
+                                aria-labelledby={`${id}-details`}
+                                className="space-y-5"
+                            >
+                                <h2
+                                    id={`${id}-details`}
+                                    className="font-medium"
                                 >
-                                    <Input
+                                    {t('cms.edit.details')}
+                                </h2>
+
+                                <div className="grid gap-5 sm:grid-cols-2">
+                                    <Field
                                         id={`${id}-title`}
-                                        name="title"
-                                        value={form.data.title}
-                                        maxLength={200}
-                                        required
-                                        aria-invalid={
-                                            errors.title !== undefined
-                                        }
-                                        onChange={(event) =>
-                                            form.setData(
-                                                'title',
-                                                event.target.value,
-                                            )
-                                        }
-                                    />
-                                </Field>
-                                <Field
-                                    id={`${id}-slug`}
-                                    label={t('cms.fields.slug')}
-                                    help={t('cms.edit.fields.slugHelp')}
-                                    error={errors.slug}
-                                >
-                                    <Input
+                                        label={t('cms.edit.fields.title')}
+                                        error={errors.title}
+                                    >
+                                        <Input
+                                            id={`${id}-title`}
+                                            name="title"
+                                            value={form.data.title}
+                                            maxLength={200}
+                                            required
+                                            aria-invalid={
+                                                errors.title !== undefined
+                                            }
+                                            onChange={(event) =>
+                                                form.setData(
+                                                    'title',
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                    </Field>
+                                    <Field
                                         id={`${id}-slug`}
-                                        name="slug"
-                                        value={form.data.slug}
-                                        maxLength={160}
-                                        spellCheck={false}
-                                        className="font-mono"
-                                        aria-describedby={`${id}-slug-help`}
-                                        aria-invalid={errors.slug !== undefined}
+                                        label={t('cms.fields.slug')}
+                                        help={t('cms.edit.fields.slugHelp')}
+                                        error={errors.slug}
+                                    >
+                                        <Input
+                                            id={`${id}-slug`}
+                                            name="slug"
+                                            value={form.data.slug}
+                                            maxLength={160}
+                                            spellCheck={false}
+                                            className="font-mono"
+                                            aria-describedby={`${id}-slug-help`}
+                                            aria-invalid={
+                                                errors.slug !== undefined
+                                            }
+                                            onChange={(event) =>
+                                                form.setData(
+                                                    'slug',
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                    </Field>
+                                </div>
+
+                                <Field
+                                    id={`${id}-summary`}
+                                    label={t('cms.edit.fields.summary')}
+                                    help={t('cms.edit.fields.summaryHelp')}
+                                    error={errors.summary}
+                                >
+                                    <Textarea
+                                        id={`${id}-summary`}
+                                        name="summary"
+                                        value={form.data.summary}
+                                        maxLength={2000}
+                                        rows={3}
+                                        aria-describedby={`${id}-summary-help`}
+                                        aria-invalid={
+                                            errors.summary !== undefined
+                                        }
                                         onChange={(event) =>
                                             form.setData(
-                                                'slug',
+                                                'summary',
                                                 event.target.value,
                                             )
                                         }
                                     />
                                 </Field>
-                            </div>
 
-                            <Field
-                                id={`${id}-summary`}
-                                label={t('cms.edit.fields.summary')}
-                                help={t('cms.edit.fields.summaryHelp')}
-                                error={errors.summary}
-                            >
-                                <Textarea
-                                    id={`${id}-summary`}
-                                    name="summary"
-                                    value={form.data.summary}
-                                    maxLength={2000}
-                                    rows={3}
-                                    aria-describedby={`${id}-summary-help`}
-                                    aria-invalid={errors.summary !== undefined}
-                                    onChange={(event) =>
-                                        form.setData(
-                                            'summary',
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                            </Field>
-
-                            <Field
-                                id={`${id}-why`}
-                                label={t('cms.edit.fields.whyItMatters')}
-                                help={t('cms.edit.fields.whyItMattersHelp')}
-                                error={errors.why_it_matters}
-                            >
-                                <Textarea
-                                    id={`${id}-why`}
-                                    name="why_it_matters"
-                                    value={form.data.why_it_matters}
-                                    maxLength={2000}
-                                    rows={3}
-                                    aria-describedby={`${id}-why-help`}
-                                    aria-invalid={
-                                        errors.why_it_matters !== undefined
-                                    }
-                                    onChange={(event) =>
-                                        form.setData(
-                                            'why_it_matters',
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                            </Field>
-
-                            <fieldset className="space-y-2">
-                                <legend className="text-sm font-medium">
-                                    {t('cms.edit.fields.objectives')}
-                                </legend>
-                                <p className="text-xs text-muted-foreground">
-                                    {t('cms.edit.fields.objectivesHelp')}
-                                </p>
-                                <ObjectivesField
-                                    id={`${id}-objective`}
-                                    value={form.data.learning_objectives}
-                                    errors={(position) =>
-                                        errors[
-                                            `learning_objectives.${position}`
-                                        ]
-                                    }
-                                    onChange={(objectives) =>
-                                        form.setData(
-                                            'learning_objectives',
-                                            objectives,
-                                        )
-                                    }
-                                />
-                                <InputError
-                                    message={errors.learning_objectives}
-                                />
-                            </fieldset>
-
-                            <div className="grid gap-5 sm:grid-cols-3">
                                 <Field
-                                    id={`${id}-type`}
-                                    label={t('cms.edit.fields.contentType')}
-                                    error={errors.content_type}
+                                    id={`${id}-why`}
+                                    label={t('cms.edit.fields.whyItMatters')}
+                                    help={t('cms.edit.fields.whyItMattersHelp')}
+                                    error={errors.why_it_matters}
                                 >
-                                    <Select
-                                        value={form.data.content_type}
-                                        onValueChange={(value) =>
+                                    <Textarea
+                                        id={`${id}-why`}
+                                        name="why_it_matters"
+                                        value={form.data.why_it_matters}
+                                        maxLength={2000}
+                                        rows={3}
+                                        aria-describedby={`${id}-why-help`}
+                                        aria-invalid={
+                                            errors.why_it_matters !== undefined
+                                        }
+                                        onChange={(event) =>
                                             form.setData(
-                                                'content_type',
-                                                value as ContentType,
+                                                'why_it_matters',
+                                                event.target.value,
                                             )
                                         }
-                                    >
-                                        <SelectTrigger
-                                            id={`${id}-type`}
-                                            className="w-full"
-                                            aria-invalid={
-                                                errors.content_type !==
-                                                undefined
-                                            }
-                                        >
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {content_types.map((type) => (
-                                                <SelectItem
-                                                    key={type}
-                                                    value={type}
-                                                >
-                                                    {t(`contentType.${type}`)}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    />
                                 </Field>
 
-                                <Field
-                                    id={`${id}-difficulty`}
-                                    label={t('cms.edit.fields.difficulty')}
-                                    error={errors.difficulty}
-                                >
-                                    <Select
-                                        value={form.data.difficulty}
-                                        onValueChange={(value) =>
+                                <fieldset className="space-y-2">
+                                    <legend className="text-sm font-medium">
+                                        {t('cms.edit.fields.objectives')}
+                                    </legend>
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('cms.edit.fields.objectivesHelp')}
+                                    </p>
+                                    <ObjectivesField
+                                        id={`${id}-objective`}
+                                        value={form.data.learning_objectives}
+                                        errors={(position) =>
+                                            errors[
+                                                `learning_objectives.${position}`
+                                            ]
+                                        }
+                                        onChange={(objectives) =>
                                             form.setData(
-                                                'difficulty',
-                                                value as Difficulty,
+                                                'learning_objectives',
+                                                objectives,
                                             )
                                         }
+                                    />
+                                    <InputError
+                                        message={errors.learning_objectives}
+                                    />
+                                </fieldset>
+
+                                <div className="grid gap-5 sm:grid-cols-3">
+                                    <Field
+                                        id={`${id}-type`}
+                                        label={t('cms.edit.fields.contentType')}
+                                        error={errors.content_type}
                                     >
-                                        <SelectTrigger
-                                            id={`${id}-difficulty`}
-                                            className="w-full"
-                                            aria-invalid={
-                                                errors.difficulty !== undefined
+                                        <Select
+                                            value={form.data.content_type}
+                                            onValueChange={(value) =>
+                                                form.setData(
+                                                    'content_type',
+                                                    value as ContentType,
+                                                )
                                             }
                                         >
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Object.values(Difficulty).map(
-                                                (level) => (
+                                            <SelectTrigger
+                                                id={`${id}-type`}
+                                                className="w-full"
+                                                aria-invalid={
+                                                    errors.content_type !==
+                                                    undefined
+                                                }
+                                            >
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {content_types.map((type) => (
                                                     <SelectItem
-                                                        key={level}
-                                                        value={level}
+                                                        key={type}
+                                                        value={type}
                                                     >
                                                         {t(
-                                                            `difficulty.${level}`,
+                                                            `contentType.${type}`,
                                                         )}
                                                     </SelectItem>
-                                                ),
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                </Field>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </Field>
 
-                                <Field
-                                    id={`${id}-minutes`}
-                                    label={t('cms.edit.fields.minutes')}
-                                    error={errors.estimated_minutes}
-                                >
-                                    <Input
+                                    <Field
+                                        id={`${id}-difficulty`}
+                                        label={t('cms.edit.fields.difficulty')}
+                                        error={errors.difficulty}
+                                    >
+                                        <Select
+                                            value={form.data.difficulty}
+                                            onValueChange={(value) =>
+                                                form.setData(
+                                                    'difficulty',
+                                                    value as Difficulty,
+                                                )
+                                            }
+                                        >
+                                            <SelectTrigger
+                                                id={`${id}-difficulty`}
+                                                className="w-full"
+                                                aria-invalid={
+                                                    errors.difficulty !==
+                                                    undefined
+                                                }
+                                            >
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Object.values(Difficulty).map(
+                                                    (level) => (
+                                                        <SelectItem
+                                                            key={level}
+                                                            value={level}
+                                                        >
+                                                            {t(
+                                                                `difficulty.${level}`,
+                                                            )}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </Field>
+
+                                    <Field
                                         id={`${id}-minutes`}
-                                        name="estimated_minutes"
-                                        type="number"
-                                        inputMode="numeric"
-                                        min={1}
-                                        max={600}
-                                        value={form.data.estimated_minutes}
-                                        aria-invalid={
-                                            errors.estimated_minutes !==
-                                            undefined
-                                        }
-                                        onChange={(event) =>
-                                            form.setData(
-                                                'estimated_minutes',
-                                                event.target.valueAsNumber,
-                                            )
-                                        }
+                                        label={t('cms.edit.fields.minutes')}
+                                        error={errors.estimated_minutes}
+                                    >
+                                        <Input
+                                            id={`${id}-minutes`}
+                                            name="estimated_minutes"
+                                            type="number"
+                                            inputMode="numeric"
+                                            min={1}
+                                            max={600}
+                                            value={form.data.estimated_minutes}
+                                            aria-invalid={
+                                                errors.estimated_minutes !==
+                                                undefined
+                                            }
+                                            onChange={(event) =>
+                                                form.setData(
+                                                    'estimated_minutes',
+                                                    event.target.valueAsNumber,
+                                                )
+                                            }
+                                        />
+                                    </Field>
+                                </div>
+                            </section>
+
+                            <section className="space-y-2">
+                                <h2 id={`${id}-body`} className="font-medium">
+                                    {t('cms.edit.fields.body')}
+                                </h2>
+                                <p
+                                    id={`${id}-body-help`}
+                                    className="text-xs text-muted-foreground"
+                                >
+                                    {t('cms.edit.fields.bodyHelp')}
+                                </p>
+                                <Suspense
+                                    fallback={
+                                        <div className="min-h-96 rounded-lg border p-4 text-sm text-muted-foreground">
+                                            {t('editor.loading')}
+                                        </div>
+                                    }
+                                >
+                                    <RichContentEditor
+                                        value={lesson.body}
+                                        labelledBy={`${id}-body`}
+                                        describedBy={`${id}-body-help`}
+                                        invalid={errors.body !== undefined}
+                                        readOnly={!can.save}
+                                        onChange={setBody}
                                     />
-                                </Field>
-                            </div>
-                        </section>
+                                </Suspense>
+                                <InputError message={errors.body} />
+                            </section>
+                        </fieldset>
 
-                        <section className="space-y-2">
-                            <h2 id={`${id}-body`} className="font-medium">
-                                {t('cms.edit.fields.body')}
-                            </h2>
-                            <p
-                                id={`${id}-body-help`}
-                                className="text-xs text-muted-foreground"
-                            >
-                                {t('cms.edit.fields.bodyHelp')}
-                            </p>
-                            <Suspense
-                                fallback={
-                                    <div className="min-h-96 rounded-lg border p-4 text-sm text-muted-foreground">
-                                        {t('editor.loading')}
-                                    </div>
-                                }
-                            >
-                                <RichContentEditor
-                                    value={lesson.body}
-                                    labelledBy={`${id}-body`}
-                                    describedBy={`${id}-body-help`}
-                                    invalid={errors.body !== undefined}
-                                    onChange={setBody}
-                                />
-                            </Suspense>
-                            <InputError message={errors.body} />
-                        </section>
-
-                        <SaveBar dirty={dirty} processing={form.processing} />
+                        {can.save && (
+                            <SaveBar
+                                dirty={dirty}
+                                processing={form.processing}
+                            />
+                        )}
                     </form>
 
                     <aside className="xl:sticky xl:top-4 xl:self-start">
@@ -418,6 +459,8 @@ export default function AdminLessonEdit({
                             publication={publication}
                             versions={versions}
                             canPublish={can.publish}
+                            review={review}
+                            reviewCan={can}
                             dirty={dirty}
                             error={pageErrors.publish}
                         />

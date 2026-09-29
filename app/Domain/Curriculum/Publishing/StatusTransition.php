@@ -8,8 +8,8 @@ use App\Enums\Permission;
 
 /**
  * Status changes the CMS can make directly on tracks and modules (§42).
- * REVIEW belongs to the review flow (phase 5b, step 4) and an archived item
- * goes back to draft before it can be published again.
+ * REVIEW belongs to the review flow of lessons (ADR-032) and an archived
+ * item goes back to draft before it can be published again.
  */
 final class StatusTransition
 {
@@ -36,7 +36,12 @@ final class StatusTransition
      */
     public static function lessonTargets(ContentStatus $from): array
     {
-        return $from === ContentStatus::Archived ? [ContentStatus::Draft] : [ContentStatus::Archived];
+        return match ($from) {
+            ContentStatus::Archived => [ContentStatus::Draft],
+            // A lesson in review is published, returned or withdrawn first.
+            ContentStatus::Review => [],
+            default => [ContentStatus::Archived],
+        };
     }
 
     public static function allowed(ContentStatus $from, ContentStatus $to): bool

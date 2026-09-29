@@ -4,6 +4,7 @@ use App\Enums\AuditAction;
 use App\Enums\LinkStatus;
 use App\Enums\Role;
 use App\Models\ExternalResource;
+use App\Models\Skill;
 use App\Models\Track;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -68,3 +69,12 @@ it('shares whether the user can open the admin area', function (Role $role, bool
     'instructor' => [Role::Instructor, true],
     'admin' => [Role::Admin, true],
 ]);
+
+it('names skills in the activity by their name', function () {
+    $this->actingAs(userWithRole(Role::Editor));
+    Skill::factory()->create(['name' => 'Git']);
+
+    // Strict models used to throw on the missing title attribute of a skill.
+    $this->get(route('admin.dashboard'))
+        ->assertInertia(fn (Assert $page) => $page->where('activity.0.entity', 'skill')->where('activity.0.label', 'Git'));
+});

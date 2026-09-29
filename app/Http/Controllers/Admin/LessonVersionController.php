@@ -19,7 +19,7 @@ class LessonVersionController extends Controller
 {
     public function show(Lesson $lesson, LessonVersion $version, LessonChanges $changes): Response
     {
-        Gate::authorize('update', $lesson);
+        Gate::authorize('edit', $lesson);
 
         $version->load('publisher:id,name');
         $previous = $lesson->versions()->where('version', '<', $version->version)->first();
@@ -50,7 +50,7 @@ class LessonVersionController extends Controller
 
     public function changes(Lesson $lesson, LessonChanges $changes): Response
     {
-        Gate::authorize('update', $lesson);
+        Gate::authorize('edit', $lesson);
 
         $published = $lesson->publishedVersion;
 

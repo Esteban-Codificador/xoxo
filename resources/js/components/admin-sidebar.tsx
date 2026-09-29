@@ -1,7 +1,8 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
     BookOpen,
+    ClipboardCheck,
     Gauge,
     Layers,
     Library,
@@ -25,12 +26,14 @@ import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as lessonsIndex } from '@/routes/admin/lessons';
 import { index as resourcesIndex } from '@/routes/admin/resources';
+import { index as reviewsIndex } from '@/routes/admin/reviews';
 import { index as skillsIndex } from '@/routes/admin/skills';
 import { index as tracksIndex } from '@/routes/admin/tracks';
 import type { NavItem } from '@/types';
 
 export function AdminSidebar() {
     const { isCurrentOrParentUrl } = useCurrentUrl();
+    const { pendingReviews } = usePage().props;
 
     const adminNavItems: NavItem[] = [
         { title: t('nav.adminOverview'), href: adminDashboard(), icon: Gauge },
@@ -47,6 +50,17 @@ export function AdminSidebar() {
             // Also active while editing a lesson.
             isActive: isCurrentOrParentUrl(lessonsIndex()),
         },
+        // Only for who reviews: the server sends null to everyone else.
+        ...(pendingReviews === null
+            ? []
+            : [
+                  {
+                      title: t('nav.reviews'),
+                      href: reviewsIndex(),
+                      icon: ClipboardCheck,
+                      badge: pendingReviews,
+                  },
+              ]),
         {
             title: t('nav.skills'),
             href: skillsIndex(),
