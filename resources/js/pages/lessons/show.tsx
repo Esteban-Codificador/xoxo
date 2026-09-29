@@ -78,13 +78,13 @@ export default function LessonShow({
         () => collectHeadings(lesson.body.doc),
         [lesson.body],
     );
-    const notStarted =
-        progress.state === 'AVAILABLE' || progress.state === 'LOCKED';
+    const startsOnOpen = progress.starts_on_open;
 
-    // Opening a lesson starts it (IN_PROGRESS). The server decides whether
-    // that is allowed and never moves a lesson backwards.
+    // Opening an AVAILABLE lesson starts it (IN_PROGRESS). The server decides
+    // when that applies (not for LOCKED lessons) and never moves a lesson
+    // backwards.
     useEffect(() => {
-        if (notStarted && progress.can_progress) {
+        if (startsOnOpen) {
             router.post(
                 start.url(lesson.slug),
                 {},
@@ -97,7 +97,7 @@ export default function LessonShow({
                 },
             );
         }
-    }, [lesson.slug, notStarted, progress.can_progress]);
+    }, [lesson.slug, startsOnOpen]);
 
     return (
         <>

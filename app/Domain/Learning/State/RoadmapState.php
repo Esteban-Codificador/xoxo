@@ -58,6 +58,16 @@ final readonly class RoadmapState
     }
 
     /**
+     * Opening a lesson starts it only when it is AVAILABLE. Peeking at a
+     * LOCKED lesson is reading, not starting: otherwise "continue" would
+     * send the learner to a lesson whose prerequisites are missing.
+     */
+    public function startsOnOpen(Lesson|int $lesson): bool
+    {
+        return $this->lesson($lesson)->state === NodeState::Available;
+    }
+
+    /**
      * Where to continue: the in-progress lesson visited last, otherwise the
      * first available lesson in study order. Null when nothing is left.
      */

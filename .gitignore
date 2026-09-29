@@ -42,3 +42,4 @@ yarn-error.log
 /opencode.json
 /opencode.jsonc
 /dump.rdb
+/tests/Browser/Screenshots

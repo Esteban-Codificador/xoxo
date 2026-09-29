@@ -154,3 +154,14 @@ it('runs in a fixed number of queries', function () {
 
     expect(DB::getQueryLog())->toHaveCount(5);
 });
+
+it('starts a lesson on open only when it is available', function () {
+    $state = stateFor($this->user, $this->roadmap);
+
+    expect($state->startsOnOpen($this->a1))->toBeTrue()
+        ->and($state->startsOnOpen($this->a2))->toBeFalse();
+
+    progressOf($this->user, $this->a1, ProgressStatus::InProgress);
+
+    expect(stateFor($this->user, $this->roadmap)->startsOnOpen($this->a1))->toBeFalse();
+});

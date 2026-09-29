@@ -22,5 +22,7 @@ export type LessonProgress = {
     blockers: Blocker[];
     policy: UnlockPolicy;
     can_progress: boolean;
+    /** Opening the page starts the lesson (only when AVAILABLE). */
+    starts_on_open: boolean;
     completed_at: string | null;
 };

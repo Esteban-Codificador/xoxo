@@ -26,6 +26,7 @@ const progress: LessonProgress = {
     blockers: [],
     policy: 'ADVISORY',
     can_progress: true,
+    starts_on_open: false,
     completed_at: null,
 };
 

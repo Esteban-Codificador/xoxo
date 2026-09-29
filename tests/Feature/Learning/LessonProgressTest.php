@@ -117,6 +117,7 @@ it('shows the state, blockers and completion on the lesson page', function () {
         ->where('progress.state', 'LOCKED')
         ->where('progress.policy', 'ADVISORY')
         ->where('progress.can_progress', true)
+        ->where('progress.starts_on_open', false)
         ->where('progress.completed_at', null)
         ->where('progress.blockers.0.slug', 'intro')
         ->where('prerequisites.0.state', 'AVAILABLE'));

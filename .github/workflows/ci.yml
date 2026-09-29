@@ -99,3 +99,9 @@ jobs:
 
       - name: Frontend tests (Vitest)
         run: npm run test
+
+      - name: Install Chromium for end-to-end tests
+        run: npx playwright install --with-deps --only-shell chromium
+
+      - name: End-to-end tests (Pest Browser)
+        run: scripts/test-browser.sh

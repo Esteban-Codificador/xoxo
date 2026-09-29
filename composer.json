@@ -28,6 +28,7 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.9.3",
         "pestphp/pest": "^5.2",
+        "pestphp/pest-plugin-browser": "^5.0",
         "pestphp/pest-plugin-laravel": "^5.0"
     },
     "autoload": {
@@ -76,6 +77,10 @@
             "@types:check",
             "@php artisan test"
         ],
+        "test:browser": [
+            "Composer\\Config::disableProcessTimeout",
+            "scripts/test-browser.sh"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
@@ -99,8 +104,7 @@
         "laravel": {
             "dont-discover": [],
             "installer": {
-                "post-create-project": [
-                ]
+                "post-create-project": []
             }
         }
     },

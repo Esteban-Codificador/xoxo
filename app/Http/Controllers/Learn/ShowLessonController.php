@@ -67,6 +67,7 @@ class ShowLessonController extends Controller
                 'blockers' => array_map(fn (Blocker $blocker) => $blocker->toArray(), $lessonState->blockers),
                 'policy' => $state->policy->value,
                 'can_progress' => $state->canProgress($lesson),
+                'starts_on_open' => $state->startsOnOpen($lesson),
                 'completed_at' => $row?->completed_at?->toIso8601String(),
             ],
         ]);
