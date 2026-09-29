@@ -11,6 +11,7 @@ import { activitySentence } from '@/features/admin/activity';
 import { t } from '@/i18n';
 import { formatDateTime } from '@/lib/format';
 import { dashboard } from '@/routes/admin';
+import { index as auditIndex } from '@/routes/admin/audit';
 import { index as resourcesIndex } from '@/routes/admin/resources';
 import type { ContentStatus, LinkStatus } from '@/types/enums';
 
@@ -24,12 +25,18 @@ type Props = {
     }[];
     links: Record<LinkStatus, number>;
     activity: ActivityEntry[];
+    can: { view_audit: boolean };
 };
 
 const statuses: ContentStatus[] = ['DRAFT', 'REVIEW', 'PUBLISHED', 'ARCHIVED'];
 const linkStatuses: LinkStatus[] = ['UNCHECKED', 'OK', 'REDIRECTED', 'BROKEN'];
 
-export default function AdminDashboard({ content, links, activity }: Props) {
+export default function AdminDashboard({
+    content,
+    links,
+    activity,
+    can,
+}: Props) {
     setLayoutProps({
         breadcrumbs: [{ title: t('nav.adminOverview'), href: dashboard() }],
     });
@@ -139,9 +146,19 @@ export default function AdminDashboard({ content, links, activity }: Props) {
                     aria-labelledby="recent-activity"
                     className="space-y-3"
                 >
-                    <h2 id="recent-activity" className="font-medium">
-                        {t('admin.activityTitle')}
-                    </h2>
+                    <div className="flex items-baseline justify-between gap-4">
+                        <h2 id="recent-activity" className="font-medium">
+                            {t('admin.activityTitle')}
+                        </h2>
+                        {can.view_audit && (
+                            <Link
+                                href={auditIndex()}
+                                className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                            >
+                                {t('admin.activityAll')}
+                            </Link>
+                        )}
+                    </div>
                     {activity.length === 0 ? (
                         <EmptyState
                             icon={History}

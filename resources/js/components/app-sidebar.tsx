@@ -18,13 +18,13 @@ import { dashboard as adminDashboard } from '@/routes/admin';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
-    const { can } = usePage().props;
+    const { access } = usePage().props;
 
     // Only routes that exist: new sections are added here as they ship.
     const mainNavItems: NavItem[] = [
         { title: t('nav.dashboard'), href: dashboard(), icon: LayoutGrid },
         { title: t('nav.roadmap'), href: roadmap(), icon: MapIcon },
-        ...(can.accessAdmin
+        ...(access.admin
             ? [
                   {
                       title: t('nav.admin'),

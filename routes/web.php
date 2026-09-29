@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Permission;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\LessonController as AdminLessonController;
 use App\Http\Controllers\Admin\LessonRelationsController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\Admin\SkillStatusController;
 use App\Http\Controllers\Admin\TrackController as AdminTrackController;
 use App\Http\Controllers\Admin\TrackDependencyController;
 use App\Http\Controllers\Admin\TrackStatusController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Dev\DesignSystemController;
 use App\Http\Controllers\Learn\CurrentRoadmapController;
 use App\Http\Controllers\Learn\DashboardController;
@@ -91,6 +93,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('skills/{skill}', [AdminSkillController::class, 'update'])->name('skills.update');
             Route::put('skills/{skill}/status', SkillStatusController::class)->name('skills.status');
             Route::put('skills/{skill}/dependencies', SkillDependencyController::class)->name('skills.dependencies');
+
+            Route::get('audit', AuditLogController::class)->name('audit.index');
+
+            Route::get('users', [UserController::class, 'index'])->name('users.index');
+            Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+            Route::put('users/{user}/role', [UserController::class, 'updateRole'])->name('users.role');
 
             Route::get('resources', [ResourceController::class, 'index'])->name('resources.index');
             Route::get('resources/create', [ResourceController::class, 'create'])->name('resources.create');

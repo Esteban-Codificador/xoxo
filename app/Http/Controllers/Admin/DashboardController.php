@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Audit\AuditEntries;
 use App\Enums\ContentStatus;
 use App\Enums\LinkStatus;
+use App\Enums\Permission;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\ExternalResource;
@@ -12,13 +14,17 @@ use App\Models\Module;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Read-only overview of the curriculum for staff. Editing arrives with the
- * CMS (phase 5b); nothing on this page pretends to be actionable yet.
+ * Overview of the curriculum for staff: content by status, link health and
+ * the latest audit entries (the whole log is in AuditLogController).
+ *
+ * @phpstan-import-type Entry from AuditEntries
  */
 class DashboardController extends Controller
 {
@@ -32,12 +38,15 @@ class DashboardController extends Controller
         'resource' => ExternalResource::class,
     ];
 
-    public function __invoke(): Response
+    public function __construct(private readonly AuditEntries $entries) {}
+
+    public function __invoke(Request $request): Response
     {
         return Inertia::render('admin/dashboard', [
             'content' => $this->contentByStatus(),
             'links' => $this->countBy(ExternalResource::class, 'link_status', LinkStatus::values()),
-            'activity' => $this->recentActivity(),
+            'activity' => $this->recentActivity($request->user()),
+            'can' => ['view_audit' => $request->user()?->can(Permission::AuditView->value) ?? false],
         ]);
     }
 
@@ -73,41 +82,15 @@ class DashboardController extends Controller
     }
 
     /**
-     * @return list<array{id: int, action: string, entity: string, label: string|null, user: string|null, created_at: string}>
+     * @return list<Entry>
      */
-    private function recentActivity(): array
+    private function recentActivity(?User $viewer): array
     {
-        return array_values(AuditLog::query()
-            ->with(['user:id,name', 'auditable'])
+        return array_values($this->entries->withSubjects(AuditLog::query())
             ->latest('id')
             ->limit(10)
             ->get()
-            ->map(fn (AuditLog $log) => [
-                'id' => $log->id,
-                'action' => $log->action->value,
-                'entity' => $log->auditable_type,
-                'label' => $this->label($log->auditable),
-                'user' => $log->user?->name,
-                'created_at' => $log->created_at->toIso8601String(),
-            ])
+            ->map(fn (AuditLog $log) => $this->entries->entry($log, $viewer))
             ->all());
-    }
-
-    private function label(?Model $subject): ?string
-    {
-        if ($subject === null) {
-            return null;
-        }
-
-        foreach (['title', 'name', 'url'] as $attribute) {
-            // Skills have a name, not a title: strict models throw on missing attributes.
-            $value = $subject->getAttributes()[$attribute] ?? null;
-
-            if (is_string($value) && $value !== '') {
-                return $value;
-            }
-        }
-
-        return null;
     }
 }

@@ -45,8 +45,12 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'can' => [
-                'accessAdmin' => (bool) $request->user()?->can(Permission::AdminAccess->value),
+            // Which areas the menus offer. Not "can": pages send their own
+            // "can" and Inertia merges shared props shallowly.
+            'access' => [
+                'admin' => (bool) $request->user()?->can(Permission::AdminAccess->value),
+                'users' => (bool) $request->user()?->can(Permission::UsersView->value),
+                'audit' => (bool) $request->user()?->can(Permission::AuditView->value),
             ],
             // Lessons waiting for review, for whoever reviews them (admin menu).
             'pendingReviews' => fn () => $request->user()?->can(Permission::ContentPublish->value)

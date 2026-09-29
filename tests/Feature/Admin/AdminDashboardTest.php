@@ -63,7 +63,7 @@ it('counts content by status, links by status and shows recent activity', functi
 it('shares whether the user can open the admin area', function (Role $role, bool $expected) {
     $this->actingAs(userWithRole($role))
         ->get(route('dashboard'))
-        ->assertInertia(fn (Assert $page) => $page->where('can.accessAdmin', $expected));
+        ->assertInertia(fn (Assert $page) => $page->where('access.admin', $expected));
 })->with([
     'student' => [Role::Student, false],
     'instructor' => [Role::Instructor, true],

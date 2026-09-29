@@ -6,7 +6,9 @@ import {
     Gauge,
     Layers,
     Library,
+    ScrollText,
     Sparkles,
+    Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -24,16 +26,18 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { t } from '@/i18n';
 import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
+import { index as auditIndex } from '@/routes/admin/audit';
 import { index as lessonsIndex } from '@/routes/admin/lessons';
 import { index as resourcesIndex } from '@/routes/admin/resources';
 import { index as reviewsIndex } from '@/routes/admin/reviews';
 import { index as skillsIndex } from '@/routes/admin/skills';
 import { index as tracksIndex } from '@/routes/admin/tracks';
+import { index as usersIndex } from '@/routes/admin/users';
 import type { NavItem } from '@/types';
 
 export function AdminSidebar() {
     const { isCurrentOrParentUrl } = useCurrentUrl();
-    const { pendingReviews } = usePage().props;
+    const { pendingReviews, access } = usePage().props;
 
     const adminNavItems: NavItem[] = [
         { title: t('nav.adminOverview'), href: adminDashboard(), icon: Gauge },
@@ -73,6 +77,19 @@ export function AdminSidebar() {
             icon: Library,
             isActive: isCurrentOrParentUrl(resourcesIndex()),
         },
+        ...(access.users
+            ? [
+                  {
+                      title: t('nav.users'),
+                      href: usersIndex(),
+                      icon: Users,
+                      isActive: isCurrentOrParentUrl(usersIndex()),
+                  },
+              ]
+            : []),
+        ...(access.audit
+            ? [{ title: t('nav.audit'), href: auditIndex(), icon: ScrollText }]
+            : []),
     ];
 
     return (

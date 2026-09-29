@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { activitySentence } from './activity';
+import { activitySentence, entityLabel } from './activity';
 
 const entry = {
     id: 1,
     action: 'PUBLISHED' as const,
     entity: 'lesson',
     label: 'Ramas, merge y rebase',
+    href: null,
     user: null,
     created_at: '2026-09-25T17:09:00+00:00',
 };
@@ -53,5 +54,13 @@ describe('activitySentence', () => {
         expect(
             activitySentence({ ...entry, entity: 'badge', label: null }),
         ).toBe('Sistema publicó badge');
+    });
+});
+
+describe('entityLabel', () => {
+    it('names entity types for filters', () => {
+        expect(entityLabel('lesson_version')).toBe('Versiones de lección');
+        expect(entityLabel('user')).toBe('Cuentas');
+        expect(entityLabel('badge')).toBe('badge');
     });
 });
