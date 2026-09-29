@@ -53,6 +53,15 @@ class LessonPolicy
     }
 
     /**
+     * Any module takes new lessons: they are drafts of their author until
+     * someone who publishes publishes them (ADR-032).
+     */
+    public function create(User $user): bool
+    {
+        return $user->can(Permission::ContentCreate->value);
+    }
+
+    /**
      * Opens the editor, relations and history. Editors and admins edit any
      * lesson; instructors only their own.
      */

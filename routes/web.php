@@ -54,6 +54,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', AdminDashboardController::class)->name('dashboard');
 
             Route::get('lessons', [AdminLessonController::class, 'index'])->name('lessons.index');
+            Route::get('lessons/create', [AdminLessonController::class, 'create'])->name('lessons.create');
+            Route::post('lessons', [AdminLessonController::class, 'store'])->name('lessons.store');
             Route::get('lessons/{lesson:slug}/edit', [AdminLessonController::class, 'edit'])->name('lessons.edit');
             Route::put('lessons/{lesson:slug}', [AdminLessonController::class, 'update'])->name('lessons.update');
             Route::post('lessons/{lesson:slug}/publish', PublishLessonController::class)->name('lessons.publish');
@@ -71,11 +73,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             // Tracks and modules by id: their slugs are only unique inside the parent and editable.
             Route::get('tracks', [AdminTrackController::class, 'index'])->name('tracks.index');
+            Route::get('tracks/create', [AdminTrackController::class, 'create'])->name('tracks.create');
+            Route::post('tracks', [AdminTrackController::class, 'store'])->name('tracks.store');
             Route::get('tracks/{track}/edit', [AdminTrackController::class, 'edit'])->name('tracks.edit');
             Route::put('tracks/{track}', [AdminTrackController::class, 'update'])->name('tracks.update');
             Route::put('tracks/{track}/status', TrackStatusController::class)->name('tracks.status');
             Route::put('tracks/{track}/dependencies', TrackDependencyController::class)->name('tracks.dependencies');
             Route::put('tracks/{track}/module-order', ModuleOrderController::class)->name('tracks.module-order');
+            Route::post('tracks/{track}/modules', [AdminModuleController::class, 'store'])->name('tracks.modules.store');
             Route::put('modules/{module}', [AdminModuleController::class, 'update'])->name('modules.update');
             Route::put('modules/{module}/status', ModuleStatusController::class)->name('modules.status');
 

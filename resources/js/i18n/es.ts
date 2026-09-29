@@ -325,6 +325,18 @@ export const es = {
             empty: 'Todavía no hay lecciones.',
             emptyDescription:
                 'Importa el paquete de contenido con php artisan content:import.',
+            create: 'Nueva lección',
+        },
+        lessonCreate: {
+            head: 'Nueva lección',
+            description:
+                'Nace en borrador al final del módulo, con las secciones de la plantilla para escribir debajo. Los estudiantes no la ven hasta que se publique.',
+            module: 'Módulo',
+            chooseModule: 'Elige un módulo…',
+            noModules:
+                'Todavía no hay módulos: crea un track y añádele un módulo.',
+            submit: 'Crear lección',
+            creating: 'Creando…',
         },
         resources: {
             head: 'Recursos',
@@ -587,6 +599,14 @@ export const es = {
             startingPoint: 'Punto de partida',
             editTrack: 'Editar {track}',
             empty: 'Todavía no hay tracks.',
+            create: 'Nuevo track',
+        },
+        trackCreate: {
+            head: 'Nuevo track',
+            description:
+                'Nace en borrador al final de «{roadmap}». Después añadirás su descripción, prerrequisitos y módulos.',
+            submit: 'Crear track',
+            creating: 'Creando…',
         },
         trackEdit: {
             head: 'Editar: {track}',
@@ -629,6 +649,12 @@ export const es = {
             dialogDescription:
                 'El cambio se ve de inmediato en la página del track.',
             slugHelp: 'Ancla del módulo en la página del track.',
+            create: 'Añadir módulo',
+            createTitle: 'Nuevo módulo',
+            createDescription:
+                'Se añade en borrador al final del track: sus lecciones no se ven hasta publicarlo.',
+            addLesson: 'Añadir lección',
+            addLessonLabel: 'Añadir una lección a {module}',
         },
         status: {
             actions: {

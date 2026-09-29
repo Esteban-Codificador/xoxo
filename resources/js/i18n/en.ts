@@ -318,6 +318,18 @@ export const en: Messages = {
             empty: 'There are no lessons yet.',
             emptyDescription:
                 'Import the content package with php artisan content:import.',
+            create: 'New lesson',
+        },
+        lessonCreate: {
+            head: 'New lesson',
+            description:
+                'It starts as a draft at the end of the module, with the template sections to write under. Learners do not see it until it is published.',
+            module: 'Module',
+            chooseModule: 'Choose a module…',
+            noModules:
+                'There are no modules yet: create a track and add a module to it.',
+            submit: 'Create lesson',
+            creating: 'Creating…',
         },
         resources: {
             head: 'Resources',
@@ -579,6 +591,14 @@ export const en: Messages = {
             startingPoint: 'Starting point',
             editTrack: 'Edit {track}',
             empty: 'There are no tracks yet.',
+            create: 'New track',
+        },
+        trackCreate: {
+            head: 'New track',
+            description:
+                'It starts as a draft at the end of “{roadmap}”. Add its description, prerequisites and modules afterwards.',
+            submit: 'Create track',
+            creating: 'Creating…',
         },
         trackEdit: {
             head: 'Edit: {track}',
@@ -620,6 +640,12 @@ export const en: Messages = {
             dialogTitle: 'Edit module',
             dialogDescription: 'The change shows on the track page right away.',
             slugHelp: 'Anchor of the module on the track page.',
+            create: 'Add module',
+            createTitle: 'New module',
+            createDescription:
+                'It is added as a draft at the end of the track: its lessons are hidden until it is published.',
+            addLesson: 'Add lesson',
+            addLessonLabel: 'Add a lesson to {module}',
         },
         status: {
             actions: {

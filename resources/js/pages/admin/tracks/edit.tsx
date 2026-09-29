@@ -79,6 +79,7 @@ type Props = {
     dependencies: DependencyRow[];
     dependency_options: DependencyOption[];
     modules: ModuleRow[];
+    can: { create_module: boolean; create_lesson: boolean };
 };
 
 export default function AdminTrackEdit({
@@ -88,6 +89,7 @@ export default function AdminTrackEdit({
     dependencies,
     dependency_options,
     modules,
+    can,
 }: Props) {
     setLayoutProps({
         breadcrumbs: [
@@ -473,7 +475,12 @@ export default function AdminTrackEdit({
                                     {t('cms.trackEdit.modulesHelp')}
                                 </p>
                             </div>
-                            <ModuleList trackId={track.id} modules={modules} />
+                            <ModuleList
+                                trackId={track.id}
+                                modules={modules}
+                                canCreate={can.create_module}
+                                canCreateLesson={can.create_lesson}
+                            />
                         </section>
                     </div>
 

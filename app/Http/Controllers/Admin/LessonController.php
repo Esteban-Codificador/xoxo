@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Curriculum\Actions\CreateLesson;
 use App\Domain\Curriculum\Actions\UpdateLesson;
 use App\Domain\Curriculum\Publishing\LessonDraft;
 use App\Domain\Curriculum\Publishing\LessonReadiness;
@@ -12,9 +13,12 @@ use App\Enums\ContentType;
 use App\Enums\ReviewResolution;
 use App\Http\Controllers\Admin\Concerns\ListsStatusActions;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreLessonRequest;
 use App\Http\Requests\Admin\UpdateLessonRequest;
 use App\Models\Lesson;
 use App\Models\LessonVersion;
+use App\Models\Module;
+use App\Models\Track;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -54,7 +58,36 @@ class LessonController extends Controller
                 'updated_at' => $lesson->updated_at?->toIso8601String(),
                 'can_edit' => $request->user()?->can('edit', $lesson) ?? false,
             ])->values()->all(),
+            'can' => ['create' => $request->user()?->can('create', Lesson::class) ?? false],
         ]);
+    }
+
+    public function create(Request $request): Response
+    {
+        Gate::authorize('create', Lesson::class);
+
+        $tracks = Track::query()->with('modules:id,track_id,title,position')->orderBy('roadmap_id')->orderBy('position')->get();
+
+        return Inertia::render('admin/lessons/create', [
+            // Modules to choose from, grouped by track in study order.
+            'tracks' => $tracks->map(fn (Track $track) => [
+                'title' => $track->title,
+                'modules' => $track->modules->map(fn (Module $module) => ['id' => $module->id, 'title' => $module->title])->values()->all(),
+            ])->filter(fn (array $track) => $track['modules'] !== [])->values()->all(),
+            'module_id' => Module::query()->whereKey($request->integer('module'))->value('id'),
+            'content_types' => ContentType::lessonValues(),
+        ]);
+    }
+
+    public function store(StoreLessonRequest $request, CreateLesson $action): RedirectResponse
+    {
+        /** @var array{title: string, slug: string, summary: string, why_it_matters: string, content_type: string, difficulty: string, estimated_minutes: int|string} $data */
+        $data = $request->safe()->except('module_id');
+        $lesson = $action->handle($request->module(), $data);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('cms.lesson_created')]);
+
+        return to_route('admin.lessons.edit', ['lesson' => $lesson->slug]);
     }
 
     public function edit(Request $request, Lesson $lesson, LessonReadiness $readiness, ReviewEligibility $eligibility): Response

@@ -1,5 +1,5 @@
 import { Head, Link, setLayoutProps } from '@inertiajs/react';
-import { Layers, Pencil } from 'lucide-react';
+import { Layers, Pencil, Plus } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { ContentStatusBadge } from '@/components/publishing/status-badges';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import { formatDateTime } from '@/lib/format';
 import { dashboard } from '@/routes/admin';
-import { edit, index } from '@/routes/admin/tracks';
+import { create, edit, index } from '@/routes/admin/tracks';
 import type { ContentStatus } from '@/types/enums';
 
 type TrackRow = {
@@ -23,9 +23,10 @@ type TrackRow = {
 
 type Props = {
     roadmaps: { slug: string; title: string; tracks: TrackRow[] }[];
+    can: { create: boolean };
 };
 
-export default function AdminTracksIndex({ roadmaps }: Props) {
+export default function AdminTracksIndex({ roadmaps, can }: Props) {
     setLayoutProps({
         breadcrumbs: [
             { title: t('nav.adminOverview'), href: dashboard() },
@@ -43,6 +44,22 @@ export default function AdminTracksIndex({ roadmaps }: Props) {
                 <PageHeader
                     title={t('cms.tracks.title')}
                     description={t('cms.tracks.description')}
+                    actions={
+                        // With several roadmaps, each section has its own button.
+                        can.create &&
+                        roadmaps.length === 1 && (
+                            <Button asChild size="sm">
+                                <Link
+                                    href={create({
+                                        query: { roadmap: roadmaps[0].slug },
+                                    })}
+                                >
+                                    <Plus aria-hidden="true" />
+                                    {t('cms.tracks.create')}
+                                </Link>
+                            </Button>
+                        )
+                    }
                 />
 
                 {empty ? (
@@ -58,7 +75,23 @@ export default function AdminTracksIndex({ roadmaps }: Props) {
                             aria-label={roadmap.title}
                             className="space-y-3"
                         >
-                            <h2 className="font-medium">{roadmap.title}</h2>
+                            <div className="flex items-center justify-between gap-2">
+                                <h2 className="font-medium">{roadmap.title}</h2>
+                                {can.create && roadmaps.length > 1 && (
+                                    <Button asChild size="sm" variant="outline">
+                                        <Link
+                                            href={create({
+                                                query: {
+                                                    roadmap: roadmap.slug,
+                                                },
+                                            })}
+                                        >
+                                            <Plus aria-hidden="true" />
+                                            {t('cms.tracks.create')}
+                                        </Link>
+                                    </Button>
+                                )}
+                            </div>
                             <div className="overflow-x-auto rounded-xl border">
                                 <table className="w-full min-w-[44rem] table-fixed text-sm">
                                     <thead className="bg-muted/50 text-left">

@@ -235,7 +235,7 @@ Capacidad de exponer funciones del sistema a un LLM de forma segura…
   description: Tutorial oficial; referencia primaria para la sintaxis y el modelo de datos.
 ```
 
-Campos que solo aparecen cuando difieren del valor por defecto (los escribe `content:export`): `status` en un recurso (por defecto `PUBLISHED`) y `slug` en una skill cuyo slug se cambió en el CMS (por defecto, su `key`).
+Campos que solo aparecen cuando difieren del valor por defecto (los escribe `content:export`): `status` en un recurso (por defecto `PUBLISHED`) y `slug` en una skill cuyo slug se cambió en el CMS (por defecto, su `key`). Una lección en borrador puede tener `objectives: []`: el mínimo de dos lo exige el contrato de publicación, no el formato.
 
 ## 7. Comandos del paquete
 

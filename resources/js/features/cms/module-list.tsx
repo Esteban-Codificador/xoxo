@@ -1,5 +1,5 @@
-import { router, useForm } from '@inertiajs/react';
-import { ArrowDown, ArrowUp, Pencil } from 'lucide-react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { ArrowDown, ArrowUp, FilePlus, Pencil, Plus } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { StatusActions } from '@/components/publishing/status-actions';
 import { ContentStatusBadge } from '@/components/publishing/status-badges';
 import { t } from '@/i18n';
+import { create as createLesson } from '@/routes/admin/lessons';
 import { status, update } from '@/routes/admin/modules';
 import { moduleOrder } from '@/routes/admin/tracks';
+import { store } from '@/routes/admin/tracks/modules';
+import { slugify } from '@/lib/slug';
 import type { ContentStatus } from '@/types/enums';
 import { Field } from './field';
 
@@ -31,26 +34,34 @@ export type ModuleRow = {
     status_actions: ContentStatus[];
 };
 
+/** Edits a module, or creates one at the end of the track (module null). */
 function ModuleDialog({
+    trackId,
     module,
     onClose,
 }: {
-    module: ModuleRow;
+    trackId: number;
+    module: ModuleRow | null;
     onClose: () => void;
 }) {
     const id = useId();
+    // A new module's slug follows its title until the author edits it.
+    const [slugEdited, setSlugEdited] = useState(module !== null);
     const form = useForm({
-        title: module.title,
-        slug: module.slug,
-        summary: module.summary,
+        title: module?.title ?? '',
+        slug: module?.slug ?? '',
+        summary: module?.summary ?? '',
     });
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        form.put(update.url(module.id), {
-            preserveScroll: true,
-            onSuccess: onClose,
-        });
+        const options = { preserveScroll: true, onSuccess: onClose };
+
+        if (module === null) {
+            form.post(store.url(trackId), options);
+        } else {
+            form.put(update.url(module.id), options);
+        }
     };
 
     return (
@@ -59,10 +70,14 @@ function ModuleDialog({
                 <form onSubmit={submit} className="space-y-4">
                     <DialogHeader>
                         <DialogTitle>
-                            {t('cms.modules.dialogTitle')}
+                            {module === null
+                                ? t('cms.modules.createTitle')
+                                : t('cms.modules.dialogTitle')}
                         </DialogTitle>
                         <DialogDescription>
-                            {t('cms.modules.dialogDescription')}
+                            {module === null
+                                ? t('cms.modules.createDescription')
+                                : t('cms.modules.dialogDescription')}
                         </DialogDescription>
                     </DialogHeader>
                     <Field
@@ -77,7 +92,13 @@ function ModuleDialog({
                             maxLength={200}
                             required
                             onChange={(event) =>
-                                form.setData('title', event.target.value)
+                                form.setData((data) => ({
+                                    ...data,
+                                    title: event.target.value,
+                                    slug: slugEdited
+                                        ? data.slug
+                                        : slugify(event.target.value),
+                                }))
                             }
                         />
                     </Field>
@@ -94,10 +115,12 @@ function ModuleDialog({
                             maxLength={120}
                             spellCheck={false}
                             className="font-mono"
+                            required
                             aria-describedby={`${id}-slug-help`}
-                            onChange={(event) =>
-                                form.setData('slug', event.target.value)
-                            }
+                            onChange={(event) => {
+                                setSlugEdited(true);
+                                form.setData('slug', event.target.value);
+                            }}
                         />
                     </Field>
                     <Field
@@ -111,6 +134,7 @@ function ModuleDialog({
                             value={form.data.summary}
                             maxLength={2000}
                             rows={3}
+                            required
                             onChange={(event) =>
                                 form.setData('summary', event.target.value)
                             }
@@ -127,7 +151,9 @@ function ModuleDialog({
                         <Button type="submit" disabled={form.processing}>
                             {form.processing
                                 ? t('cms.edit.saving')
-                                : t('common.save')}
+                                : module === null
+                                  ? t('cms.modules.create')
+                                  : t('common.save')}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -138,18 +164,24 @@ function ModuleDialog({
 
 /**
  * Modules of a track in study order: move them up or down and save the
- * order, edit their details in a dialog and change their status.
+ * order, edit their details in a dialog, change their status, add a module
+ * at the end and start a lesson in one.
  */
 export function ModuleList({
     trackId,
     modules,
+    canCreate = false,
+    canCreateLesson = false,
 }: {
     trackId: number;
     modules: ModuleRow[];
+    canCreate?: boolean;
+    canCreateLesson?: boolean;
 }) {
     const ids = modules.map((module) => module.id);
     const [order, setOrder] = useState(ids);
-    const [editing, setEditing] = useState<ModuleRow | null>(null);
+    // A module row to edit, 'new' to create one, null when closed.
+    const [editing, setEditing] = useState<ModuleRow | 'new' | null>(null);
     const [saving, setSaving] = useState(false);
 
     // A module added or removed elsewhere resets the local order.
@@ -177,11 +209,36 @@ export function ModuleList({
             },
         );
 
+    const dialog = editing !== null && (
+        <ModuleDialog
+            key={editing === 'new' ? 'new' : editing.id}
+            trackId={trackId}
+            module={editing === 'new' ? null : editing}
+            onClose={() => setEditing(null)}
+        />
+    );
+
+    const addModule = canCreate && (
+        <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setEditing('new')}
+        >
+            <Plus aria-hidden="true" />
+            {t('cms.modules.create')}
+        </Button>
+    );
+
     if (modules.length === 0) {
         return (
-            <p className="text-sm text-muted-foreground">
-                {t('cms.trackEdit.noModules')}
-            </p>
+            <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                    {t('cms.trackEdit.noModules')}
+                </p>
+                {addModule}
+                {dialog}
+            </div>
         );
     }
 
@@ -249,27 +306,50 @@ export function ModuleList({
                                 <p className="line-clamp-2 text-sm text-muted-foreground">
                                     {module.summary}
                                 </p>
-                            </div>
-                            <div className="flex shrink-0 flex-wrap items-start gap-2">
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    aria-label={t('cms.modules.edit', {
-                                        module: module.title,
-                                    })}
-                                    onClick={() => setEditing(module)}
-                                >
-                                    <Pencil aria-hidden="true" />
-                                    {t('editor.edit')}
-                                </Button>
-                                <StatusActions
-                                    entity="module"
-                                    name={module.title}
-                                    current={module.status}
-                                    actions={module.status_actions}
-                                    url={status.url(module.id)}
-                                />
+                                {/* Under the text: four actions beside it crushed the title. */}
+                                <div className="flex flex-wrap items-start gap-2 pt-2">
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        aria-label={t('cms.modules.edit', {
+                                            module: module.title,
+                                        })}
+                                        onClick={() => setEditing(module)}
+                                    >
+                                        <Pencil aria-hidden="true" />
+                                        {t('editor.edit')}
+                                    </Button>
+                                    {canCreateLesson && (
+                                        <Button
+                                            asChild
+                                            size="sm"
+                                            variant="outline"
+                                        >
+                                            <Link
+                                                href={createLesson({
+                                                    query: {
+                                                        module: module.id,
+                                                    },
+                                                })}
+                                                aria-label={t(
+                                                    'cms.modules.addLessonLabel',
+                                                    { module: module.title },
+                                                )}
+                                            >
+                                                <FilePlus aria-hidden="true" />
+                                                {t('cms.modules.addLesson')}
+                                            </Link>
+                                        </Button>
+                                    )}
+                                    <StatusActions
+                                        entity="module"
+                                        name={module.title}
+                                        current={module.status}
+                                        actions={module.status_actions}
+                                        url={status.url(module.id)}
+                                    />
+                                </div>
                             </div>
                         </li>
                     );
@@ -292,13 +372,8 @@ export function ModuleList({
                 </div>
             )}
 
-            {editing !== null && (
-                <ModuleDialog
-                    key={editing.id}
-                    module={editing}
-                    onClose={() => setEditing(null)}
-                />
-            )}
+            {addModule}
+            {dialog}
         </div>
     );
 }

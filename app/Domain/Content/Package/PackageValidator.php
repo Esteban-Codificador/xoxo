@@ -127,7 +127,8 @@ final class PackageValidator
                 'last_reviewed' => ['nullable', 'date_format:Y-m-d'],
                 'summary' => ['required', 'string'],
                 'why_it_matters' => ['required', 'string'],
-                'objectives' => ['required', 'array'],
+                // A draft may have none yet: the publishing contract asks for them.
+                'objectives' => ['present', 'array'],
                 'objectives.*' => ['required', 'string'],
                 'skills' => ['sometimes', 'array'],
                 'skills.*.key' => ['required', 'string', self::KEY],

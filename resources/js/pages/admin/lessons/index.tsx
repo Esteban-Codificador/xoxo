@@ -1,5 +1,5 @@
 import { Head, Link, setLayoutProps } from '@inertiajs/react';
-import { BookOpen, Pencil } from 'lucide-react';
+import { BookOpen, Pencil, Plus } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { ContentStatusBadge } from '@/components/publishing/status-badges';
 import { t } from '@/i18n';
 import { formatDateTime } from '@/lib/format';
 import { dashboard } from '@/routes/admin';
-import { edit, index } from '@/routes/admin/lessons';
+import { create, edit, index } from '@/routes/admin/lessons';
 import type { ContentStatus } from '@/types/enums';
 
 type LessonRow = {
@@ -22,7 +22,7 @@ type LessonRow = {
     can_edit: boolean;
 };
 
-type Props = { lessons: LessonRow[] };
+type Props = { lessons: LessonRow[]; can: { create: boolean } };
 
 function groupByTrack(lessons: LessonRow[]): [string, LessonRow[]][] {
     const groups = new Map<string, LessonRow[]>();
@@ -33,7 +33,7 @@ function groupByTrack(lessons: LessonRow[]): [string, LessonRow[]][] {
     return [...groups];
 }
 
-export default function AdminLessonsIndex({ lessons }: Props) {
+export default function AdminLessonsIndex({ lessons, can }: Props) {
     setLayoutProps({
         breadcrumbs: [
             { title: t('nav.adminOverview'), href: dashboard() },
@@ -49,6 +49,16 @@ export default function AdminLessonsIndex({ lessons }: Props) {
                 <PageHeader
                     title={t('cms.lessons.title')}
                     description={t('cms.lessons.description')}
+                    actions={
+                        can.create && (
+                            <Button asChild size="sm">
+                                <Link href={create()}>
+                                    <Plus aria-hidden="true" />
+                                    {t('cms.lessons.create')}
+                                </Link>
+                            </Button>
+                        )
+                    }
                 />
 
                 {lessons.length === 0 ? (

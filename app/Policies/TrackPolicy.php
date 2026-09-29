@@ -30,6 +30,12 @@ class TrackPolicy
         return $user->can(Permission::ContentViewAny->value);
     }
 
+    /** A new track is its creator's (RecordsAuthors). */
+    public function create(User $user): bool
+    {
+        return $user->can(Permission::ContentCreate->value);
+    }
+
     /** Fields, prerequisites and module order. */
     public function update(User $user, Track $track): Response
     {

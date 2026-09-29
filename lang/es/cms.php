@@ -8,6 +8,9 @@ return [
     'invalid_body' => 'El contenido tiene una estructura no permitida: :errors',
     'invalid_slug' => 'Usa solo minúsculas sin tildes, números y guiones (por ejemplo: git-y-colaboracion).',
     'track_saved' => 'Track guardado. Los estudiantes ven el cambio de inmediato.',
+    'track_created' => 'Track creado como borrador. Añade sus prerrequisitos y módulos.',
+    'module_created' => 'Módulo «:module» creado como borrador, al final del track.',
+    'lesson_created' => 'Lección creada como borrador. Escribe su contenido bajo cada sección.',
     'track_status' => [
         'PUBLISHED' => 'Track publicado: los estudiantes ya lo ven.',
         'DRAFT' => 'El track quedó en borrador: los estudiantes no lo ven.',

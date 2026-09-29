@@ -3,7 +3,9 @@
 namespace App\Policies;
 
 use App\Enums\ContentStatus;
+use App\Enums\Permission;
 use App\Models\Module;
+use App\Models\Track;
 use App\Models\User;
 use App\Policies\Concerns\AuthorizesContentEdits;
 use Illuminate\Auth\Access\Response;
@@ -15,6 +17,12 @@ use Illuminate\Auth\Access\Response;
 class ModulePolicy
 {
     use AuthorizesContentEdits;
+
+    /** Adding a module is editing its track's structure. */
+    public function create(User $user, Track $track): Response
+    {
+        return $user->can(Permission::ContentCreate->value) ? $this->editRule($user, $track->created_by) : Response::deny();
+    }
 
     public function update(User $user, Module $module): Response
     {

@@ -10,13 +10,18 @@ use App\Domain\Content\Package\ImportOutcome;
 use App\Domain\Content\Package\PackageImporter;
 use App\Domain\Content\Package\PackageReader;
 use App\Domain\Content\RichContent\RichContent;
+use App\Domain\Curriculum\Actions\CreateLesson;
+use App\Domain\Curriculum\Actions\CreateModule;
+use App\Domain\Curriculum\Actions\CreateTrack;
 use App\Domain\Curriculum\Actions\PublishLesson;
+use App\Domain\Curriculum\Publishing\LessonTemplate;
 use App\Enums\ContentStatus;
 use App\Enums\Difficulty;
 use App\Models\ContentImportRecord;
 use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
 use Illuminate\Support\Facades\DB;
@@ -345,4 +350,36 @@ it('accepts what the editor saves and refuses what Markdown cannot carry', funct
     $track->update(['description' => RichContent::fromArray($document)]);
 
     expect(fn () => exportPlan($this->path))->toThrow(ExportRefused::class, 'no puede representar fielmente');
+});
+
+it('exports tracks, modules and lessons created in the CMS, and imports them back', function () {
+    $roadmap = Roadmap::firstWhere('slug', 'ai-engineer');
+    $track = app(CreateTrack::class)->handle($roadmap, [
+        'title' => 'Python para IA', 'slug' => 'python-para-ia', 'summary' => 'Python como lenguaje de trabajo.',
+        'why_it_matters' => 'El ecosistema de IA se escribe en Python.', 'difficulty' => 'BEGINNER', 'estimated_hours' => 20,
+    ]);
+    $module = app(CreateModule::class)->handle($track, [
+        'title' => 'Sintaxis', 'slug' => 'sintaxis', 'summary' => 'Lo básico del lenguaje.',
+    ]);
+    app(CreateLesson::class)->handle($module, [
+        'title' => 'Variables y tipos', 'slug' => 'variables-y-tipos', 'summary' => 'Qué guarda una variable.',
+        'why_it_matters' => 'Todo programa empieza por sus datos.', 'content_type' => 'CONCEPT', 'difficulty' => 'BEGINNER', 'estimated_minutes' => 20,
+    ]);
+
+    $plan = exportTo($this->path);
+
+    expect(changedPaths($plan))->toBe([
+        'created tracks/02-python-para-ia/01-sintaxis/01-variables-y-tipos.md',
+        'created tracks/02-python-para-ia/01-sintaxis/module.md',
+        'created tracks/02-python-para-ia/track.md',
+    ])->and((string) file_get_contents("{$this->path}/tracks/02-python-para-ia/01-sintaxis/01-variables-y-tipos.md"))
+        ->toContain('status: DRAFT')->toContain('## Práctica');
+
+    wipeContent();
+    $this->artisan('content:import', ['path' => $this->path])->assertSuccessful();
+
+    $lesson = Lesson::firstWhere('slug', 'variables-y-tipos');
+    expect($lesson->status)->toBe(ContentStatus::Draft)
+        ->and($lesson->module->track->slug)->toBe('python-para-ia')
+        ->and($lesson->body->headings(2))->toBe(LessonTemplate::SECTIONS);
 });
