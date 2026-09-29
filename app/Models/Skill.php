@@ -6,6 +6,7 @@ use App\Enums\ContentStatus;
 use App\Enums\Difficulty;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasContentStatus;
+use App\Models\Concerns\RecordsAuthors;
 use App\Models\Pivots\SkillDependency;
 use Carbon\CarbonImmutable;
 use Database\Factories\SkillFactory;
@@ -24,12 +25,14 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  * @property Difficulty $difficulty
  * @property ContentStatus $status
  * @property CarbonImmutable|null $published_at
+ * @property int|null $created_by
+ * @property int|null $updated_by
  */
 #[Fillable(['slug', 'name', 'description', 'icon', 'difficulty', 'status', 'published_at'])]
 class Skill extends Model
 {
     /** @use HasFactory<SkillFactory> */
-    use Auditable, HasContentStatus, HasFactory;
+    use Auditable, HasContentStatus, HasFactory, RecordsAuthors;
 
     protected function casts(): array
     {

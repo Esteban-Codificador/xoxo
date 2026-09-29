@@ -33,4 +33,21 @@ return [
         'PUBLISHED' => 'Lección publicada.',
         'REVIEW' => 'Lección en revisión.',
     ],
+    'resource_created' => 'Recurso creado como borrador. Su enlace se está verificando.',
+    'resource_saved' => 'Recurso guardado. Los estudiantes ven el cambio de inmediato.',
+    'resource_verifying' => 'Verificación del enlace en curso: recarga la página en unos segundos para ver el resultado.',
+    'resource_status' => [
+        'PUBLISHED' => 'Recurso publicado: aparece en las lecciones que lo usan.',
+        'DRAFT' => 'El recurso quedó en borrador: no aparece en las lecciones.',
+        'REVIEW' => 'El recurso quedó en revisión: no aparece en las lecciones.',
+        'ARCHIVED' => 'Recurso archivado: no aparece en las lecciones.',
+    ],
+    'skill_created' => 'Skill creada como borrador.',
+    'skill_saved' => 'Skill guardada. Los estudiantes ven el cambio de inmediato.',
+    'skill_status' => [
+        'PUBLISHED' => 'Skill publicada: aparece en las lecciones que la desarrollan.',
+        'DRAFT' => 'La skill quedó en borrador: no aparece en las lecciones.',
+        'REVIEW' => 'La skill quedó en revisión: no aparece en las lecciones.',
+        'ARCHIVED' => 'Skill archivada: no aparece en las lecciones.',
+    ],
 ];

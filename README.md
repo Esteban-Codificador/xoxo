@@ -97,8 +97,11 @@ Los correos (verificación, recuperación de contraseña) llegan a Mailpit: http
 php artisan content:validate           # valida content/ai-engineer sin tocar la BD
 php artisan content:import --dry-run   # muestra qué crearía o actualizaría
 php artisan content:import             # importa (idempotente; respeta lo editado en el CMS)
-php artisan content:verify-links       # comprueba que las URLs de los recursos existan
+php artisan content:verify-links       # comprueba las URLs del paquete de archivos (lo corre CI)
+php artisan content:verify-resources   # comprueba las URLs guardadas en la BD (incluidas las del CMS) y registra su estado
 ```
+
+En producción hacen falta dos procesos además de la web: el *scheduler* (`* * * * * php artisan schedule:run` en cron; verifica los recursos cada noche a las 03:30) y un worker de cola (`php artisan queue:work`), que atiende "Verificar ahora" y la comprobación al guardar un recurso. En local, `composer run dev` ya levanta el worker.
 
 Cómo escribir contenido: [`docs/content-authoring.md`](docs/content-authoring.md).
 

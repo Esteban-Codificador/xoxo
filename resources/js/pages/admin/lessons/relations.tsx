@@ -1,4 +1,4 @@
-import { Head, setLayoutProps, useForm } from '@inertiajs/react';
+import { Head, Link, setLayoutProps, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useId } from 'react';
 import InputError from '@/components/input-error';
@@ -19,6 +19,7 @@ import { t } from '@/i18n';
 import { dashboard } from '@/routes/admin';
 import { edit, index } from '@/routes/admin/lessons';
 import { update } from '@/routes/admin/lessons/relations';
+import { create as createResource } from '@/routes/admin/resources';
 
 type Props = {
     lesson: { slug: string; title: string; track: string; module: string };
@@ -174,6 +175,15 @@ export default function AdminLessonRelations({
                             }}
                         />
                         <InputError message={errors.resources} />
+                        <p className="text-xs text-muted-foreground">
+                            {t('cms.resources.newHint')}{' '}
+                            <Link
+                                href={createResource()}
+                                className="underline underline-offset-4"
+                            >
+                                {t('cms.resources.createAction')}
+                            </Link>
+                        </p>
                     </section>
 
                     <SaveBar

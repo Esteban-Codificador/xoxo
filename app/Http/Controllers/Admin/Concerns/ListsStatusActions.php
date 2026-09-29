@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin\Concerns;
 
 use App\Domain\Curriculum\Publishing\StatusTransition;
 use App\Enums\ContentStatus;
+use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Models\Skill;
 use App\Models\Track;
 use Illuminate\Http\Request;
 
@@ -18,7 +20,7 @@ trait ListsStatusActions
      *
      * @return list<string>
      */
-    protected function statusActions(Request $request, Track|Module|Lesson $subject): array
+    protected function statusActions(Request $request, Track|Module|Lesson|Skill|ExternalResource $subject): array
     {
         $user = $request->user();
 

@@ -40,7 +40,7 @@ Plataforma educativa **AI Engineer Roadmap** (Laravel 13 + Inertia 3 + React 19 
 | Enums PHP → TS | `php artisan types:enums` (CI: `--check`) |
 | Build | `npm run build` |
 | BD desde cero | `php artisan migrate:fresh --seed` |
-| Contenido | `php artisan content:validate` · `content:import [--dry-run] [--force]` · `content:verify-links` |
+| Contenido | `php artisan content:validate` · `content:import [--dry-run] [--force]` · `content:verify-links` (paquete) · `content:verify-resources` (BD) |
 | App en desarrollo | `composer run dev` (http://localhost:8000) · galería local: `/_dev/design-system` |
 
 Puerta de validación completa: `docs/roadmap.md` §2. Encadena los comandos con `&&` y revisa el código de salida: un `| tail` oculta los fallos.

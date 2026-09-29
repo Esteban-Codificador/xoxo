@@ -9,6 +9,12 @@ use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
 use App\Http\Controllers\Admin\ModuleOrderController;
 use App\Http\Controllers\Admin\ModuleStatusController;
 use App\Http\Controllers\Admin\PublishLessonController;
+use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Admin\ResourceStatusController;
+use App\Http\Controllers\Admin\ResourceVerificationController;
+use App\Http\Controllers\Admin\SkillController as AdminSkillController;
+use App\Http\Controllers\Admin\SkillDependencyController;
+use App\Http\Controllers\Admin\SkillStatusController;
 use App\Http\Controllers\Admin\TrackController as AdminTrackController;
 use App\Http\Controllers\Admin\TrackDependencyController;
 use App\Http\Controllers\Admin\TrackStatusController;
@@ -61,6 +67,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('tracks/{track}/module-order', ModuleOrderController::class)->name('tracks.module-order');
             Route::put('modules/{module}', [AdminModuleController::class, 'update'])->name('modules.update');
             Route::put('modules/{module}/status', ModuleStatusController::class)->name('modules.status');
+
+            Route::get('skills', [AdminSkillController::class, 'index'])->name('skills.index');
+            Route::get('skills/create', [AdminSkillController::class, 'create'])->name('skills.create');
+            Route::post('skills', [AdminSkillController::class, 'store'])->name('skills.store');
+            Route::get('skills/{skill}/edit', [AdminSkillController::class, 'edit'])->name('skills.edit');
+            Route::put('skills/{skill}', [AdminSkillController::class, 'update'])->name('skills.update');
+            Route::put('skills/{skill}/status', SkillStatusController::class)->name('skills.status');
+            Route::put('skills/{skill}/dependencies', SkillDependencyController::class)->name('skills.dependencies');
+
+            Route::get('resources', [ResourceController::class, 'index'])->name('resources.index');
+            Route::get('resources/create', [ResourceController::class, 'create'])->name('resources.create');
+            Route::post('resources', [ResourceController::class, 'store'])->name('resources.store');
+            Route::get('resources/{resource}/edit', [ResourceController::class, 'edit'])->name('resources.edit');
+            Route::put('resources/{resource}', [ResourceController::class, 'update'])->name('resources.update');
+            Route::put('resources/{resource}/status', ResourceStatusController::class)->name('resources.status');
+            Route::post('resources/{resource}/verify', ResourceVerificationController::class)->name('resources.verify');
         });
 });
 

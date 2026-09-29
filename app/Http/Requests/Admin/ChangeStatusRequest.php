@@ -4,8 +4,10 @@ namespace App\Http\Requests\Admin;
 
 use App\Domain\Curriculum\Publishing\StatusTransition;
 use App\Enums\ContentStatus;
+use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Models\Skill;
 use App\Models\Track;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
@@ -19,7 +21,7 @@ use Illuminate\Validation\Rule;
  */
 abstract class ChangeStatusRequest extends FormRequest
 {
-    abstract public function subject(): Track|Module|Lesson;
+    abstract public function subject(): Track|Module|Lesson|Skill|ExternalResource;
 
     public function authorize(): Response|bool
     {

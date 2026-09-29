@@ -209,6 +209,8 @@ return [
         'prerequisites.*.kind' => 'tipo de dependencia',
         'resources' => 'recursos',
         'resources.*' => 'recurso',
+        'dependencies.*.skill_id' => 'skill previa',
+        'is_official' => 'oficial',
     ],
 
 ];

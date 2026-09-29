@@ -1,4 +1,4 @@
-import { Head, setLayoutProps } from '@inertiajs/react';
+import { Head, Link, setLayoutProps } from '@inertiajs/react';
 import { History } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
@@ -11,6 +11,7 @@ import { activitySentence } from '@/features/admin/activity';
 import { t } from '@/i18n';
 import { formatDateTime } from '@/lib/format';
 import { dashboard } from '@/routes/admin';
+import { index as resourcesIndex } from '@/routes/admin/resources';
 import type { ContentStatus, LinkStatus } from '@/types/enums';
 
 type Entity = 'roadmap' | 'track' | 'module' | 'lesson' | 'skill' | 'resource';
@@ -117,14 +118,18 @@ export default function AdminDashboard({ content, links, activity }: Props) {
                     </div>
                     <ul className="flex flex-wrap gap-3">
                         {linkStatuses.map((status) => (
-                            <li
-                                key={status}
-                                className="flex items-center gap-2 rounded-lg border px-3 py-2"
-                            >
-                                <LinkStatusBadge status={status} />
-                                <span className="font-medium tabular-nums">
-                                    {links[status]}
-                                </span>
+                            <li key={status}>
+                                <Link
+                                    href={resourcesIndex({
+                                        query: { link: status },
+                                    })}
+                                    className="flex items-center gap-2 rounded-lg border px-3 py-2 hover:bg-muted/50"
+                                >
+                                    <LinkStatusBadge status={status} />
+                                    <span className="font-medium tabular-nums">
+                                        {links[status]}
+                                    </span>
+                                </Link>
                             </li>
                         ))}
                     </ul>

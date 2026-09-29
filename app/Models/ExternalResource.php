@@ -8,6 +8,7 @@ use App\Enums\LinkStatus;
 use App\Enums\ResourceType;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasContentStatus;
+use App\Models\Concerns\RecordsAuthors;
 use Carbon\CarbonImmutable;
 use Database\Factories\ExternalResourceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -34,6 +35,8 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  * @property int|null $last_http_status
  * @property ContentStatus $status
  * @property CarbonImmutable|null $published_at
+ * @property int|null $created_by
+ * @property int|null $updated_by
  */
 #[Fillable([
     'title', 'url', 'type', 'provider', 'description', 'difficulty', 'language', 'is_official',
@@ -44,7 +47,7 @@ class ExternalResource extends Model
     protected $table = 'resources';
 
     /** @use HasFactory<ExternalResourceFactory> */
-    use Auditable, HasContentStatus, HasFactory;
+    use Auditable, HasContentStatus, HasFactory, RecordsAuthors;
 
     protected function casts(): array
     {

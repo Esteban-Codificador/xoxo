@@ -33,4 +33,21 @@ return [
         'PUBLISHED' => 'Lesson published.',
         'REVIEW' => 'Lesson in review.',
     ],
+    'resource_created' => 'Resource created as a draft. Its link is being verified.',
+    'resource_saved' => 'Resource saved. Learners see the change right away.',
+    'resource_verifying' => 'Link check in progress: reload the page in a few seconds to see the result.',
+    'resource_status' => [
+        'PUBLISHED' => 'Resource published: it shows in the lessons that use it.',
+        'DRAFT' => 'The resource is a draft: it is hidden from lessons.',
+        'REVIEW' => 'The resource is in review: it is hidden from lessons.',
+        'ARCHIVED' => 'Resource archived: it is hidden from lessons.',
+    ],
+    'skill_created' => 'Skill created as a draft.',
+    'skill_saved' => 'Skill saved. Learners see the change right away.',
+    'skill_status' => [
+        'PUBLISHED' => 'Skill published: it shows in the lessons that develop it.',
+        'DRAFT' => 'The skill is a draft: it is hidden from lessons.',
+        'REVIEW' => 'The skill is in review: it is hidden from lessons.',
+        'ARCHIVED' => 'Skill archived: it is hidden from lessons.',
+    ],
 ];

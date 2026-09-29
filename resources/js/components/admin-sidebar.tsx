@@ -1,5 +1,12 @@
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, BookOpen, Gauge, Layers } from 'lucide-react';
+import {
+    ArrowLeft,
+    BookOpen,
+    Gauge,
+    Layers,
+    Library,
+    Sparkles,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -17,13 +24,14 @@ import { t } from '@/i18n';
 import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as lessonsIndex } from '@/routes/admin/lessons';
+import { index as resourcesIndex } from '@/routes/admin/resources';
+import { index as skillsIndex } from '@/routes/admin/skills';
 import { index as tracksIndex } from '@/routes/admin/tracks';
 import type { NavItem } from '@/types';
 
 export function AdminSidebar() {
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
-    // CMS sections join this list as they ship (skills, resources… in phase 5b).
     const adminNavItems: NavItem[] = [
         { title: t('nav.adminOverview'), href: adminDashboard(), icon: Gauge },
         {
@@ -38,6 +46,18 @@ export function AdminSidebar() {
             icon: BookOpen,
             // Also active while editing a lesson.
             isActive: isCurrentOrParentUrl(lessonsIndex()),
+        },
+        {
+            title: t('nav.skills'),
+            href: skillsIndex(),
+            icon: Sparkles,
+            isActive: isCurrentOrParentUrl(skillsIndex()),
+        },
+        {
+            title: t('nav.resources'),
+            href: resourcesIndex(),
+            icon: Library,
+            isActive: isCurrentOrParentUrl(resourcesIndex()),
         },
     ];
 
