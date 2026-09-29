@@ -11,7 +11,6 @@ use App\Domain\Content\Package\Importers\RoadmapImporter;
 use App\Domain\Content\Package\Importers\SkillImporter;
 use App\Domain\Content\Package\Importers\TrackImporter;
 use App\Enums\AuditAction;
-use App\Models\ContentImportRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -32,6 +31,7 @@ final readonly class PackageImporter
     public function __construct(
         private PackageValidator $validator,
         private AuditLogger $audit,
+        private SyncRecords $records,
         RoadmapImporter $roadmaps,
         SkillImporter $skills,
         ResourceImporter $resources,
@@ -77,7 +77,7 @@ final readonly class PackageImporter
             $pending = [];
 
             foreach ($package->all($importer->type()) as $entity) {
-                $record = ContentImportRecord::query()->where('package', $package->name)->where('key', $entity->recordKey())->first();
+                $record = $this->records->find($package->name, $entity);
                 $model = $record === null ? null : $importer->find($record->importable_id);
 
                 if ($record !== null && $model === null && ! $force) {
@@ -95,7 +95,7 @@ final readonly class PackageImporter
                         continue;
                     }
 
-                    if (! $force && $record->entity_hash !== $this->stateHash($importer, $model)) {
+                    if (! $force && $record->entity_hash !== $this->records->stateHash($importer, $model)) {
                         $context->report->record($entity, ImportOutcome::SkippedModified);
 
                         continue;
@@ -115,23 +115,8 @@ final readonly class PackageImporter
 
             foreach ($pending as [$entity, $model]) {
                 $importer->finalize($entity, $model, $context);
-
-                ContentImportRecord::query()->updateOrCreate(
-                    ['package' => $package->name, 'key' => $entity->recordKey()],
-                    [
-                        'importable_type' => $model->getMorphClass(),
-                        'importable_id' => $model->getKey(),
-                        'source_hash' => $entity->hash(),
-                        'entity_hash' => $this->stateHash($importer, $model->refresh()),
-                        'imported_at' => now(),
-                    ],
-                );
+                $this->records->save($package->name, $entity, $model->refresh(), $importer);
             }
         }
-    }
-
-    private function stateHash(EntityImporter $importer, Model $model): string
-    {
-        return hash('sha256', (string) json_encode($importer->state($model), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 }

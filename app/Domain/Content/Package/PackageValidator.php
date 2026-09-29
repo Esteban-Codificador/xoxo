@@ -138,6 +138,7 @@ final class PackageValidator
             ],
             EntityType::Skill => [
                 'key' => ['required', self::SLUG, 'max:120'],
+                'slug' => ['sometimes', self::SLUG, 'max:120'],
                 'name' => ['required', 'string', 'max:160'],
                 'difficulty' => $difficulty,
                 'icon' => ['nullable', self::SLUG],
@@ -154,6 +155,7 @@ final class PackageValidator
                 'is_official' => ['required', 'boolean'],
                 'difficulty' => ['nullable', Rule::enum(Difficulty::class)],
                 'language' => ['required', 'in:es,en'],
+                'status' => $status,
             ],
         };
     }
@@ -162,6 +164,7 @@ final class PackageValidator
     {
         $this->uniqueWithin($package->all(EntityType::Track), fn (SourceEntity $e) => $e->string('slug'), 'slug');
         $this->uniqueWithin($package->all(EntityType::Lesson), fn (SourceEntity $e) => $e->string('slug'), 'slug');
+        $this->uniqueWithin($package->all(EntityType::Skill), fn (SourceEntity $e) => $e->string('slug', $e->key), 'slug');
         $this->uniqueWithin($package->all(EntityType::Module), fn (SourceEntity $e) => $e->parentKey.'/'.$e->string('slug'), 'slug dentro del track');
         $this->uniqueWithin($package->all(EntityType::Resource), fn (SourceEntity $e) => rtrim($e->string('url'), '/'), 'url');
     }

@@ -19,6 +19,7 @@ Plataforma educativa **AI Engineer Roadmap** (Laravel 13 + Inertia 3 + React 19 
 - El contenido enriquecido es RichContent (JSON de ProseMirror validado en el servidor), nunca HTML guardado. Videos por proveedor e ID, nunca iframes.
 - Toda escritura se valida en un FormRequest, se autoriza en una Policy y se ejecuta en una Action.
 - Tests contra PostgreSQL, no SQLite.
+- Lo editado en el CMS vive en la BD: `php artisan content:export` lo lleva a `content/` (ADR-031). Hazlo, revisa el diff y haz commit antes de un `migrate:fresh --seed` en una BD con ediciones.
 
 ## Entorno cloud (Claude Code on the web)
 
@@ -40,7 +41,7 @@ Plataforma educativa **AI Engineer Roadmap** (Laravel 13 + Inertia 3 + React 19 
 | Enums PHP → TS | `php artisan types:enums` (CI: `--check`) |
 | Build | `npm run build` |
 | BD desde cero | `php artisan migrate:fresh --seed` |
-| Contenido | `php artisan content:validate` · `content:import [--dry-run] [--force]` · `content:verify-links` (paquete) · `content:verify-resources` (BD) |
+| Contenido | `php artisan content:validate` · `content:import [--dry-run] [--force]` · `content:export [--dry-run] [--copy]` · `content:verify-links` (paquete) · `content:verify-resources` (BD) |
 | App en desarrollo | `composer run dev` (http://localhost:8000) · galería local: `/_dev/design-system` |
 
 Puerta de validación completa: `docs/roadmap.md` §2. Encadena los comandos con `&&` y revisa el código de salida: un `| tail` oculta los fallos.

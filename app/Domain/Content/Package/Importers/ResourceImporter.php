@@ -5,7 +5,6 @@ namespace App\Domain\Content\Package\Importers;
 use App\Domain\Content\Package\EntityType;
 use App\Domain\Content\Package\ImportContext;
 use App\Domain\Content\Package\SourceEntity;
-use App\Enums\ContentStatus;
 use App\Enums\Difficulty;
 use App\Enums\LinkStatus;
 use App\Enums\ResourceType;
@@ -14,6 +13,8 @@ use Illuminate\Database\Eloquent\Model;
 
 final class ResourceImporter implements EntityImporter
 {
+    use PublishesByStatus;
+
     public function type(): EntityType
     {
         return EntityType::Resource;
@@ -38,8 +39,7 @@ final class ResourceImporter implements EntityImporter
             'difficulty' => ($difficulty = $entity->nullableString('difficulty')) === null ? null : Difficulty::from($difficulty),
             'language' => $entity->string('language', 'en'),
             'is_official' => (bool) ($entity->data['is_official'] ?? false),
-            'status' => ContentStatus::Published,
-            'published_at' => $resource->published_at ?? now(),
+            ...$this->statusAttributes($entity, $model),
         ]);
 
         // A new URL has not been verified yet.

@@ -29,7 +29,8 @@ final class SkillImporter implements EntityImporter
         $skill = $model instanceof Skill ? $model : new Skill;
 
         $skill->fill([
-            'slug' => $entity->key,
+            // The key doubles as slug unless the slug was renamed in the CMS.
+            'slug' => $entity->string('slug', $entity->key),
             'name' => $entity->string('name'),
             'description' => trim((string) preg_replace('/\s+/', ' ', (string) $entity->body)),
             'icon' => $entity->nullableString('icon'),

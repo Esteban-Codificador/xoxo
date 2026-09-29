@@ -438,7 +438,7 @@ content_import_records                            -- trazabilidad del paquete de
   importable_type varchar(32), importable_id bigint
   source_hash char(64)                            -- hash del archivo fuente: si no cambió, la entidad queda igual
   entity_hash char(64)                            -- hash del estado importado: si difiere del actual, se editó en el CMS y no se sobrescribe
-  imported_at
+  synced_at                                       -- última sincronización: importación o content:export (ADR-031)
   UK (package, key) · IX (importable_type, importable_id)
 
 settings (opcional, si hace falta)                -- `content_version` vive en caché; no requiere tabla

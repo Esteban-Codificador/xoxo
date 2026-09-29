@@ -1,6 +1,6 @@
 # Guía de autoría de contenido
 
-Cómo escribir o cambiar contenido del **paquete** (`content/ai-engineer`). Cuando exista el CMS (Fase 5), el contenido también se editará desde `/admin`. La referencia completa del formato y de las reglas está en [content-architecture.md](content-architecture.md).
+Cómo escribir o cambiar contenido del **paquete** (`content/ai-engineer`) y cómo llevar al paquete lo editado en el CMS (`/admin`). La referencia completa del formato y de las reglas está en [content-architecture.md](content-architecture.md).
 
 ## Flujo de trabajo
 
@@ -20,6 +20,22 @@ php artisan content:verify-links
 ```
 
 El importador es **idempotente** y **no sobrescribe lo editado en el CMS**. Si una lección se cambió desde el admin después de la última importación, el paquete la salta y avisa. Para imponer la versión del paquete: `php artisan content:import --force`.
+
+## Del CMS al paquete
+
+Lo que se edita en `/admin` vive en la base de datos. Para llevarlo al repositorio:
+
+```bash
+php artisan content:export --dry-run   # qué archivos cambiarían
+php artisan content:export             # escribe content/ai-engineer
+git diff content/                      # solo cambia lo editado; revisa y haz commit
+```
+
+- Se exporta **lo que ven los estudiantes**: si una lección tiene cambios sin publicar, se exporta su versión publicada y el comando lo avisa. Publica antes de exportar si quieres llevarlos.
+- Lo que no cambió conserva su texto. Lo editado se escribe en formato canónico: cada párrafo en una línea y los textos del front matter entre comillas cuando hace falta.
+- Si un archivo cambió a mano y no se importó, el export se detiene para no pisarlo: impórtalo primero. Si cambió en los dos lados, decide cuál vale: `content:import --force` (gana el archivo) o `content:export --force` (gana la base de datos).
+- Tras exportar, la base de datos y el paquete quedan sincronizados: `content:import` no cambia nada y `migrate:fresh --seed` reconstruye la base desde el paquete sin perder lo editado. El historial de versiones no viaja: cada lección vuelve como versión 1.
+- Para un respaldo o una revisión en otro directorio: `php artisan content:export /ruta/copia --copy` (no altera la sincronización).
 
 ## Dónde va cada archivo
 

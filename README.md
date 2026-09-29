@@ -97,6 +97,7 @@ Los correos (verificación, recuperación de contraseña) llegan a Mailpit: http
 php artisan content:validate           # valida content/ai-engineer sin tocar la BD
 php artisan content:import --dry-run   # muestra qué crearía o actualizaría
 php artisan content:import             # importa (idempotente; respeta lo editado en el CMS)
+php artisan content:export             # lleva lo editado en el CMS a content/ (revisa el diff y haz commit)
 php artisan content:verify-links       # comprueba las URLs del paquete de archivos (lo corre CI)
 php artisan content:verify-resources   # comprueba las URLs guardadas en la BD (incluidas las del CMS) y registra su estado
 ```
