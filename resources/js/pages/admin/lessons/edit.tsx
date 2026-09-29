@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Field } from '@/features/cms/field';
+import { LessonTabs } from '@/features/cms/lesson-tabs';
 import { ObjectivesField } from '@/features/cms/objectives-field';
 import type {
     Publication,
@@ -39,6 +40,7 @@ const RichContentEditor = lazy(
 
 type LessonFields = {
     title: string;
+    slug: string;
     summary: string;
     why_it_matters: string;
     learning_objectives: string[];
@@ -50,7 +52,6 @@ type LessonFields = {
 type Props = {
     lesson: LessonFields & {
         body: RichContent;
-        slug: string;
         status: ContentStatus;
         track: string;
         module: string;
@@ -59,6 +60,7 @@ type Props = {
     publication: Publication;
     versions: VersionEntry[];
     content_types: ContentType[];
+    status_actions: ContentStatus[];
     can: { publish: boolean };
 };
 
@@ -68,6 +70,7 @@ export default function AdminLessonEdit({
     publication,
     versions,
     content_types,
+    status_actions,
     can,
 }: Props) {
     setLayoutProps({
@@ -82,6 +85,7 @@ export default function AdminLessonEdit({
     const { errors: pageErrors } = usePage().props;
     const form = useForm<LessonFields>({
         title: lesson.title,
+        slug: lesson.slug,
         summary: lesson.summary,
         why_it_matters: lesson.why_it_matters,
         learning_objectives: lesson.learning_objectives,
@@ -132,6 +136,8 @@ export default function AdminLessonEdit({
                     }
                 />
 
+                <LessonTabs slug={lesson.slug} current="content" />
+
                 <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
                     <form onSubmit={submit} className="min-w-0 space-y-8">
                         <section
@@ -142,26 +148,53 @@ export default function AdminLessonEdit({
                                 {t('cms.edit.details')}
                             </h2>
 
-                            <Field
-                                id={`${id}-title`}
-                                label={t('cms.edit.fields.title')}
-                                error={errors.title}
-                            >
-                                <Input
+                            <div className="grid gap-5 sm:grid-cols-2">
+                                <Field
                                     id={`${id}-title`}
-                                    name="title"
-                                    value={form.data.title}
-                                    maxLength={200}
-                                    required
-                                    aria-invalid={errors.title !== undefined}
-                                    onChange={(event) =>
-                                        form.setData(
-                                            'title',
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                            </Field>
+                                    label={t('cms.edit.fields.title')}
+                                    error={errors.title}
+                                >
+                                    <Input
+                                        id={`${id}-title`}
+                                        name="title"
+                                        value={form.data.title}
+                                        maxLength={200}
+                                        required
+                                        aria-invalid={
+                                            errors.title !== undefined
+                                        }
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'title',
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                </Field>
+                                <Field
+                                    id={`${id}-slug`}
+                                    label={t('cms.fields.slug')}
+                                    help={t('cms.edit.fields.slugHelp')}
+                                    error={errors.slug}
+                                >
+                                    <Input
+                                        id={`${id}-slug`}
+                                        name="slug"
+                                        value={form.data.slug}
+                                        maxLength={160}
+                                        spellCheck={false}
+                                        className="font-mono"
+                                        aria-describedby={`${id}-slug-help`}
+                                        aria-invalid={errors.slug !== undefined}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'slug',
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                </Field>
+                            </div>
 
                             <Field
                                 id={`${id}-summary`}
@@ -378,7 +411,9 @@ export default function AdminLessonEdit({
                     <aside className="xl:sticky xl:top-4 xl:self-start">
                         <PublishPanel
                             lessonSlug={lesson.slug}
+                            lessonTitle={lesson.title}
                             status={lesson.status}
+                            statusActions={status_actions}
                             readiness={readiness}
                             publication={publication}
                             versions={versions}

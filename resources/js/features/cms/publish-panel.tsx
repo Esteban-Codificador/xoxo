@@ -5,10 +5,11 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { StatusActions } from '@/components/publishing/status-actions';
 import { ContentStatusBadge } from '@/components/publishing/status-badges';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/format';
-import { publish } from '@/routes/admin/lessons';
+import { publish, status as statusRoute } from '@/routes/admin/lessons';
 import type { ContentStatus } from '@/types/enums';
 
 export type Readiness = { code: string; message: string }[];
@@ -16,7 +17,11 @@ export type Readiness = { code: string; message: string }[];
 export type Publication = {
     version: number | null;
     published_at: string | null;
+    /** Status PUBLISHED (a restored lesson keeps its version but is not). */
+    live: boolean;
     has_unpublished_changes: boolean;
+    /** The version a publish makes live: the current one when unchanged. */
+    next_version: number | null;
     visible_to_learners: boolean;
 };
 
@@ -35,16 +40,20 @@ export type VersionEntry = {
  */
 export function PublishPanel({
     lessonSlug,
+    lessonTitle,
     status,
     readiness,
     publication,
     versions,
     canPublish,
+    statusActions,
     dirty,
     error,
 }: {
     lessonSlug: string;
+    lessonTitle: string;
     status: ContentStatus;
+    statusActions: ContentStatus[];
     readiness: Readiness;
     publication: Publication;
     versions: VersionEntry[];
@@ -54,17 +63,20 @@ export function PublishPanel({
 }) {
     const noteId = useId();
     const form = useForm({ change_note: '' });
-    const nextVersion = (versions[0]?.version ?? 0) + 1;
+    const nextVersion = publication.next_version;
+    const archived = status === 'ARCHIVED';
 
     const blocked = !canPublish
         ? t('cms.edit.cannotPublish')
-        : dirty
-          ? t('cms.edit.saveBeforePublish')
-          : readiness.length > 0
-            ? t('cms.edit.fixBeforePublish')
-            : !publication.has_unpublished_changes
-              ? t('cms.edit.nothingToPublish')
-              : null;
+        : archived
+          ? t('cms.edit.restoreFirst')
+          : dirty
+            ? t('cms.edit.saveBeforePublish')
+            : readiness.length > 0
+              ? t('cms.edit.fixBeforePublish')
+              : publication.live && !publication.has_unpublished_changes
+                ? t('cms.edit.nothingToPublish')
+                : null;
 
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -93,17 +105,23 @@ export function PublishPanel({
                                   date: formatDate(publication.published_at),
                               })}
                     </p>
-                    {publication.version !== null && (
-                        <p>
-                            {publication.has_unpublished_changes
-                                ? t('cms.edit.pending')
-                                : t('cms.edit.upToDate')}
-                        </p>
+                    {archived ? (
+                        <p>{t('cms.edit.archived')}</p>
+                    ) : (
+                        <>
+                            {publication.version !== null && (
+                                <p>
+                                    {publication.has_unpublished_changes
+                                        ? t('cms.edit.pending')
+                                        : t('cms.edit.upToDate')}
+                                </p>
+                            )}
+                            {publication.version !== null &&
+                                !publication.visible_to_learners && (
+                                    <p>{t('cms.edit.notVisible')}</p>
+                                )}
+                        </>
                     )}
-                    {publication.version !== null &&
-                        !publication.visible_to_learners && (
-                            <p>{t('cms.edit.notVisible')}</p>
-                        )}
                 </div>
             </section>
 
@@ -173,7 +191,9 @@ export function PublishPanel({
                         <Send aria-hidden="true" />
                         {form.processing
                             ? t('cms.edit.publishing')
-                            : t('cms.edit.publish', { version: nextVersion })}
+                            : nextVersion === null
+                              ? t('cms.edit.publishNow')
+                              : t('cms.edit.publish', { version: nextVersion })}
                     </Button>
                     {blocked !== null && (
                         <p className="text-xs text-muted-foreground">
@@ -185,6 +205,21 @@ export function PublishPanel({
             )}
             {!canPublish && (
                 <p className="text-sm text-muted-foreground">{blocked}</p>
+            )}
+
+            {statusActions.length > 0 && (
+                <section aria-labelledby="lesson-status" className="space-y-2">
+                    <h3 id="lesson-status" className="text-sm font-medium">
+                        {t('cms.edit.lessonStatus')}
+                    </h3>
+                    <StatusActions
+                        entity="lesson"
+                        name={lessonTitle}
+                        current={status}
+                        actions={statusActions}
+                        url={statusRoute.url(lessonSlug)}
+                    />
+                </section>
             )}
 
             <section aria-labelledby="history" className="space-y-2">

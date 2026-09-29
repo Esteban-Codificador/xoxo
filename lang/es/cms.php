@@ -25,4 +25,12 @@ return [
     'order_mismatch' => 'El orden debe incluir exactamente los módulos del track.',
     'dependencies_saved' => 'Prerrequisitos guardados.',
     'dependency_cycle' => 'Ese cambio crearía un ciclo de prerrequisitos: :path.',
+    'relations_saved' => 'Relaciones guardadas. Los estudiantes ven el cambio de inmediato (solo lo publicado).',
+    'restore_first' => 'La lección está archivada: restáurala antes de publicarla.',
+    'lesson_status' => [
+        'ARCHIVED' => 'Lección archivada: los estudiantes no la ven. Sus versiones y el progreso se conservan.',
+        'DRAFT' => 'Lección restaurada. Si tenía una versión publicada, los estudiantes vuelven a verla.',
+        'PUBLISHED' => 'Lección publicada.',
+        'REVIEW' => 'Lección en revisión.',
+    ],
 ];

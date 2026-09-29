@@ -192,7 +192,8 @@ Vive en `features/rich-content/`. Detalles que el diseño no fijaba:
 - **Aviso de cambios sin guardar:** `beforeunload` y el evento `before` de Inertia en visitas GET, ignorando los *prefetch* al pasar el mouse por el menú (también disparan `before`).
 - **Peso:** el editor es un chunk diferido de 151 kB gzip (TipTap, ProseMirror y KaTeX) que solo descarga la página de edición.
 - **Tracks y módulos (paso 3a):** `/admin/tracks` y `/admin/tracks/{id}/edit`. El formulario reutiliza `Field` y `SaveBar`; la descripción usa el mismo editor en modo compacto y se guarda como `null` si queda vacía. `DependencyEditor` (`features/dependencies`) edita prerrequisitos con tipo y, cuando el grafo lo usa, progreso mínimo; guarda la lista entera y muestra el ciclo que devuelve el servidor. `ModuleList` reordena con botones subir/bajar (accesibles por teclado, sin arrastrar) y un "Guardar orden" explícito. `StatusActions` solo muestra las transiciones que el servidor aceptará para ese usuario y pide confirmación explicando la consecuencia para los estudiantes.
-- **Diferido a los pasos 3–5:** slug, skills con peso, dependencias, recursos y estado en el formulario; menú `/`; pegar Markdown; imagen (Fase 6); vista de una versión y diff.
+- **Relaciones, slug y estado (paso 3b):** pestañas `LessonTabs` (Contenido / Relaciones), porque el contenido se publica y las relaciones se aplican de inmediato. `SkillsEditor` (peso 1–5), `DependencyEditor` sin progreso mínimo y `ResourcesEditor` (orden con subir/bajar, estado del enlace y URL visible) comparten un solo formulario y una `SaveBar`. El panel de publicación incorpora archivar/restaurar (`StatusActions`) y muestra la versión que quedará activa (`next_version`).
+- **Diferido a los pasos 4–5:** crear entidades, flujo de revisión, CRUD de skills y recursos; menú `/`; pegar Markdown; imagen (Fase 6); vista de una versión y diff.
 
 ## 9. Formularios, tablas y feedback
 

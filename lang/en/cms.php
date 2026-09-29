@@ -25,4 +25,12 @@ return [
     'order_mismatch' => 'The order must list exactly the modules of the track.',
     'dependencies_saved' => 'Prerequisites saved.',
     'dependency_cycle' => 'That change would create a prerequisite cycle: :path.',
+    'relations_saved' => 'Relations saved. Learners see the change right away (published items only).',
+    'restore_first' => 'The lesson is archived: restore it before publishing it.',
+    'lesson_status' => [
+        'ARCHIVED' => 'Lesson archived: learners cannot see it. Its versions and progress are kept.',
+        'DRAFT' => 'Lesson restored. If it had a published version, learners see it again.',
+        'PUBLISHED' => 'Lesson published.',
+        'REVIEW' => 'Lesson in review.',
+    ],
 ];

@@ -315,12 +315,44 @@ export const en: Messages = {
             emptyDescription:
                 'Import the content package with php artisan content:import.',
         },
+        lessonTabs: {
+            label: 'Lesson sections',
+            content: 'Content',
+            relations: 'Relations',
+        },
+        relations: {
+            head: 'Relations: {lesson}',
+            liveNotice:
+                'Relations have no versions: when you save, learners see the change right away (published items only).',
+            skills: 'Skills it develops',
+            skillsHelp:
+                'Weight from 1 to 5: how much this lesson adds to the skill.',
+            weight: 'Weight of {name}',
+            addSkill: 'Add skill',
+            noSkills: 'No related skills.',
+            prerequisites: 'Prerequisites',
+            prerequisitesHelp:
+                'Lessons of the same roadmap completed first. A required one locks this lesson in strict roadmaps; a recommended one only warns.',
+            resources: 'Further reading',
+            resourcesHelp:
+                'In the order shown at the end of the lesson. Only published ones appear.',
+            addResource: 'Add resource',
+            noResources: 'No resources.',
+            moveUp: 'Move {name} up',
+            moveDown: 'Move {name} down',
+            remove: 'Remove {name}',
+            official: 'Official',
+            choose: 'Choose…',
+            add: 'Add',
+        },
         edit: {
             head: 'Edit: {lesson}',
             location: '{track} · {module}',
             details: 'Lesson details',
             fields: {
                 title: 'Title',
+                slugHelp:
+                    'Part of the lesson URL. Changing it breaks saved links.',
                 summary: 'Summary',
                 summaryHelp:
                     'One or two sentences: what the learner will learn and why.',
@@ -340,6 +372,10 @@ export const en: Messages = {
                 bodyHelp:
                     'Only the blocks in the toolbar are allowed: anything else is dropped on paste.',
             },
+            archived:
+                'Archived: learners cannot see it. Restore it to publish it again.',
+            restoreFirst: 'Restore the lesson before publishing it.',
+            lessonStatus: 'Lesson status',
             save: 'Save changes',
             saving: 'Saving…',
             unsaved: 'You have unsaved changes.',
@@ -358,6 +394,7 @@ export const en: Messages = {
             readinessStale: 'The list reflects what you last saved.',
             changeNote: 'Change note',
             changeNoteHelp: 'What changed and why. It stays in the history.',
+            publishNow: 'Publish',
             publish: 'Publish version {version}',
             publishing: 'Publishing…',
             saveBeforePublish: 'Save your changes before publishing.',
@@ -461,6 +498,15 @@ export const en: Messages = {
                         'Its lessons are hidden. It can be restored as a draft. Progress is kept.',
                     restore:
                         'It goes back to editorial work as a draft, still hidden.',
+                },
+                lesson: {
+                    PUBLISHED: 'Learners will see the published version.',
+                    DRAFT: 'It goes back to editorial work. If it has a published version, it stays visible.',
+                    REVIEW: 'It goes to review. If it has a published version, it stays visible.',
+                    ARCHIVED:
+                        'Learners will stop seeing the lesson. Its versions and progress are kept; it can be restored.',
+                    restore:
+                        'It comes back as a draft. If it had a published version, learners see it again.',
                 },
             },
         },

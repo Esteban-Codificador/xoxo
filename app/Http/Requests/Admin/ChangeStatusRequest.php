@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Domain\Curriculum\Publishing\StatusTransition;
 use App\Enums\ContentStatus;
+use App\Models\Lesson;
 use App\Models\Module;
 use App\Models\Track;
 use Illuminate\Auth\Access\Response;
@@ -12,13 +13,13 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 /**
- * Publish, unpublish, archive or restore a track or a module. The policy
+ * Publish, unpublish, archive or restore a track, module or lesson. The policy
  * checks the permission for the requested change; the rules check that the
  * change exists from the current status.
  */
 abstract class ChangeStatusRequest extends FormRequest
 {
-    abstract public function subject(): Track|Module;
+    abstract public function subject(): Track|Module|Lesson;
 
     public function authorize(): Response|bool
     {
@@ -33,11 +34,19 @@ abstract class ChangeStatusRequest extends FormRequest
      */
     public function rules(): array
     {
-        $targets = array_map(fn (ContentStatus $status) => $status->value, StatusTransition::targets($this->subject()->status));
+        $targets = array_map(fn (ContentStatus $status) => $status->value, $this->targets());
 
         return [
             'status' => ['required', 'string', Rule::in($targets)],
         ];
+    }
+
+    /**
+     * @return list<ContentStatus>
+     */
+    protected function targets(): array
+    {
+        return StatusTransition::targets($this->subject()->status);
     }
 
     public function target(): ContentStatus

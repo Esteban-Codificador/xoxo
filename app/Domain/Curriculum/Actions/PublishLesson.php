@@ -15,8 +15,9 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Snapshots the working copy into an immutable lesson_versions row and makes
- * it the version learners read (ADR-006). Publishing unchanged content is a
- * no-op that returns the current version.
+ * it the version learners read (ADR-006). Publishing unchanged content
+ * returns the current version (and makes it live again if the lesson was
+ * withdrawn); it never creates a duplicate.
  */
 final readonly class PublishLesson
 {
@@ -41,7 +42,16 @@ final readonly class PublishLesson
             $current = $lesson->publishedVersion;
             $hash = $lesson->workingCopyHash();
 
-            if ($current !== null && $current->content_hash === $hash && $lesson->status === ContentStatus::Published) {
+            if ($current !== null && $current->content_hash === $hash) {
+                // Unchanged since that version: publishing again (after a
+                // withdrawal) makes it live without a duplicate version.
+                if ($lesson->status !== ContentStatus::Published) {
+                    $this->audit->during(AuditAction::Published, fn () => $lesson->forceFill([
+                        'status' => ContentStatus::Published,
+                        'published_at' => now(),
+                    ])->save());
+                }
+
                 return $current;
             }
 

@@ -26,6 +26,19 @@ final class StatusTransition
         };
     }
 
+    /**
+     * A lesson's status describes its working copy: with a published version
+     * it stays visible in DRAFT or REVIEW (architecture §7), and it is
+     * published only through PublishLesson. So the CMS only archives it
+     * (hidden) or restores it (its last published version shows again).
+     *
+     * @return list<ContentStatus>
+     */
+    public static function lessonTargets(ContentStatus $from): array
+    {
+        return $from === ContentStatus::Archived ? [ContentStatus::Draft] : [ContentStatus::Archived];
+    }
+
     public static function allowed(ContentStatus $from, ContentStatus $to): bool
     {
         return in_array($to, self::targets($from), true);

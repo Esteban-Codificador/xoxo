@@ -6,6 +6,7 @@ use App\Enums\ContentType;
 use App\Enums\Difficulty;
 use App\Models\Lesson;
 use App\Rules\RichContentDocument;
+use App\Rules\Slug;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -29,6 +30,8 @@ class UpdateLessonRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:200'],
+            // Part of the lesson URL, unique across the platform.
+            'slug' => ['required', 'string', 'max:160', new Slug, Rule::unique('lessons', 'slug')->ignore($this->lesson()->id)],
             'summary' => ['required', 'string', 'max:2000'],
             'why_it_matters' => ['required', 'string', 'max:2000'],
             'learning_objectives' => ['present', 'list', 'max:12'],

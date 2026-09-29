@@ -16,12 +16,13 @@ use App\Models\User;
 final class UpdateLesson
 {
     /**
-     * @param  array{title: string, summary: string, why_it_matters: string, learning_objectives: list<string>, content_type: string, difficulty: string, estimated_minutes: int|string, body: array<string, mixed>}  $data
+     * @param  array{title: string, slug: string, summary: string, why_it_matters: string, learning_objectives: list<string>, content_type: string, difficulty: string, estimated_minutes: int|string, body: array<string, mixed>}  $data
      */
     public function handle(Lesson $lesson, User $editor, array $data): Lesson
     {
         $lesson->forceFill([
             'title' => trim($data['title']),
+            'slug' => $data['slug'],
             'summary' => trim($data['summary']),
             'why_it_matters' => trim($data['why_it_matters']),
             'learning_objectives' => array_map('trim', $data['learning_objectives']),

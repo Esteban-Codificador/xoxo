@@ -6,7 +6,9 @@ use App\Domain\Curriculum\Actions\UpdateLesson;
 use App\Domain\Curriculum\Publishing\LessonDraft;
 use App\Domain\Curriculum\Publishing\LessonReadiness;
 use App\Domain\Curriculum\Publishing\ReadinessIssue;
+use App\Enums\ContentStatus;
 use App\Enums\ContentType;
+use App\Http\Controllers\Admin\Concerns\ListsStatusActions;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateLessonRequest;
 use App\Models\Lesson;
@@ -23,6 +25,8 @@ use Inertia\Response;
  */
 class LessonController extends Controller
 {
+    use ListsStatusActions;
+
     public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Lesson::class);
@@ -57,6 +61,7 @@ class LessonController extends Controller
 
         $lesson->load(['module.track.roadmap', 'publishedVersion']);
         $versions = $lesson->versions()->with('publisher:id,name')->orderByDesc('version')->get();
+        $changed = $lesson->published_version_id === null || $lesson->hasUnpublishedChanges();
 
         return Inertia::render('admin/lessons/edit', [
             'lesson' => [
@@ -81,9 +86,18 @@ class LessonController extends Controller
             'publication' => [
                 'version' => $lesson->publishedVersion?->version,
                 'published_at' => $lesson->publishedVersion?->published_at->toIso8601String(),
-                'has_unpublished_changes' => $lesson->published_version_id === null || $lesson->hasUnpublishedChanges(),
+                'live' => $lesson->status === ContentStatus::Published,
+                'has_unpublished_changes' => $changed,
+                // Unchanged content re-activates the current version (PublishLesson);
+                // null when it is already live and there is nothing to publish.
+                'next_version' => match (true) {
+                    $changed => (int) $versions->max('version') + 1,
+                    $lesson->status !== ContentStatus::Published => $lesson->publishedVersion?->version,
+                    default => null,
+                },
                 'visible_to_learners' => Lesson::query()->visibleToLearners()->whereKey($lesson->id)->exists(),
             ],
+            'status_actions' => $this->statusActions($request, $lesson),
             'versions' => $versions->map(fn (LessonVersion $version) => [
                 'version' => $version->version,
                 'published_at' => $version->published_at->toIso8601String(),
@@ -98,12 +112,16 @@ class LessonController extends Controller
 
     public function update(UpdateLessonRequest $request, Lesson $lesson, UpdateLesson $action): RedirectResponse
     {
-        /** @var array{title: string, summary: string, why_it_matters: string, learning_objectives: list<string>, content_type: string, difficulty: string, estimated_minutes: int|string, body: array<string, mixed>} $data */
+        /** @var array{title: string, slug: string, summary: string, why_it_matters: string, learning_objectives: list<string>, content_type: string, difficulty: string, estimated_minutes: int|string, body: array<string, mixed>} $data */
         $data = $request->validated();
+        $previousSlug = $lesson->slug;
         $action->handle($lesson, $request->user(), $data);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('cms.saved')]);
 
-        return back();
+        // A new slug is a new URL: go to it instead of back to the old one.
+        return $lesson->slug === $previousSlug
+            ? back()
+            : to_route('admin.lessons.edit', ['lesson' => $lesson->slug]);
     }
 }

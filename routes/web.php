@@ -3,6 +3,8 @@
 use App\Enums\Permission;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\LessonController as AdminLessonController;
+use App\Http\Controllers\Admin\LessonRelationsController;
+use App\Http\Controllers\Admin\LessonStatusController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
 use App\Http\Controllers\Admin\ModuleOrderController;
 use App\Http\Controllers\Admin\ModuleStatusController;
@@ -46,6 +48,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('lessons/{lesson:slug}/edit', [AdminLessonController::class, 'edit'])->name('lessons.edit');
             Route::put('lessons/{lesson:slug}', [AdminLessonController::class, 'update'])->name('lessons.update');
             Route::post('lessons/{lesson:slug}/publish', PublishLessonController::class)->name('lessons.publish');
+            Route::put('lessons/{lesson:slug}/status', LessonStatusController::class)->name('lessons.status');
+            Route::get('lessons/{lesson:slug}/relations', [LessonRelationsController::class, 'edit'])->name('lessons.relations.edit');
+            Route::put('lessons/{lesson:slug}/relations', [LessonRelationsController::class, 'update'])->name('lessons.relations.update');
 
             // Tracks and modules by id: their slugs are only unique inside the parent and editable.
             Route::get('tracks', [AdminTrackController::class, 'index'])->name('tracks.index');

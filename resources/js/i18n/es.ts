@@ -322,12 +322,43 @@ export const es = {
             emptyDescription:
                 'Importa el paquete de contenido con php artisan content:import.',
         },
+        lessonTabs: {
+            label: 'Secciones de la lección',
+            content: 'Contenido',
+            relations: 'Relaciones',
+        },
+        relations: {
+            head: 'Relaciones: {lesson}',
+            liveNotice:
+                'Las relaciones no tienen versiones: al guardar, los estudiantes ven el cambio de inmediato (solo lo publicado).',
+            skills: 'Skills que desarrolla',
+            skillsHelp: 'Peso de 1 a 5: cuánto aporta esta lección a la skill.',
+            weight: 'Peso de {name}',
+            addSkill: 'Añadir skill',
+            noSkills: 'Sin skills asociadas.',
+            prerequisites: 'Prerrequisitos',
+            prerequisitesHelp:
+                'Lecciones del mismo roadmap que se completan antes. Una necesaria bloquea esta lección en los roadmaps estrictos; una recomendada solo avisa.',
+            resources: 'Recursos para profundizar',
+            resourcesHelp:
+                'En el orden en que se muestran al final de la lección. Solo aparecen los publicados.',
+            addResource: 'Añadir recurso',
+            noResources: 'Sin recursos.',
+            moveUp: 'Subir {name}',
+            moveDown: 'Bajar {name}',
+            remove: 'Quitar {name}',
+            official: 'Oficial',
+            choose: 'Elige…',
+            add: 'Añadir',
+        },
         edit: {
             head: 'Editar: {lesson}',
             location: '{track} · {module}',
             details: 'Datos de la lección',
             fields: {
                 title: 'Título',
+                slugHelp:
+                    'Forma parte de la URL de la lección. Si lo cambias, los enlaces guardados dejan de funcionar.',
                 summary: 'Resumen',
                 summaryHelp:
                     'Una o dos frases: qué aprenderá el estudiante y para qué.',
@@ -347,6 +378,10 @@ export const es = {
                 bodyHelp:
                     'Solo admite los bloques de la barra: lo que no encaja en el formato se descarta al pegar.',
             },
+            archived:
+                'Archivada: los estudiantes no la ven. Restáurala para volver a publicarla.',
+            restoreFirst: 'Restaura la lección antes de publicarla.',
+            lessonStatus: 'Estado de la lección',
             save: 'Guardar cambios',
             saving: 'Guardando…',
             unsaved: 'Tienes cambios sin guardar.',
@@ -366,6 +401,7 @@ export const es = {
             readinessStale: 'La lista refleja lo último que guardaste.',
             changeNote: 'Nota del cambio',
             changeNoteHelp: 'Qué cambió y por qué. Queda en el historial.',
+            publishNow: 'Publicar',
             publish: 'Publicar versión {version}',
             publishing: 'Publicando…',
             saveBeforePublish: 'Guarda los cambios antes de publicar.',
@@ -472,6 +508,15 @@ export const es = {
                         'Sus lecciones dejan de verse. Se puede restaurar como borrador. El progreso se conserva.',
                     restore:
                         'Vuelve al trabajo editorial como borrador, todavía sin verse.',
+                },
+                lesson: {
+                    PUBLISHED: 'Los estudiantes verán la versión publicada.',
+                    DRAFT: 'Vuelve al trabajo editorial. Si tiene una versión publicada, sigue visible.',
+                    REVIEW: 'Queda en revisión. Si tiene una versión publicada, sigue visible.',
+                    ARCHIVED:
+                        'Los estudiantes dejarán de ver la lección. Sus versiones y el progreso se conservan; se puede restaurar.',
+                    restore:
+                        'Vuelve como borrador. Si tenía una versión publicada, los estudiantes vuelven a verla.',
                 },
             },
         },

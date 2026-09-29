@@ -3,29 +3,8 @@
 use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Models\AuditLog;
-use App\Models\Lesson;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
-
-/**
- * The form payload for a lesson, as the editor page sends it.
- *
- * @return array<string, mixed>
- */
-function lessonForm(Lesson $lesson, array $overrides = []): array
-{
-    return [
-        'title' => $lesson->title,
-        'summary' => $lesson->summary,
-        'why_it_matters' => $lesson->why_it_matters,
-        'learning_objectives' => $lesson->learning_objectives,
-        'content_type' => $lesson->content_type->value,
-        'difficulty' => $lesson->difficulty->value,
-        'estimated_minutes' => $lesson->estimated_minutes,
-        'body' => $lesson->body->toArray(),
-        ...$overrides,
-    ];
-}
 
 beforeEach(function () {
     $this->lesson = publishedLesson(['slug' => 'commits', 'title' => 'Commits', 'position' => 1]);

@@ -179,6 +179,20 @@ class Lesson extends Model
     }
 
     /**
+     * Lessons of the same roadmap as the given one (prerequisites stay
+     * inside a roadmap).
+     *
+     * @param  Builder<static>  $query
+     */
+    #[Scope]
+    protected function inRoadmapOf(Builder $query, Lesson $lesson): void
+    {
+        $roadmapId = $lesson->loadMissing('module.track')->module->track->roadmap_id;
+
+        $query->whereHas('module.track', fn (Builder $track) => $track->where('roadmap_id', $roadmapId));
+    }
+
+    /**
      * Lessons a learner can see: they have a published version, are not
      * archived and belong to a published module, track and roadmap.
      *

@@ -201,6 +201,14 @@ return [
         'dependencies.*.kind' => 'tipo de dependencia',
         'dependencies.*.min_progress' => 'progreso mínimo',
         'modules' => 'módulos',
+        'skills' => 'skills',
+        'skills.*.id' => 'skill',
+        'skills.*.weight' => 'peso',
+        'prerequisites' => 'prerrequisitos',
+        'prerequisites.*.id' => 'lección previa',
+        'prerequisites.*.kind' => 'tipo de dependencia',
+        'resources' => 'recursos',
+        'resources.*' => 'recurso',
     ],
 
 ];

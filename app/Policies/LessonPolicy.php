@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Domain\Learning\State\RoadmapStateResolver;
+use App\Enums\ContentStatus;
 use App\Enums\Permission;
 use App\Models\Lesson;
 use App\Models\User;
@@ -61,5 +62,11 @@ class LessonPolicy
     public function publish(User $user, Lesson $lesson): bool
     {
         return $user->can(Permission::ContentPublish->value);
+    }
+
+    /** Archive or restore (publishing is publish()). */
+    public function changeStatus(User $user, Lesson $lesson, ContentStatus $to): bool
+    {
+        return $this->statusRule($user, $lesson->status, $to);
     }
 }
