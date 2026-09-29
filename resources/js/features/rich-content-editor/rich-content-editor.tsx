@@ -16,6 +16,8 @@ export type RichContentEditorProps = {
     labelledBy: string;
     describedBy?: string;
     invalid?: boolean;
+    /** Short fields (a track description) do not need a tall empty area. */
+    compact?: boolean;
 };
 
 /**
@@ -38,6 +40,7 @@ function Editor({
     labelledBy,
     describedBy,
     invalid = false,
+    compact = false,
 }: RichContentEditorProps) {
     const ask = useAsk();
     const contentId = useId();
@@ -60,7 +63,7 @@ function Editor({
                 ...(describedBy === undefined
                     ? {}
                     : { 'aria-describedby': describedBy }),
-                class: 'rich-content prose min-h-80 max-w-none px-4 py-3 focus:outline-none prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:font-normal prose-code:before:content-none prose-code:after:content-none sm:px-6',
+                class: `rich-content prose ${compact ? 'min-h-32' : 'min-h-80'} max-w-none px-4 py-3 focus:outline-none prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:font-normal prose-code:before:content-none prose-code:after:content-none sm:px-6`,
             },
         },
         onUpdate: ({ editor: current }) =>

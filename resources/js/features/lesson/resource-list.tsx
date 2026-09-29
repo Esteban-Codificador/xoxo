@@ -1,5 +1,5 @@
 import { BadgeCheck, ExternalLink } from 'lucide-react';
-import { LinkStatusBadge } from '@/features/publishing/status-badges';
+import { LinkStatusBadge } from '@/components/publishing/status-badges';
 import { t } from '@/i18n';
 import type { LinkStatus, ResourceType } from '@/types/enums';
 

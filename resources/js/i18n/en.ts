@@ -26,6 +26,7 @@ export const en: Messages = {
         backToApp: 'Back to the platform',
         adminOverview: 'Overview',
         lessons: 'Lessons',
+        tracks: 'Tracks',
         settings: 'Settings',
         logOut: 'Log out',
         navigationMenu: 'Navigation menu',
@@ -293,6 +294,9 @@ export const en: Messages = {
         },
     },
     cms: {
+        fields: {
+            slug: 'Slug',
+        },
         lessons: {
             head: 'Lessons',
             title: 'Lessons',
@@ -367,6 +371,110 @@ export const en: Messages = {
             publishedBy: 'Published on {date} by {user}',
             publishedOn: 'Published on {date}',
             noNote: 'No change note.',
+        },
+        tracks: {
+            head: 'Tracks',
+            title: 'Tracks',
+            description:
+                'Details, prerequisites and modules of each track. Tracks and modules have no versions: what you save is what learners see.',
+            track: 'Track',
+            modules: 'Modules',
+            lessons: 'Lessons',
+            requires: 'Requires',
+            startingPoint: 'Starting point',
+            editTrack: 'Edit {track}',
+            empty: 'There are no tracks yet.',
+        },
+        trackEdit: {
+            head: 'Edit: {track}',
+            roadmap: 'Roadmap: {roadmap}',
+            details: 'Track details',
+            fields: {
+                slugHelp:
+                    'Part of the track URL. Changing it breaks saved links.',
+                hours: 'Estimated hours',
+                hoursHelp: 'Total time with practice. Optional.',
+                description: 'Description',
+                descriptionHelp:
+                    'Optional. Shown under “About this track”. Leave it empty if the summary is enough.',
+            },
+            liveNotice:
+                'No versions: when you save, learners see the change right away.',
+            status: 'Status',
+            visible: 'Learners can see it.',
+            hidden: 'Learners cannot see it.',
+            roadmapHidden:
+                'Learners cannot see it: the roadmap is not published.',
+            prerequisites: 'Prerequisites',
+            prerequisitesHelp:
+                'Tracks completed first. A required prerequisite locks this track until its minimum progress is reached; a recommended one only warns.',
+            savePrerequisites: 'Save prerequisites',
+            modules: 'Modules',
+            modulesHelp:
+                'Study order inside the track. An unpublished module hides its lessons.',
+            noModules: 'This track has no modules yet.',
+        },
+        modules: {
+            lessons: '{count} lessons',
+            oneLesson: '1 lesson',
+            moveUp: 'Move {module} up',
+            moveDown: 'Move {module} down',
+            saveOrder: 'Save order',
+            orderChanged: 'You changed the order and have not saved it.',
+            edit: 'Edit {module}',
+            dialogTitle: 'Edit module',
+            dialogDescription: 'The change shows on the track page right away.',
+            slugHelp: 'Anchor of the module on the track page.',
+        },
+        status: {
+            actions: {
+                PUBLISHED: 'Publish',
+                DRAFT: 'Move to draft',
+                REVIEW: 'Send to review',
+                ARCHIVED: 'Archive',
+                restore: 'Restore as draft',
+            },
+            confirm: {
+                PUBLISHED: 'Publish “{name}”?',
+                DRAFT: 'Move “{name}” to draft?',
+                REVIEW: 'Send “{name}” to review?',
+                ARCHIVED: 'Archive “{name}”?',
+                restore: 'Restore “{name}” as a draft?',
+            },
+            consequence: {
+                track: {
+                    PUBLISHED:
+                        'Learners will see the track with its published modules and lessons.',
+                    DRAFT: 'Learners will stop seeing the track and all its lessons. Their progress is kept.',
+                    REVIEW: 'Learners will stop seeing it until it is published.',
+                    ARCHIVED:
+                        'It is hidden and leaves editorial work. It can be restored as a draft. Progress is kept.',
+                    restore:
+                        'It goes back to editorial work as a draft, still hidden.',
+                },
+                module: {
+                    PUBLISHED:
+                        'Learners will see the published lessons of this module.',
+                    DRAFT: 'Learners will stop seeing the lessons of this module. Their progress is kept.',
+                    REVIEW: 'Its lessons will be hidden until it is published.',
+                    ARCHIVED:
+                        'Its lessons are hidden. It can be restored as a draft. Progress is kept.',
+                    restore:
+                        'It goes back to editorial work as a draft, still hidden.',
+                },
+            },
+        },
+        dependencies: {
+            empty: 'No prerequisites: it is a starting point.',
+            kind: 'Dependency type with {name}',
+            minProgress: 'Minimum progress of {name} (%)',
+            minProgressShort: 'min. %',
+            remove: 'Remove {name}',
+            add: 'Add',
+            addLabel: 'Add prerequisite',
+            choose: 'Choose…',
+            unpublished: 'unpublished',
+            unsaved: 'You changed the prerequisites and have not saved them.',
         },
     },
     editor: {

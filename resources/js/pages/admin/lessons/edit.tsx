@@ -1,12 +1,11 @@
 import { Head, Link, setLayoutProps, useForm, usePage } from '@inertiajs/react';
-import { Eye, Save } from 'lucide-react';
-import type { FormEvent, ReactNode } from 'react';
+import { Eye } from 'lucide-react';
+import type { FormEvent } from 'react';
 import { lazy, Suspense, useId, useState } from 'react';
 import InputError from '@/components/input-error';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -15,6 +14,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Field } from '@/features/cms/field';
 import { ObjectivesField } from '@/features/cms/objectives-field';
 import type {
     Publication,
@@ -22,6 +22,7 @@ import type {
     VersionEntry,
 } from '@/features/cms/publish-panel';
 import { PublishPanel } from '@/features/cms/publish-panel';
+import { SaveBar } from '@/features/cms/save-bar';
 import { useUnsavedChangesGuard } from '@/features/cms/use-unsaved-changes-guard';
 import type { RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';
@@ -60,33 +61,6 @@ type Props = {
     content_types: ContentType[];
     can: { publish: boolean };
 };
-
-function Field({
-    id,
-    label,
-    help,
-    error,
-    children,
-}: {
-    id: string;
-    label: string;
-    help?: string;
-    error?: string;
-    children: ReactNode;
-}) {
-    return (
-        <div className="grid gap-2">
-            <Label htmlFor={id}>{label}</Label>
-            {children}
-            {help !== undefined && (
-                <p id={`${id}-help`} className="text-xs text-muted-foreground">
-                    {help}
-                </p>
-            )}
-            <InputError message={error} />
-        </div>
-    );
-}
 
 export default function AdminLessonEdit({
     lesson,
@@ -398,25 +372,7 @@ export default function AdminLessonEdit({
                             <InputError message={errors.body} />
                         </section>
 
-                        <div className="sticky bottom-0 z-20 -mx-4 flex flex-wrap items-center justify-between gap-3 border-t bg-background px-4 py-3 md:-mx-6 md:px-6">
-                            <p
-                                role="status"
-                                className="text-sm text-muted-foreground"
-                            >
-                                {dirty
-                                    ? t('cms.edit.unsaved')
-                                    : t('cms.edit.saved')}
-                            </p>
-                            <Button
-                                type="submit"
-                                disabled={form.processing || !dirty}
-                            >
-                                <Save aria-hidden="true" />
-                                {form.processing
-                                    ? t('cms.edit.saving')
-                                    : t('cms.edit.save')}
-                            </Button>
-                        </div>
+                        <SaveBar dirty={dirty} processing={form.processing} />
                     </form>
 
                     <aside className="xl:sticky xl:top-4 xl:self-start">

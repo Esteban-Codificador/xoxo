@@ -29,6 +29,7 @@ export const es = {
         backToApp: 'Volver a la plataforma',
         adminOverview: 'Resumen',
         lessons: 'Lecciones',
+        tracks: 'Tracks',
         settings: 'Configuración',
         logOut: 'Cerrar sesión',
         navigationMenu: 'Menú de navegación',
@@ -300,6 +301,9 @@ export const es = {
         },
     },
     cms: {
+        fields: {
+            slug: 'Slug',
+        },
         lessons: {
             head: 'Lecciones',
             title: 'Lecciones',
@@ -377,6 +381,111 @@ export const es = {
             publishedBy: 'Publicada el {date} por {user}',
             publishedOn: 'Publicada el {date}',
             noNote: 'Sin nota de cambio.',
+        },
+        tracks: {
+            head: 'Tracks',
+            title: 'Tracks',
+            description:
+                'Datos, prerrequisitos y módulos de cada track. Los tracks y los módulos no tienen versiones: lo que guardas es lo que ven los estudiantes.',
+            track: 'Track',
+            modules: 'Módulos',
+            lessons: 'Lecciones',
+            requires: 'Requiere',
+            startingPoint: 'Punto de partida',
+            editTrack: 'Editar {track}',
+            empty: 'Todavía no hay tracks.',
+        },
+        trackEdit: {
+            head: 'Editar: {track}',
+            roadmap: 'Roadmap: {roadmap}',
+            details: 'Datos del track',
+            fields: {
+                slugHelp:
+                    'Forma parte de la URL del track. Si lo cambias, los enlaces guardados dejan de funcionar.',
+                hours: 'Horas estimadas',
+                hoursHelp: 'Dedicación total con práctica. Opcional.',
+                description: 'Descripción',
+                descriptionHelp:
+                    'Opcional. Se muestra en «Sobre este track». Déjala vacía si el resumen basta.',
+            },
+            liveNotice:
+                'Sin versiones: al guardar, los estudiantes ven el cambio de inmediato.',
+            status: 'Estado',
+            visible: 'Los estudiantes lo ven.',
+            hidden: 'Los estudiantes no lo ven.',
+            roadmapHidden:
+                'Los estudiantes no lo ven: el roadmap no está publicado.',
+            prerequisites: 'Prerrequisitos',
+            prerequisitesHelp:
+                'Tracks que se completan antes. Un prerrequisito necesario bloquea este track hasta alcanzar su progreso mínimo; uno recomendado solo avisa.',
+            savePrerequisites: 'Guardar prerrequisitos',
+            modules: 'Módulos',
+            modulesHelp:
+                'Orden de estudio dentro del track. Un módulo sin publicar oculta sus lecciones.',
+            noModules: 'Este track todavía no tiene módulos.',
+        },
+        modules: {
+            lessons: '{count} lecciones',
+            oneLesson: '1 lección',
+            moveUp: 'Subir {module}',
+            moveDown: 'Bajar {module}',
+            saveOrder: 'Guardar orden',
+            orderChanged: 'Cambiaste el orden y todavía no lo guardaste.',
+            edit: 'Editar {module}',
+            dialogTitle: 'Editar módulo',
+            dialogDescription:
+                'El cambio se ve de inmediato en la página del track.',
+            slugHelp: 'Ancla del módulo en la página del track.',
+        },
+        status: {
+            actions: {
+                PUBLISHED: 'Publicar',
+                DRAFT: 'Pasar a borrador',
+                REVIEW: 'Enviar a revisión',
+                ARCHIVED: 'Archivar',
+                restore: 'Restaurar como borrador',
+            },
+            confirm: {
+                PUBLISHED: '¿Publicar «{name}»?',
+                DRAFT: '¿Pasar «{name}» a borrador?',
+                REVIEW: '¿Enviar «{name}» a revisión?',
+                ARCHIVED: '¿Archivar «{name}»?',
+                restore: '¿Restaurar «{name}» como borrador?',
+            },
+            consequence: {
+                track: {
+                    PUBLISHED:
+                        'Los estudiantes verán el track con sus módulos y lecciones publicados.',
+                    DRAFT: 'Los estudiantes dejarán de ver el track y todas sus lecciones. Su progreso se conserva.',
+                    REVIEW: 'Los estudiantes dejarán de verlo hasta que se publique.',
+                    ARCHIVED:
+                        'Deja de verse y sale del trabajo editorial. Se puede restaurar como borrador. El progreso se conserva.',
+                    restore:
+                        'Vuelve al trabajo editorial como borrador, todavía sin verse.',
+                },
+                module: {
+                    PUBLISHED:
+                        'Los estudiantes verán las lecciones publicadas de este módulo.',
+                    DRAFT: 'Los estudiantes dejarán de ver las lecciones de este módulo. Su progreso se conserva.',
+                    REVIEW: 'Sus lecciones dejarán de verse hasta que se publique.',
+                    ARCHIVED:
+                        'Sus lecciones dejan de verse. Se puede restaurar como borrador. El progreso se conserva.',
+                    restore:
+                        'Vuelve al trabajo editorial como borrador, todavía sin verse.',
+                },
+            },
+        },
+        dependencies: {
+            empty: 'Sin prerrequisitos: es un punto de partida.',
+            kind: 'Tipo de dependencia con {name}',
+            minProgress: 'Progreso mínimo de {name} (%)',
+            minProgressShort: 'mín. %',
+            remove: 'Quitar {name}',
+            add: 'Añadir',
+            addLabel: 'Añadir prerrequisito',
+            choose: 'Elige…',
+            unpublished: 'sin publicar',
+            unsaved: 'Cambiaste los prerrequisitos y todavía no los guardaste.',
         },
     },
     editor: {

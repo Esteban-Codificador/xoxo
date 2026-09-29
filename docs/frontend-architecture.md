@@ -43,13 +43,13 @@ resources/js/
 │   ├── cms/                   # Formulario de lección: objetivos, panel de publicación, aviso de cambios sin guardar
 │   ├── recommendations/       # RecommendationCard y RecommendationList
 │   ├── dependencies/          # DependencyEditor reutilizable (track, skill, lección)
-│   ├── publishing/            # ContentStatusBadge, LinkStatusBadge (Fase 4); PublishActions, VersionHistory (5b)
 │   ├── admin/
 │   │   ├── activity.ts        # Frase de cada evento de auditoría (plantillas i18n completas)
 │   │   └── data-table/        # Tabla dirigida por el servidor (orden, filtros, paginación)
 │   └── search/                # CommandPalette (Fase 7)
 ├── components/
 │   ├── ui/                    # shadcn/ui (copiados; no se editan salvo con motivo)
+│   ├── publishing/            # ContentStatusBadge, LinkStatusBadge y StatusActions (varias features los usan)
 │   └── …                      # Compartidos: EmptyState, ErrorState, PageHeader, Breadcrumbs…
 ├── layouts/                   # AppLayout (estudiante), AdminLayout, AuthLayout, PublicLayout
 ├── i18n/                      # es.ts (fuente), en.ts (debe satisfacer el tipo de es), t()
@@ -191,6 +191,7 @@ Vive en `features/rich-content/`. Detalles que el diseño no fijaba:
 - **Checklist sobre lo guardado, no en vivo.** Las reglas de `LessonReadiness` viven solo en PHP (React no recalcula reglas de negocio). La lista se actualiza al guardar y avisa que refleja lo último guardado; "Publicar" se desactiva mientras haya cambios sin guardar y explica por qué.
 - **Aviso de cambios sin guardar:** `beforeunload` y el evento `before` de Inertia en visitas GET, ignorando los *prefetch* al pasar el mouse por el menú (también disparan `before`).
 - **Peso:** el editor es un chunk diferido de 151 kB gzip (TipTap, ProseMirror y KaTeX) que solo descarga la página de edición.
+- **Tracks y módulos (paso 3a):** `/admin/tracks` y `/admin/tracks/{id}/edit`. El formulario reutiliza `Field` y `SaveBar`; la descripción usa el mismo editor en modo compacto y se guarda como `null` si queda vacía. `DependencyEditor` (`features/dependencies`) edita prerrequisitos con tipo y, cuando el grafo lo usa, progreso mínimo; guarda la lista entera y muestra el ciclo que devuelve el servidor. `ModuleList` reordena con botones subir/bajar (accesibles por teclado, sin arrastrar) y un "Guardar orden" explícito. `StatusActions` solo muestra las transiciones que el servidor aceptará para ese usuario y pide confirmación explicando la consecuencia para los estudiantes.
 - **Diferido a los pasos 3–5:** slug, skills con peso, dependencias, recursos y estado en el formulario; menú `/`; pegar Markdown; imagen (Fase 6); vista de una versión y diff.
 
 ## 9. Formularios, tablas y feedback

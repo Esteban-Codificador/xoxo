@@ -12,7 +12,7 @@ import { StateBadge } from '@/features/progress/state-badge';
 import {
     ContentStatusBadge,
     LinkStatusBadge,
-} from '@/features/publishing/status-badges';
+} from '@/components/publishing/status-badges';
 import { RichContentRenderer } from '@/features/rich-content';
 import type { RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';

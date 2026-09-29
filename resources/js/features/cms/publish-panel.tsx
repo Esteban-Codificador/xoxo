@@ -5,7 +5,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ContentStatusBadge } from '@/features/publishing/status-badges';
+import { ContentStatusBadge } from '@/components/publishing/status-badges';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/format';
 import { publish } from '@/routes/admin/lessons';

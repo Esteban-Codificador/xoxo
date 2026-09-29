@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import {
     ContentStatusBadge,
     LinkStatusBadge,
-} from '@/features/publishing/status-badges';
+} from '@/components/publishing/status-badges';
 import type { ActivityEntry } from '@/features/admin/activity';
 import { activitySentence } from '@/features/admin/activity';
 import { t } from '@/i18n';

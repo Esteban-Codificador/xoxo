@@ -9,7 +9,7 @@ import { CardGridSkeleton } from '@/components/skeletons';
 import {
     ContentStatusBadge,
     LinkStatusBadge,
-} from '@/features/publishing/status-badges';
+} from '@/components/publishing/status-badges';
 
 describe('EmptyState', () => {
     it('explains the empty screen and offers the next action', () => {

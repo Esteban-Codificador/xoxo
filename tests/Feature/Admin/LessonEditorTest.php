@@ -7,11 +7,6 @@ use App\Models\Lesson;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
-function staff(Role $role): User
-{
-    return User::factory()->create()->assignRole($role->value);
-}
-
 /**
  * The form payload for a lesson, as the editor page sends it.
  *

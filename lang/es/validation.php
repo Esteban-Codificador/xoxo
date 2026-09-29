@@ -196,6 +196,11 @@ return [
         'content_type' => 'tipo de contenido',
         'body' => 'contenido',
         'change_note' => 'nota de cambio',
+        'dependencies' => 'prerrequisitos',
+        'dependencies.*.track_id' => 'track previo',
+        'dependencies.*.kind' => 'tipo de dependencia',
+        'dependencies.*.min_progress' => 'progreso mínimo',
+        'modules' => 'módulos',
     ],
 
 ];

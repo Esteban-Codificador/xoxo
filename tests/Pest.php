@@ -2,11 +2,13 @@
 
 use App\Domain\Content\RichContent\RichContent;
 use App\Domain\Curriculum\Actions\PublishLesson;
+use App\Enums\Role;
 use App\Models\Lesson;
 use App\Models\Module;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
+use App\Models\User;
 use Database\Factories\LessonFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -60,4 +62,10 @@ function publishedLesson(array $attributes = [], ?Module $module = null): Lesson
     app(PublishLesson::class)->handle($lesson);
 
     return $lesson->refresh();
+}
+
+/** A user with a CMS role (or a learner, with Role::Student). */
+function staff(Role $role): User
+{
+    return User::factory()->create()->assignRole($role->value);
 }
