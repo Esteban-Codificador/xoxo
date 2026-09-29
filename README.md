@@ -44,7 +44,39 @@ npm run build
 composer run dev              # servidor, cola, logs y Vite: http://localhost:8000
 ```
 
-> **Docker:** `docker-compose.yml` levanta **solo la infraestructura**; la app corre en tu máquina. Este archivo **no se pudo validar** en el entorno donde se desarrolló (sin daemon de Docker). Todos los demás comandos sí están verificados. Si no usas Docker, crea la base `ai_roadmap` (y `ai_roadmap_testing` para los tests) con el usuario `ai_roadmap` y la contraseña `secret`, o ajusta `.env`.
+> **Docker:** `docker-compose.yml` levanta **solo la infraestructura**; la app corre en tu máquina. Este archivo **no se pudo validar** en el entorno donde se desarrolló (sin daemon de Docker). Todos los demás comandos sí están verificados.
+
+### Sin Docker
+
+La única pieza obligatoria es **PostgreSQL 16**. Redis y Mailpit son opcionales en desarrollo: Laravel guarda sesiones, caché y cola en la misma base de datos (las tablas `sessions`, `cache` y `jobs` ya vienen en las migraciones) y los correos pueden ir al log.
+
+Instala PostgreSQL:
+
+| Sistema | Comando |
+|---|---|
+| Windows | `winget install PostgreSQL.PostgreSQL.16` |
+| macOS | `brew install postgresql@16 && brew services start postgresql@16` |
+| Debian/Ubuntu | `sudo apt install postgresql-16` |
+
+Crea el usuario y las dos bases (la de tests es obligatoria para `php artisan test`):
+
+```sql
+-- psql -U postgres
+CREATE USER ai_roadmap WITH PASSWORD 'secret' CREATEDB;
+CREATE DATABASE ai_roadmap OWNER ai_roadmap;
+CREATE DATABASE ai_roadmap_testing OWNER ai_roadmap;
+```
+
+Y ajusta estas cuatro líneas del `.env` para no depender de Redis ni de un servidor SMTP:
+
+```dotenv
+SESSION_DRIVER=database
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+MAIL_MAILER=log          # los correos quedan en storage/logs/laravel.log
+```
+
+El resto de la instalación es idéntico, saltándote `docker compose up -d`.
 
 ### Usuarios de demostración
 
