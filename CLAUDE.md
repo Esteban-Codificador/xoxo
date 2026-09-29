@@ -34,6 +34,7 @@ Plataforma educativa **AI Engineer Roadmap** (Laravel 13 + Inertia 3 + React 19 
 |---|---|
 | Tests backend (Pest, PostgreSQL) | `php artisan test` · uno: `./vendor/bin/pest --filter="nombre"` |
 | Tests frontend (Vitest) | `npm run test` |
+| E2E (Pest Browser) | `composer test:browser` (usa el Chromium de `/opt/pw-browsers` vía shim; no es parte de `php artisan test`) |
 | Lint PHP / JS | `composer lint:check` / `npm run check` (corregir: `composer lint`, `npm run check:fix`) |
 | Tipos PHP / TS | `composer types:check` (PHPStan nivel 7) / `npm run types:check` |
 | Enums PHP → TS | `php artisan types:enums` (CI: `--check`) |

@@ -128,6 +128,10 @@ Dark y light mode vienen del starter kit (`use-appearance`), con preferencia del
 | Responsive | Por debajo de 768 px se muestra la **vista de lista**: acordeón por nivel (rango topológico calculado), con los mismos datos y acciones |
 | Teclado | Nodos enfocables (Tab), Enter abre el panel y Esc lo cierra. La vista de lista es la alternativa accesible completa |
 
+### Implementación (Fase 5a)
+
+`/roadmap` redirige al roadmap publicado y `/roadmaps/{slug}` lo muestra. El servidor entrega tracks con su estado, progreso, requisitos pendientes y lecciones (del mismo `RoadmapStateResolver`, sin consultas por track) y las aristas entre tracks publicados. El cliente solo calcula el layout (`layoutGraph` con dagre, de arriba abajo) y los niveles de la lista (`computeLevels`, camino más largo). Aristas REQUIRED continuas y RECOMMENDED punteadas, con leyenda; al seleccionar un track se resaltan sus aristas y se atenúa el resto. Cada nodo es un `<button>` (Tab + Enter) y React Flow recibe `onNodeClick`, sin el cual desactiva los eventos de puntero de los nodos. Las etiquetas de los controles pasan por i18n (`ariaLabelConfig`). En móvil solo se renderiza la lista y el canvas no se descarga. **Pendiente (TD-11):** buscador, filtros, minimapa y expansión a módulos, que con 2 tracks no aportan; el panel lateral ya lista módulos y lecciones.
+
 ### Componentes
 
 `RoadmapCanvas` (layout y React Flow) · `TrackNode` · `ModuleNode` · `DependencyEdge` · `GraphToolbar` (búsqueda y filtros) · `NodeDetailPanel` (Sheet de shadcn) · `RoadmapListView` (móvil y accesibilidad) · `useGraphLayout` (función pura: grafo → posiciones, con test unitario).
@@ -213,5 +217,5 @@ export const en: Messages = { /* … */ };
 |---|---|---|
 | Unitario | Vitest | `useGraphLayout`, filtros del grafo, `t()`, contraste de los tokens y `RichContentRenderer` (nodos, enlaces peligrosos, nodos desconocidos, Shiki y KaTeX reales, Mermaid simulado porque jsdom no calcula geometría SVG) |
 | Componente | Vitest + React Testing Library | `ProgressBar`, `StateBadge` (texto accesible), `CompleteLessonButton` (estado de envío), `DependencyEditor`, formulario del editor de lecciones y `RecommendationCard` |
-| E2E | Pest Browser (Playwright) | Flujo del estudiante (login → dashboard → roadmap → lección → completar → progreso actualizado) y flujo editorial (admin crea lección → publica → el estudiante la ve) |
+| E2E | Pest Browser (Playwright) | Flujo del estudiante (registro, login → dashboard → lección → completar → progreso y desbloqueo → desmarcar) y roadmap (grafo, panel, lista), en `tests/Browser` con `composer test:browser`. El flujo editorial llega con el CMS |
 | Estático | `tsc --noEmit`, `vp check` (oxlint + oxfmt) | Todo el código de `resources/js` |

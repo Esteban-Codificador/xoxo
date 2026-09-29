@@ -2,7 +2,7 @@
 
 > **Protocolo de sesión (§82):** 1) leer este archivo; 2) determinar la fase; 3) continuar desde ahí; 4) no rehacer trabajo correcto; 5) pasar la puerta de validación ([roadmap §2](roadmap.md#2-puerta-de-validación-obligatoria-al-cerrar-cada-fase)); 6) actualizar este archivo.
 
-**Fase actual:** Fase 5a en curso. Camino de lectura y progreso del estudiante listos. **Siguiente: E2E del estudiante (Pest Browser) y luego roadmap visual.**
+**Fase actual:** Fase 5a cerrada en lo esencial (lectura, progreso, E2E y roadmap visual). **Siguiente: Fase 5b, CMS, empezando por editar y publicar lecciones.**
 
 Última actualización: 2026-09-29.
 
@@ -19,6 +19,7 @@
 | 2026-09-25 | **F3 Fundación** | Starter kit oficial (Laravel 13, Inertia 3, React 19, Fortify con 2FA y passkeys) sobre PostgreSQL y Redis. 13 migraciones con CHECKs, FKs e índices parciales. Modelos, enums, factories y *morph map* forzado. Roles y permisos (matriz de roadmap §4) sincronizados en una migración. `AuditLogger` con observers. `DependencyGraph`. RichContent (esquema, validador y conversor Markdown → RichContent). `LessonReadiness` + `PublishLesson` (versiones inmutables). Paquete de contenido: lector, validador e importador idempotente que respeta el CMS. Comandos `content:validate`, `content:import`, `content:verify-links` y `types:enums`. Paquete de muestra real: 2 tracks, 2 módulos, **6 lecciones de nivel B**, 3 skills y 7 recursos oficiales. `docker-compose.yml`, workflows `CI` y `Content`, hook de sesión y documentación (README, development, testing, content-authoring y contributing) |
 | 2026-09-25 | **F4 Design system** | Tokens de estado y de callout en claro y oscuro con **test de contraste AA** que lee `app.css`. i18n tipado (`es` fuente, `en` con la misma forma) guiado por `<html lang>`, middleware `SetLocale` y `lang/es` (validación incluida). UI del starter traducida. `AppLayout` y `AdminLayout` con navegación real según permisos. Página de error de Inertia (403/404/419/500/503). Dashboard del estudiante (tracks publicados con lecciones visibles) y resumen del admin (contenido por estado, enlaces y actividad). Componentes de dominio con tests. **`RichContentRenderer`** con Shiki, KaTeX, Mermaid, video, tablas, callouts y enlaces seguros. Galería local `/_dev/design-system` con lecciones reales. Revisión visual con Playwright en claro, oscuro y móvil |
 | 2026-09-25 | **F5a · camino de lectura** | Páginas de track y de lección sobre la versión publicada, dashboard enlazado, visibilidad con 404, `TrackOutline` para el orden de estudio. El dueño del producto ya puede revisar las 6 lecciones dentro de la plataforma |
+| 2026-09-29 | **F5a · E2E y roadmap visual** | Suite `tests/Browser` con Pest Browser sobre el paquete real (registro, recorrido completo con progreso y desbloqueo, roadmap) y en CI. Roadmap visual: grafo de tracks (React Flow + dagre) con estados, progreso y dependencias, panel lateral con requisitos, módulos, lecciones y "Continuar", vista de lista por niveles (móvil y accesibilidad) y acceso por teclado. "Roadmap" en el menú lateral y en el dashboard |
 | 2026-09-29 | **F5a · progreso** | `RoadmapStateResolver` (estados de lección y track, % de track, requisitos pendientes, ADVISORY/STRICT) en 5 consultas fijas. Acciones `StartLesson`, `CompleteLesson` y `UncompleteLesson` con FormRequest, Policy y registro en `learning_activities`. Lección: estado, aviso de requisitos, inicio al abrirla, botón completar/desmarcar y siguiente lección. Track: barra de progreso, estado por lección y "Continuar". Dashboard: "Continúa donde lo dejaste" y progreso por track. Contenido: diagrama del ciclo de vida en vertical (versión 2 publicada) |
 
 ## In Progress
@@ -29,17 +30,23 @@
 - [x] Motor de estados y política ADVISORY/STRICT (ADR-029 para MASTERED).
 - [x] Acciones de progreso (iniciar, completar, desmarcar) y su botón en la lección.
 - [x] Dashboard y track con progreso.
-- [ ] E2E del estudiante.
-- [ ] Roadmap visual y vista de lista.
-- [ ] Skills y recomendaciones 1–3.
+- [x] E2E del estudiante (Pest Browser, en CI).
+- [x] Roadmap visual y vista de lista.
+- [ ] Skills y recomendaciones 1–3 → **después del CMS** (decisión del dueño del producto, 2026-09-29).
+
+**Fase 5b, CMS (siguiente).** El dueño del producto pidió trabajar ya el lado de administración: con D8 el editor es la herramienta para mejorar las 6 lecciones sin pasar por archivos del repositorio.
 
 ## Next (Fase 5a: ruta del estudiante, en este orden)
 
-1. **E2E del estudiante** con Pest Browser (resuelve KI-5): registro → dashboard → lección → completar → progreso y desbloqueo. Pasa primero porque fija lo que ya funciona (D8: mejorar lo existente).
-2. **Roadmap visual** (React Flow + dagre, dos niveles) y su vista de lista accesible.
-3. **Skills** (índice y detalle) y recomendaciones por reglas 1–3.
+## Next (Fase 5b: CMS, en este orden)
 
-Después: 5b (CMS con TipTap). La 5c queda redefinida por D8: pulir las 6 lecciones, no agregar más.
+1. **Editar una lección existente**: lista de lecciones en `/admin`, formulario estructurado (título, resumen, por qué importa, objetivos, tipo, dificultad, minutos) y **cuerpo con TipTap** configurado con la lista blanca de RichContent (test de paridad, TD-5). FormRequest, Policy y Action; auditoría.
+2. **Checklist de publicación en vivo** (`LessonReadiness`) y **publicar** (nueva versión con nota de cambio); "cambios sin publicar" cuando la copia de trabajo difiere de la publicada. Historial de versiones.
+3. **Editar tracks y módulos**; skills y recursos de la lección; dependencias (`DependencyEditor`).
+4. **Crear** lecciones, módulos y tracks nuevos, y el flujo de revisión (INSTRUCTOR envía, EDITOR publica).
+5. Usuarios y roles; vista de auditoría.
+
+Después: skills y recomendaciones 1–3 (5a pendiente). La 5c queda redefinida por D8: pulir las 6 lecciones, no agregar más.
 
 **Pendiente del dueño del producto:** observaciones de la revisión de las 6 lecciones dentro de la plataforma. El diagrama de "El ciclo de vida de un sistema de IA" ya está en vertical.
 
@@ -51,7 +58,7 @@ Después: 5b (CMS con TipTap). La 5c queda redefinida por D8: pulir las 6 leccio
 | KI-2 | El contenedor no alcanza sitios externos | `content:verify-links` da "no concluyente" localmente | La verificación real ocurre en el workflow `Content` de CI |
 | KI-3 | ~~La descarga dist de Composer desde GitHub está bloqueada~~ | — | **Resuelto:** el hook instala desde git y reconstruye phpstan desde su repositorio |
 | KI-4 | `pgvector` no está instalado en el Postgres local | Ninguno hasta V2 | docker-compose y CI usan `pgvector/pgvector:pg16` |
-| KI-5 | Integración de Pest Browser con el Chromium del entorno sin probar | Riesgo en E2E | Se valida en la Fase 5, cuando existan los flujos E2E. *Fallback*: `@playwright/test` con `executablePath` |
+| KI-5 | ~~Integración de Pest Browser con el Chromium del entorno sin probar~~ | — | **Resuelto:** Pest Browser 5 exige Playwright 1.62 (Chromium 1234) y la imagen trae Chromium 1194; `scripts/test-browser.sh` mapea la revisión con un *shim* de rutas y corre la suite. En CI se instala el navegador correcto |
 | KI-6 | ~~`cloud.google.com/architecture/mlops-…` redirige a `docs.cloud.google.com`~~ | — | **Resuelto:** CI confirmó el destino (HTTP 200) y la URL del paquete ahora es la canónica |
 | KI-8 | ~~`dump.rdb` (volcado de Redis) versionado desde la Fase 3: el hook arrancaba Redis con la raíz del repositorio como directorio~~ | — | **Resuelto:** fuera del índice, en `.gitignore`, y el hook arranca Redis sin snapshots (`--save ''`, `--dir /tmp`). Solo contenía caché y sesiones locales de desarrollo |
 | KI-7 | En el tema oscuro de Mermaid, las etiquetas de los commits de un `gitGraph` tienen poco contraste | Cosmético; el diagrama se entiende | Ajustar `themeVariables` de Mermaid en la Fase 8, junto con la auditoría axe |
@@ -70,6 +77,8 @@ Después: 5b (CMS con TipTap). La 5c queda redefinida por D8: pulir las 6 leccio
 | TD-8 | El iframe de YouTube carga el reproductor completo (con `loading="lazy"`); no hay fachada con miniatura | Fase 8 (rendimiento y CSP) |
 | TD-9 | El script de capturas de la revisión visual vive fuera del repositorio | Fase 5, al integrar Pest Browser |
 | TD-10 | La caché de estados por `progress_version` (architecture §6) no está implementada: cada página recalcula (5 consultas) | Cuando el roadmap crezca o una medición lo pida |
+| TD-11 | Roadmap visual sin buscador, filtros, minimapa ni expansión a módulos (§27): con 2 tracks no aportan (D8). El panel lateral ya lista módulos y lecciones | Cuando haya más de ~8 tracks |
+| TD-12 | Pest deja huérfano su servidor de Playwright; `scripts/test-browser.sh` lo cierra | Revisar en cada actualización de `pestphp/pest-plugin-browser` |
 
 ## Decisions
 
@@ -89,6 +98,11 @@ Decisiones confirmadas por el dueño del producto el 2026-09-25:
 | D8 | (2026-09-29) "No quiero más lecciones sino mejorar lo que ya hay" | ✅ **La V1 se cierra con las 6 lecciones actuales pulidas.** La 5c ya no busca ≥ 100 lecciones. Las metas de volumen de la Fase 6 (155 lecciones) quedan en suspenso hasta que el dueño decida |
 
 Decisiones técnicas tomadas durante la Fase 5a (sin impacto de producto):
+
+- **Abrir una lección solo la inicia si está AVAILABLE** (`RoadmapState::startsOnOpen`). Lo destapó el E2E: mirar una lección bloqueada la marcaba en curso y "Continuar" mandaba al estudiante a una lección sin sus requisitos. Reemplaza la decisión anterior de iniciar cualquier lección abierta.
+- **El E2E también encontró que los nodos del grafo no eran clicables**: React Flow desactiva los eventos de puntero en nodos no seleccionables ni arrastrables. Se usa `onNodeClick`; el botón dentro del nodo mantiene Tab + Enter.
+- **E2E en su propia suite** (`tests/Browser`, fuera de `php artisan test`), sobre el paquete de contenido real y no sobre factories. Se ejecuta con `composer test:browser`.
+- **En móvil el roadmap siempre es la lista**; el grafo (React Flow, cargado de forma diferida) solo se descarga en escritorio.
 
 - **ADR-029:** un track solo llega a MASTERED con al menos una evidencia publicada. La regla literal se cumplía por vacío.
 - **Abrir una lección la inicia** (`POST /lessons/{slug}/start` que lanza la página, sin escribir en un GET). En ADVISORY eso incluye lecciones con requisitos pendientes, que muestran el aviso. "Continúa donde lo dejaste" es la última lección en curso visitada; si no hay, la primera disponible en orden de estudio.
@@ -128,3 +142,5 @@ Decisiones técnicas tomadas durante la Fase 3 (sin impacto de producto):
 | F4 | **Pest 170/170** (547 aserciones) · **Vitest 97/97** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums sincronizados ✅ | Vite ✅ (Shiki, KaTeX y Mermaid en chunks diferidos; el bundle principal no los incluye) | fresh + seed + rollback + migrate ✅ | `content:validate`: 0 problemas · importación ✅ | `npm audit`: 0 vulnerabilidades (tras TD-7). **Revisión visual con Playwright** (Chromium del entorno): bienvenida, login (con error), dashboard, admin, 403, 404 y las 6 lecciones en la galería, en claro, oscuro y móvil (390 px). Sin errores de consola ni desbordamiento horizontal. Defectos encontrados y corregidos en la revisión: logo invisible en oscuro, texto de error ilegible en oscuro, frases de actividad agramaticales ("publicó lecciones «X»") y diagramas anchos ilegibles en móvil (reducidos al 24 %) |
 | F5a · lectura | **Pest 188/188** (755 aserciones) · **Vitest 108/108** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums ✅ | Vite ✅ | fresh + seed + rollback ✅ | `content:validate`: 0 problemas | `npm audit`: 0. **Recorrido en navegador real** con el usuario estudiante: clic en la tarjeta del dashboard, "Empezar" y "Siguiente" hasta el final del track, en claro, oscuro y móvil (390 px). Sin errores de consola, sin desbordamiento horizontal, una petición por navegación y 404 para una lección inexistente |
 | F5a · progreso | **Pest 209/209** (918 aserciones) · **Vitest 115/115** | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums ✅ | Vite ✅ | fresh + seed + rollback ✅ | `content:validate`: 0 problemas · importación publicó la versión 2 del ciclo de vida | `npm audit`: 0. **Recorrido real** con el estudiante demo: dashboard → Empezar → la lección pasa a En curso → Marcar como completada → Desmarcar → volver a completar; lección con requisito pendiente muestra el aviso ADVISORY; track al 33 %; dashboard con "Continúa donde lo dejaste". Claro, oscuro y móvil sin errores de consola ni desbordamiento. Defecto encontrado y corregido: el botón "Siguiente: <título largo>" se salía de la tarjeta en móvil |
+| F5a · E2E y roadmap | **Pest 214/214** (960 aserciones) · **Vitest 123/123** · **E2E 5/5** (Pest Browser, Chromium real) | Pint ✅ · oxlint + oxfmt ✅ | PHPStan nivel 7: 0 errores ✅ · tsc ✅ · enums ✅ | Vite ✅ (React Flow en un chunk diferido) | fresh + seed + rollback ✅ | `content:validate`: 0 problemas | `npm audit`: 0. CI #9 con el E2E en verde en GitHub. Revisión visual del roadmap en claro, oscuro y móvil; teclado (Tab + Enter abre el panel, Esc lo cierra). Dos defectos encontrados por el E2E y corregidos: inicio al mirar lecciones bloqueadas y nodos no clicables |
+

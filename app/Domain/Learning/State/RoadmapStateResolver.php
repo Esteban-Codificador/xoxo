@@ -53,7 +53,7 @@ final class RoadmapStateResolver
             ->orderBy('modules.position')->orderBy('modules.id')
             ->orderBy('lessons.position')->orderBy('lessons.id')
             ->toBase()
-            ->get(['lessons.id', 'lessons.slug', 'lesson_versions.title', 'modules.track_id'])
+            ->get(['lessons.id', 'lessons.slug', 'lesson_versions.title', 'modules.track_id', 'modules.slug as module_slug', 'modules.title as module_title'])
             ->keyBy('id');
 
         $progress = LessonProgress::query()
@@ -154,6 +154,13 @@ final class RoadmapStateResolver
             $lessonStates,
             array_values($lessons->keys()->map(fn (int|string $id) => (int) $id)->all()),
             $lastViewed,
+            $lessons->map(fn (object $lesson) => [
+                'slug' => (string) $lesson->slug,
+                'title' => (string) $lesson->title,
+                'track_id' => (int) $lesson->track_id,
+                'module_slug' => (string) $lesson->module_slug,
+                'module_title' => (string) $lesson->module_title,
+            ])->all(),
         );
     }
 }

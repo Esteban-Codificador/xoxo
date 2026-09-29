@@ -20,6 +20,7 @@ final readonly class RoadmapState
      * @param  array<int, LessonState>  $lessons  by lesson id
      * @param  list<int>  $studyOrder  visible lesson ids in study order
      * @param  array<int, CarbonImmutable>  $lastViewed  in-progress lesson id => last visit
+     * @param  array<int, array{slug: string, title: string, track_id: int, module_slug: string, module_title: string}>  $outline  visible lesson id => where it sits
      */
     public function __construct(
         public UnlockPolicy $policy,
@@ -27,6 +28,7 @@ final readonly class RoadmapState
         private array $lessons,
         private array $studyOrder,
         private array $lastViewed,
+        private array $outline = [],
     ) {}
 
     public function track(Track|int $track): TrackState
@@ -55,6 +57,34 @@ final readonly class RoadmapState
     {
         return $this->policy === UnlockPolicy::Advisory
             || $this->lesson($lesson)->state !== NodeState::Locked;
+    }
+
+    /**
+     * The visible lessons of a track in study order, with their module and
+     * state: what the roadmap panel lists without querying per track.
+     *
+     * @return list<array{slug: string, title: string, module_slug: string, module_title: string, state: NodeState}>
+     */
+    public function lessonsOf(Track|int $track): array
+    {
+        $trackId = $track instanceof Track ? $track->id : $track;
+        $lessons = [];
+
+        foreach ($this->studyOrder as $id) {
+            $info = $this->outline[$id] ?? null;
+
+            if ($info !== null && $info['track_id'] === $trackId) {
+                $lessons[] = [
+                    'slug' => $info['slug'],
+                    'title' => $info['title'],
+                    'module_slug' => $info['module_slug'],
+                    'module_title' => $info['module_title'],
+                    'state' => $this->lessons[$id]->state,
+                ];
+            }
+        }
+
+        return $lessons;
     }
 
     /**

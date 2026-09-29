@@ -107,6 +107,7 @@ Cómo escribir contenido: [`docs/content-authoring.md`](docs/content-authoring.m
 ```bash
 php artisan test          # Pest sobre PostgreSQL (base ai_roadmap_testing)
 npm run test              # Vitest + Testing Library
+composer test:browser     # E2E en un navegador real (npx playwright install --only-shell chromium la primera vez)
 composer lint:check       # Pint
 npm run check             # oxlint + oxfmt
 composer types:check      # PHPStan (nivel 7)

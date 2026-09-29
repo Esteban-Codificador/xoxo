@@ -14,7 +14,7 @@
 | Unitario (PHP) | Pest | `tests/Unit` | `DependencyGraph`, `RichContentValidator`, conversor Markdown → RichContent |
 | Feature (PHP) | Pest + PostgreSQL | `tests/Feature` | Autenticación (starter), restricciones del esquema, roles y permisos, auditoría, publicación y versiones, validador e importador de paquetes, comandos `content:*`, verificación de enlaces, sincronía de enums, dashboard del estudiante (solo contenido visible), motor de estados (reglas de desbloqueo, porcentajes, ADVISORY/STRICT, MASTERED con evidencia y número fijo de consultas), acciones de progreso (idempotencia, versión leída, feed, 403 en STRICT), páginas de track y de lección (versión publicada, orden de estudio, anterior/siguiente, prerrequisitos, skills y recursos publicados, 404 para todo lo no visible), resumen del admin y acceso por rol, páginas de error de Inertia, idioma por usuario y galería local |
 | Frontend | Vitest + React Testing Library | `resources/js/**/*.test.{ts,tsx}` | `t()` y paridad de diccionarios, contraste AA de los tokens (lee `app.css`), `StateBadge`, `ProgressBar`, estados de pantalla, frases de auditoría y `RichContentRenderer` (29 casos: marcas, enlaces peligrosos, nodos desconocidos, tablas, callouts, video, Shiki y KaTeX reales, Mermaid simulado) |
-| E2E | Pest Browser (Playwright) | `tests/Browser` (Fase 5) | Flujos de §78: estudiante y editorial |
+| E2E | Pest Browser (Playwright) | `tests/Browser` | Registro; recorrido del estudiante sobre el paquete real (empezar desde el dashboard, completar, progreso del track, desbloqueo, desmarcar); roadmap (grafo, clic en nodo, panel, vista de lista); 404. El flujo editorial llega con el CMS |
 
 ## Comandos
 
@@ -23,6 +23,7 @@ php artisan test                                   # toda la suite PHP
 ./vendor/bin/pest tests/Feature/Content            # un directorio
 ./vendor/bin/pest --filter="is idempotent"         # un test por nombre
 npm run test                                       # Vitest una vez
+composer test:browser                              # E2E (Pest Browser): scripts/test-browser.sh
 npx vp test watch                                  # Vitest en modo watch
 ```
 
@@ -37,8 +38,12 @@ npx vp test watch                                  # Vitest en modo watch
 
 La puerta de validación incluye capturas con Playwright (Chromium de `/opt/pw-browsers` en la nube) de las pantallas tocadas, en claro, oscuro y móvil. El script de la Fase 4 inicia sesión con los usuarios de ejemplo, recorre bienvenida, login, dashboard, admin, 403, 404 y las 6 lecciones en la galería, y comprueba que no haya errores de consola ni desbordamiento horizontal en móvil. Se versionará en `tests/Browser` cuando llegue Pest Browser (Fase 5).
 
+## E2E
+
+`composer test:browser` (o `scripts/test-browser.sh`) corre la suite `Browser`, que **no** forma parte de `php artisan test` (`defaultTestSuite` en `phpunit.xml`). El script resuelve dos problemas del entorno: cierra el servidor de Playwright que Pest deja huérfano (si no, cualquier tubería o CI queda esperando) y, cuando el Chromium preinstalado es de otra revisión que la que espera Playwright (la imagen de Claude Code en la nube), crea un *shim* de rutas en `/tmp`. En una máquina normal basta con `npx playwright install --only-shell chromium`. Si un test falla, la captura queda en `tests/Browser/Screenshots` (ignorado por git).
+
 ## CI
 
-`.github/workflows/ci.yml` ejecuta, en este orden: build, Pint, oxlint/oxfmt, PHPStan, tsc, sincronía de enums, migraciones (fresh + seed + rollback + migrate), Pest y Vitest, con servicios PostgreSQL 16 y Redis 7.
+`.github/workflows/ci.yml` ejecuta, en este orden: build, Pint, oxlint/oxfmt, PHPStan, tsc, sincronía de enums, migraciones (fresh + seed + rollback + migrate), Pest, Vitest y E2E (instala Chromium headless y corre `scripts/test-browser.sh`), con servicios PostgreSQL 16 y Redis 7.
 
 `.github/workflows/content.yml` valida el paquete y verifica las URLs de los recursos cuando cambia `content/` (bloquea ante 404/410) y cada semana (solo informa).

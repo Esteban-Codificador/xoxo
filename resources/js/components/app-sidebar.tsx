@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, ShieldCheck } from 'lucide-react';
+import { LayoutGrid, Map as MapIcon, ShieldCheck } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -13,7 +13,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { t } from '@/i18n';
-import { dashboard } from '@/routes';
+import { dashboard, roadmap } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import type { NavItem } from '@/types';
 
@@ -23,6 +23,7 @@ export function AppSidebar() {
     // Only routes that exist: new sections are added here as they ship.
     const mainNavItems: NavItem[] = [
         { title: t('nav.dashboard'), href: dashboard(), icon: LayoutGrid },
+        { title: t('nav.roadmap'), href: roadmap(), icon: MapIcon },
         ...(can.accessAdmin
             ? [
                   {

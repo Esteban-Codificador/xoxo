@@ -79,7 +79,7 @@ Tokens semánticos (estados de nodo), tipografía, `AppLayout` y `AdminLayout` (
 ### Fase 5 — MVP de punta a punta · estimación: 4–5 sesiones
 
 - **5a · Ruta del estudiante:** `RoadmapStateResolver`, `CompleteLesson`, `StartLesson`, `UncompleteLesson`, política de desbloqueo, recomendaciones por reglas (1–3), dashboard, roadmap (canvas + lista), track, lección y skills. Recursos visibles con su estado de enlace.
-- **5b · CMS:** CRUD de roadmaps, tracks, módulos, lecciones, skills y recursos. Editor TipTap con nodos de dominio y checklist. `DependencyEditor`. Flujo de publicación y versiones. Usuarios y roles. Vista de auditoría.
+- **5b · CMS** (siguiente, adelantado por el dueño del producto el 2026-09-29; skills y recomendaciones de la 5a van después): CRUD de roadmaps, tracks, módulos, lecciones, skills y recursos. Editor TipTap con nodos de dominio y checklist. `DependencyEditor`. Flujo de publicación y versiones. Usuarios y roles. Vista de auditoría.
 - ~~**5c · Contenido:** paquete completo con 17 tracks, 50 módulos, 72 skills y dependencias, recursos oficiales y ≥ 100 lecciones publicadas.~~ **Redefinida por D8 (2026-09-29): no se agregan lecciones; se pulen las 6 existentes** con la revisión del dueño del producto dentro de la plataforma. El job de CI de verificación de enlaces ya existe (ADR-027).
 - **E2E:** los dos flujos de §78.
 

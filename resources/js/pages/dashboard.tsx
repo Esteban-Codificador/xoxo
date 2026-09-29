@@ -1,5 +1,11 @@
 import { Head, Link, setLayoutProps } from '@inertiajs/react';
-import { ArrowRight, BookOpen, CircleCheck, Clock } from 'lucide-react';
+import {
+    ArrowRight,
+    BookOpen,
+    CircleCheck,
+    Clock,
+    Map as MapIcon,
+} from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -9,6 +15,7 @@ import type { TrackProgress } from '@/features/progress/types';
 import { t } from '@/i18n';
 import { dashboard } from '@/routes';
 import { show as showLesson } from '@/routes/lessons';
+import { show as showRoadmap } from '@/routes/roadmaps';
 import { show as showTrack } from '@/routes/tracks';
 import type { Difficulty, NodeState } from '@/types/enums';
 
@@ -62,6 +69,16 @@ export default function Dashboard({
                                   roadmap: roadmap.title,
                               })
                             : undefined
+                    }
+                    actions={
+                        roadmap && tracks.length > 0 ? (
+                            <Button asChild variant="outline">
+                                <Link href={showRoadmap(roadmap.slug)}>
+                                    <MapIcon aria-hidden="true" />
+                                    {t('dashboard.viewRoadmap')}
+                                </Link>
+                            </Button>
+                        ) : undefined
                     }
                 />
 
