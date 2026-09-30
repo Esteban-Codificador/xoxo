@@ -131,12 +131,23 @@ export const ProgressStatus = {
 export type ProgressStatus =
     (typeof ProgressStatus)[keyof typeof ProgressStatus];
 
+export const QuestionType = {
+    SingleChoice: 'SINGLE_CHOICE',
+    MultipleChoice: 'MULTIPLE_CHOICE',
+    TrueFalse: 'TRUE_FALSE',
+    Ordering: 'ORDERING',
+    Matching: 'MATCHING',
+} as const;
+
+export type QuestionType = (typeof QuestionType)[keyof typeof QuestionType];
+
 export const RecommendationReason = {
     Continue: 'CONTINUE',
     Start: 'START',
     NextInTrack: 'NEXT_IN_TRACK',
     NextTrack: 'NEXT_TRACK',
     Unlock: 'UNLOCK',
+    Review: 'REVIEW',
 } as const;
 
 export type RecommendationReason =

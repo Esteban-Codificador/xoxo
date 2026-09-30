@@ -23,6 +23,8 @@ final readonly class RoadmapState
      * @param  array<int, array{slug: string, title: string, track_id: int, module_slug: string, module_title: string}>  $outline  visible lesson id => where it sits
      * @param  array<int, array{slug: string, title: string}>  $trackOutline  published track id => slug and title, in study order
      * @param  int|null  $lastActivity  the lesson the learner touched last (visited, completed), whatever its state
+     * @param  array<int, bool>  $quizzes  visible lesson id => whether the learner passed its published quiz
+     * @param  array<int, CarbonImmutable>  $quizFailures  visible lesson id => when the learner last failed its quiz, never passed
      */
     public function __construct(
         public UnlockPolicy $policy,
@@ -33,6 +35,8 @@ final readonly class RoadmapState
         private array $outline = [],
         private array $trackOutline = [],
         private ?int $lastActivity = null,
+        private array $quizzes = [],
+        private array $quizFailures = [],
     ) {}
 
     public function track(Track|int $track): TrackState
@@ -47,6 +51,26 @@ final readonly class RoadmapState
         $id = $lesson instanceof Lesson ? $lesson->id : $lesson;
 
         return $this->lessons[$id] ?? throw new LogicException("Lesson {$id} is not visible in this roadmap.");
+    }
+
+    /** Whether the lesson has a published quiz: evidence for MASTERED (ADR-029). */
+    public function hasQuiz(Lesson|int $lesson): bool
+    {
+        return isset($this->quizzes[$lesson instanceof Lesson ? $lesson->id : $lesson]);
+    }
+
+    /**
+     * Lessons whose published quiz the learner failed and has not passed
+     * yet, with the last failure, most recent first.
+     *
+     * @return array<int, CarbonImmutable>
+     */
+    public function quizFailures(): array
+    {
+        $failures = $this->quizFailures;
+        arsort($failures);
+
+        return $failures;
     }
 
     public function hasLesson(Lesson|int $lesson): bool

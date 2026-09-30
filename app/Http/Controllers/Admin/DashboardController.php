@@ -11,6 +11,7 @@ use App\Models\AuditLog;
 use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Models\Quiz;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
@@ -38,6 +39,7 @@ class DashboardController extends Controller
         'skill' => Skill::class,
         'resource' => ExternalResource::class,
         'video' => Video::class,
+        'quiz' => Quiz::class,
     ];
 
     public function __construct(private readonly AuditEntries $entries) {}

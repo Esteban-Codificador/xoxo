@@ -91,6 +91,7 @@ Motor de tipos de pregunta, ejercicios (7 tipos), quizzes (intentos, tiempo en e
 
 - **6.1 · imágenes ✅** (2026-09-30): subida segura desde el editor, nodo `image` con texto alternativo obligatorio, URLs firmadas e ida y vuelta por el paquete de contenido (ADR-034). Detalle en [progress.md](progress.md).
 - **6.2 · videos ✅** (2026-09-30): catálogo de YouTube con oEmbed (título, canal, miniatura), verificación al guardar, cada noche y en CI, videos adjuntos a las lecciones con fachada, y en el paquete (ADR-035).
+- **6.3 · quizzes ✅** (2026-09-30): motor de tipos de pregunta (5 tipos calificables), quiz de la lección con tiempo e intentos en el servidor, preguntas falladas con su explicación, MASTERED para lecciones, tracks y skills, regla de recomendación 4, CMS y paquete (ADR-036).
 
 ### Fase 7 — Experiencia avanzada · estimación: 3 sesiones
 

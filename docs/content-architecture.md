@@ -163,7 +163,8 @@ content/
     │   └── llm-engineering.yaml             # lista de recursos del área, cada uno con su key
     ├── videos/
     │   └── videos.yaml                      # catálogo: key, url (YouTube), title, instructor, duration "mm:ss", language…
-    ├── quizzes/        <quiz-key>.yaml       (Fase 6)
+    ├── quizzes/
+    │   └── git.ramas-merge-rebase.yaml      # el quiz de una lección: su clave es la de la lección (ADR-036)
     ├── media/          <16 hex del sha256>.png|jpg|webp   (imágenes; ADR-034)
     ├── exercises/      <track>/<key>.md      (Fase 6)
     ├── labs/           <key>.md              (Fase 6)
@@ -237,7 +238,45 @@ Capacidad de exponer funciones del sistema a un LLM de forma segura…
   description: Tutorial oficial; referencia primaria para la sintaxis y el modelo de datos.
 ```
 
-Campos que solo aparecen cuando difieren del valor por defecto (los escribe `content:export`): `status` en un recurso (por defecto `PUBLISHED`) y `slug` en una skill cuyo slug se cambió en el CMS (por defecto, su `key`). Una lección en borrador puede tener `objectives: []`: el mínimo de dos lo exige el contrato de publicación, no el formato.
+### Ejemplo: quiz
+
+```yaml
+# quizzes/git.ramas-merge-rebase.yaml
+key: git.ramas-merge-rebase          # la clave de su lección
+lesson: git.ramas-merge-rebase
+title: Ramas, merge y rebase
+description: Comprueba que distingues merge de rebase.   # opcional
+time_limit_minutes: 15               # opcional; sin él, sin límite
+max_attempts: 3                      # opcional; sin él, ilimitados
+questions:
+  - type: SINGLE_CHOICE              # SINGLE_CHOICE | MULTIPLE_CHOICE | TRUE_FALSE | ORDERING | MATCHING
+    prompt: |                        # Markdown, como el cuerpo de una lección
+      ¿Qué comando reescribe los commits de tu rama sobre la punta de otra?
+    options:
+      - { text: '`git merge`', correct: false }
+      - { text: '`git rebase`', correct: true }
+    explanation: |
+      Rebase reaplica cada commit sobre la nueva base: la historia queda lineal.
+  - type: ORDERING
+    points: 2                        # opcional; 1 por defecto
+    prompt: Ordena los pasos para integrar una rama con rebase.
+    items: ['`git switch mi-rama`', '`git rebase main`', '`git push --force-with-lease`']   # en el orden correcto
+    explanation: Primero tu rama, luego la reaplicas y la publicas.
+  - type: MATCHING
+    prompt: Relaciona cada estrategia con lo que deja en la historia.
+    pairs:
+      - { left: merge, right: Un commit de unión con dos padres }
+      - { left: rebase, right: Una historia lineal con commits nuevos }
+    explanation: Integran los mismos cambios, pero dejan historias distintas.
+  - type: TRUE_FALSE
+    prompt: Hacer rebase de una rama que otros ya descargaron es seguro.
+    answer: false
+    explanation: Reescribe commits que otros tienen.
+```
+
+`content:validate` revisa cada pregunta con las mismas reglas que el CMS (una sola correcta en opción única, 2–8 opciones, elementos o parejas sin repetir, enunciado y explicación no vacíos) y que un quiz publicado tenga preguntas. Las preguntas se identifican por su posición: al importar, una pregunta que conserva su lugar conserva su fila y su historial de respuestas.
+
+Campos que solo aparecen cuando difieren del valor por defecto (los escribe `content:export`): `status` en un recurso, un video o un quiz (por defecto `PUBLISHED`), `pass_threshold` (70), `shuffle_questions` (true) y `points` (1) en un quiz, y `slug` en una skill cuyo slug se cambió en el CMS (por defecto, su `key`). Una lección en borrador puede tener `objectives: []`: el mínimo de dos lo exige el contrato de publicación, no el formato.
 
 ## 7. Comandos del paquete
 
@@ -246,7 +285,7 @@ Campos que solo aparecen cuando difieren del valor por defecto (los escribe `con
 | `content:validate {path}` | Valida el esquema del front matter y los enums. Comprueba claves únicas, referencias resolubles (skills, lecciones, recursos) y **aciclicidad** de los tres grafos, contrato pedagógico en lo que tenga `status: PUBLISHED`, y que el Markdown se convierta a un RichContent válido. Sale con código ≠ 0 y errores con archivo y línea. Corre en CI | 3 |
 | `content:import {path} [--dry-run] [--force] [--only=…]` | Upsert idempotente en una transacción. Resuelve la identidad por `(package, key)` en `content_import_records`. **Si el hash actual de la entidad difiere del `source_hash` registrado, se editó en el CMS y se salta** (con aviso) salvo `--force`. Convierte el Markdown a RichContent y crea `lesson_versions` para lo publicado. Registra `IMPORTED` en `audit_logs`. `--dry-run` informa de lo que crearía, actualizaría o saltaría | 3 |
 | `content:export {path} [--dry-run] [--force] [--copy] [--roadmap=]` | BD → paquete, con el mismo formato (ADR-031). Cada lección como la ven los estudiantes: su versión publicada; los cambios sin publicar se avisan y no se exportan. Lo creado en el CMS recibe una clave (su slug) y un archivo nuevo; lo que no cambió conserva su texto, campo a campo y bloque a bloque, así que el diff muestra solo lo editado. Valida el resultado antes de escribir y se niega si la BD tiene algo que el paquete no puede reproducir. Deja la BD sincronizada con el paquete (un import posterior no cambia nada) y no pisa un archivo editado a mano que no se importó, salvo `--force`. `--copy` escribe una copia (backup, revisión) sin tocar los registros | 5b (adelantado de la 7 por D8) |
-| `content:verify-links {path}` | Verifica las URLs de los recursos del paquete (HEAD con fallback a GET, 2 reintentos y seguimiento de redirecciones) y, por oEmbed, los videos de `videos/*.yaml` y los bloques ```video del texto. Fallan un 404/410 y un video que no existe o no se puede insertar; timeouts, 5xx y bloqueos quedan como "no concluyentes" | 3 (archivos); 5 (modo BD `content:verify-resources`); 6 (videos por oEmbed y `content:verify-videos` en BD) |
+| `content:verify-links {path}` | Verifica las URLs de los recursos del paquete (HEAD con fallback a GET, 2 reintentos y seguimiento de redirecciones) y, por oEmbed, los videos de `videos/*.yaml` y los bloques ```video del texto (también en las preguntas de los quizzes). Fallan un 404/410 y un video que no existe o no se puede insertar; timeouts, 5xx y bloqueos quedan como "no concluyentes" | 3 (archivos); 5 (modo BD `content:verify-resources`); 6 (videos por oEmbed y `content:verify-videos` en BD) |
 
 ## 8. Verificación de enlaces y videos
 

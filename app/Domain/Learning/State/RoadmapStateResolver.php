@@ -2,6 +2,7 @@
 
 namespace App\Domain\Learning\State;
 
+use App\Enums\ContentStatus;
 use App\Enums\DependencyKind;
 use App\Enums\NodeState;
 use App\Enums\ProgressStatus;
@@ -12,20 +13,24 @@ use App\Models\Pivots\TrackDependency;
 use App\Models\Roadmap;
 use App\Models\Track;
 use App\Models\User;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Computes every lesson and track state of a roadmap for one learner in a
- * single pass over four queries (architecture §6, ADR-007):
+ * single pass over six queries (architecture §6, ADR-007):
  *
  *   Lesson: its lesson_progress status if any; otherwise AVAILABLE when the
  *           track is unlocked and every REQUIRED prerequisite lesson is
  *           COMPLETED or MASTERED; otherwise LOCKED.
  *   Track unlocked ⇔ every REQUIRED prerequisite track P has progress(P) ≥ min_progress.
- *   Track: COMPLETED at 100 %; IN_PROGRESS when any lesson has progress;
- *          AVAILABLE when unlocked; LOCKED otherwise.
- *   MASTERED needs evidence (quizzes and projects, phase 6). Nothing can
- *   reach it yet, so tracks and lessons top out at COMPLETED.
+ *   Track: MASTERED at 100 % when it has at least one published quiz and
+ *          the learner passed every one (ADR-029; projects join in phase
+ *          6); COMPLETED at 100 %; IN_PROGRESS when any lesson has
+ *          progress; AVAILABLE when unlocked; LOCKED otherwise.
+ *   A lesson is MASTERED when lesson_progress says so (LessonMastery).
  *
  * Only published, visible content counts: an unpublished prerequisite can
  * never be met by a learner, so it is ignored rather than blocking forever.
@@ -76,6 +81,23 @@ final class RoadmapStateResolver
             ->filter(fn (TrackDependency $edge) => $tracks->has($edge->prerequisite_track_id))
             ->groupBy('track_id');
 
+        // Evidence (ADR-029): the published quizzes of these lessons, whether
+        // this learner passed each one and, if not, when they last failed it.
+        $quizRows = DB::table('quizzes')
+            ->leftJoin('quiz_attempts', fn (JoinClause $join) => $join
+                ->on('quiz_attempts.quiz_id', '=', 'quizzes.id')
+                ->where('quiz_attempts.user_id', $user->id)
+                ->whereNotNull('quiz_attempts.submitted_at'))
+            ->where('quizzes.status', ContentStatus::Published->value)
+            ->whereIn('quizzes.lesson_id', $lessons->keys())
+            ->groupBy('quizzes.lesson_id')
+            ->selectRaw('quizzes.lesson_id, coalesce(bool_or(quiz_attempts.passed), false) as passed, max(quiz_attempts.submitted_at) filter (where not quiz_attempts.passed) as failed_at')
+            ->get();
+        $quizzes = $quizRows->mapWithKeys(fn (object $row) => [(int) $row->lesson_id => (bool) $row->passed]);
+        $quizFailures = $quizRows
+            ->filter(fn (object $row) => ! $row->passed && $row->failed_at !== null)
+            ->mapWithKeys(fn (object $row) => [(int) $row->lesson_id => CarbonImmutable::parse((string) $row->failed_at)]);
+
         $isDone = fn (int $lessonId): bool => in_array(
             $progress->get($lessonId)?->status,
             [ProgressStatus::Completed, ProgressStatus::Mastered],
@@ -88,11 +110,13 @@ final class RoadmapStateResolver
         foreach ($tracks->keys() as $trackId) {
             $ids = $lessons->where('track_id', $trackId)->keys();
             $done = $ids->filter(fn (int $id) => $isDone($id))->count();
+            $evidence = $quizzes->only($ids->all());
             $counts[$trackId] = [
                 'total' => $ids->count(),
                 'completed' => $done,
                 'progress' => $ids->isEmpty() ? 0 : intdiv(100 * $done, $ids->count()),
                 'started' => $ids->contains(fn (int $id) => $progress->has($id)),
+                'mastered' => $evidence->isNotEmpty() && $evidence->every(fn (bool $passed) => $passed),
             ];
         }
 
@@ -109,8 +133,10 @@ final class RoadmapStateResolver
             }
 
             $count = $counts[$trackId];
+            $complete = $count['total'] > 0 && $count['completed'] === $count['total'];
             $state = match (true) {
-                $count['total'] > 0 && $count['completed'] === $count['total'] => NodeState::Completed,
+                $complete && $count['mastered'] => NodeState::Mastered,
+                $complete => NodeState::Completed,
                 $count['started'] => NodeState::InProgress,
                 $blockers === [] => NodeState::Available,
                 default => NodeState::Locked,
@@ -173,6 +199,8 @@ final class RoadmapStateResolver
             ])->all(),
             $tracks->map(fn (Track $track) => ['slug' => $track->slug, 'title' => $track->title])->all(),
             $lastActivity === null ? null : (int) $lastActivity,
+            $quizzes->all(),
+            $quizFailures->all(),
         );
     }
 }

@@ -5,6 +5,7 @@ namespace App\Domain\Content\Package\Export;
 use App\Domain\Content\Media\MediaNames;
 use App\Domain\Content\Package\ContentPackage;
 use App\Domain\Content\Package\EntityType;
+use App\Domain\Content\Package\QuizQuestions;
 use App\Domain\Content\RichContent\InvalidRichContent;
 use App\Domain\Content\RichContent\Markdown\MarkdownToRichContent;
 use App\Domain\Content\RichContent\Markdown\RichContentToMarkdown;
@@ -19,6 +20,8 @@ use App\Models\Module;
 use App\Models\Pivots\LessonDependency;
 use App\Models\Pivots\SkillDependency;
 use App\Models\Pivots\TrackDependency;
+use App\Models\Quiz;
+use App\Models\QuizQuestion;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
@@ -90,6 +93,7 @@ final class DatabaseSnapshot
             'publishedVersion', 'skills', 'prerequisites', 'resources', 'videos',
         ])])->get();
         $lessons = $tracks->flatMap(fn (Track $track) => $track->modules->flatMap(fn (Module $module) => $module->lessons));
+        $quizzes = Quiz::query()->whereIn('lesson_id', $lessons->pluck('id'))->with('questions')->orderBy('id')->get();
         $skills = Skill::query()->whereNotIn('id', $this->foreignIds('skill', $package))->with('prerequisites')->orderBy('slug')->get();
         $resources = ExternalResource::query()->whereNotIn('id', $this->foreignIds('resource', $package))->orderBy('id')->get();
         $videos = Video::query()->whereNotIn('id', $this->foreignIds('video', $package))->orderBy('id')->get();
@@ -107,6 +111,9 @@ final class DatabaseSnapshot
         $skills->each(fn (Skill $skill) => $this->key(EntityType::Skill, $skill, $skill->slug));
         $resources->each(fn (ExternalResource $resource) => $this->key(EntityType::Resource, $resource, Str::limit(Str::slug($resource->title), 60, '') ?: 'recurso'));
         $videos->each(fn (Video $video) => $this->key(EntityType::Video, $video, Str::limit(Str::slug($video->title), 60, '') ?: 'video'));
+        // A quiz is its lesson's: it takes the lesson's key.
+        $lessonKeys = $lessons->mapWithKeys(fn (Lesson $lesson) => [$lesson->id => $this->keyOf(EntityType::Lesson, $lesson)]);
+        $quizzes->each(fn (Quiz $quiz) => $this->key(EntityType::Quiz, $quiz, $lessonKeys[$quiz->lesson_id]));
 
         $entities = [$this->roadmap($roadmap)];
 
@@ -127,6 +134,10 @@ final class DatabaseSnapshot
         foreach ($skills as $skill) {
             $key = $this->keyOf(EntityType::Skill, $skill);
             $entities[] = $this->skill($skill, $this->files[EntityType::Skill->value][$key] ?? "skills/{$key}.md");
+        }
+
+        foreach ($quizzes as $quiz) {
+            $entities[] = $this->quiz($quiz, $lessonKeys[$quiz->lesson_id]);
         }
 
         array_push($entities, ...$this->resources($resources, $tracks));
@@ -351,6 +362,36 @@ final class DatabaseSnapshot
                 'min_progress' => $this->pivot($prerequisite, SkillDependency::class)->min_progress,
             ])->all()),
         ], $skill->description."\n");
+    }
+
+    /**
+     * quizzes/<key>.yaml, or the file it already has. Defaults are left
+     * out (status PUBLISHED, pass mark 70, shuffled, one point), like a
+     * hand-written file would.
+     */
+    private function quiz(Quiz $quiz, string $lessonKey): ExportedEntity
+    {
+        $key = $this->keyOf(EntityType::Quiz, $quiz);
+
+        return new ExportedEntity(EntityType::Quiz, $key, $quiz, $this->files[EntityType::Quiz->value][$key] ?? "quizzes/{$key}.yaml", [
+            'key' => $key,
+            'lesson' => $lessonKey,
+            'title' => $quiz->title,
+            'description' => $quiz->description,
+            'status' => $quiz->status === ContentStatus::Published ? null : $quiz->status->value,
+            'pass_threshold' => $quiz->pass_threshold === 70 ? null : $quiz->pass_threshold,
+            'time_limit_minutes' => $quiz->time_limit_seconds === null ? null : intdiv($quiz->time_limit_seconds, 60),
+            'max_attempts' => $quiz->max_attempts,
+            'shuffle_questions' => $quiz->shuffle_questions ? null : false,
+            'questions' => $quiz->questions->values()->map(fn (QuizQuestion $question, int $index) => [
+                'type' => $question->type->value,
+                'points' => $question->points === 1 ? null : $question->points,
+                'difficulty' => $question->difficulty?->value,
+                'prompt' => $this->richText($question->prompt, 'la pregunta '.($index + 1)." del quiz «{$quiz->title}»") ?? '',
+                ...QuizQuestions::payload($question->type, $question->payload),
+                'explanation' => $this->richText($question->explanation, 'la explicación de la pregunta '.($index + 1)." del quiz «{$quiz->title}»") ?? '',
+            ])->all(),
+        ]);
     }
 
     /**

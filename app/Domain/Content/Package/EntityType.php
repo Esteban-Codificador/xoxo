@@ -14,4 +14,5 @@ enum EntityType: string
     case Track = 'track';
     case Module = 'module';
     case Lesson = 'lesson';
+    case Quiz = 'quiz';
 }

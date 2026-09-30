@@ -97,17 +97,34 @@ class ContentVerifyLinksCommand extends Command
             }
         }
 
+        $texts = [];
+
         foreach ([EntityType::Roadmap, EntityType::Track, EntityType::Lesson] as $type) {
             foreach ($package->all($type) as $entity) {
-                try {
-                    $doc = $markdown->convert((string) $entity->body, PackageMedia::comparable())->doc;
-                } catch (InvalidRichContent) {
-                    continue; // content:validate reports it.
-                }
+                $texts[] = [$entity->file, (string) $entity->body];
+            }
+        }
 
-                foreach ($this->inlineVideos($doc) as $id) {
-                    $ids[$id] ??= "texto de {$entity->file}";
+        // Statements and explanations of quiz questions are Markdown too.
+        foreach ($package->all(EntityType::Quiz) as $quiz) {
+            foreach ($quiz->list('questions') as $question) {
+                foreach (['prompt', 'explanation'] as $field) {
+                    if (is_array($question) && is_string($question[$field] ?? null)) {
+                        $texts[] = [$quiz->file, $question[$field]];
+                    }
                 }
+            }
+        }
+
+        foreach ($texts as [$file, $text]) {
+            try {
+                $doc = $markdown->convert($text, PackageMedia::comparable())->doc;
+            } catch (InvalidRichContent) {
+                continue; // content:validate reports it.
+            }
+
+            foreach ($this->inlineVideos($doc) as $id) {
+                $ids[$id] ??= "texto de {$file}";
             }
         }
 

@@ -28,7 +28,8 @@ export function StatusActions({
         | 'lesson'
         | 'resource'
         | 'skill'
-        | 'video';
+        | 'video'
+        | 'quiz';
     name: string;
     current: ContentStatus;
     actions: ContentStatus[];

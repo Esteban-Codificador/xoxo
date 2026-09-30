@@ -4,6 +4,7 @@ use App\Enums\Permission;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\LessonController as AdminLessonController;
+use App\Http\Controllers\Admin\LessonQuizController;
 use App\Http\Controllers\Admin\LessonRelationsController;
 use App\Http\Controllers\Admin\LessonReviewController;
 use App\Http\Controllers\Admin\LessonStatusController;
@@ -13,6 +14,8 @@ use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
 use App\Http\Controllers\Admin\ModuleOrderController;
 use App\Http\Controllers\Admin\ModuleStatusController;
 use App\Http\Controllers\Admin\PublishLessonController;
+use App\Http\Controllers\Admin\QuizController;
+use App\Http\Controllers\Admin\QuizStatusController;
 use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Admin\ResourceStatusController;
 use App\Http\Controllers\Admin\ResourceVerificationController;
@@ -33,7 +36,9 @@ use App\Http\Controllers\Dev\DesignSystemController;
 use App\Http\Controllers\Learn\CurrentRoadmapController;
 use App\Http\Controllers\Learn\DashboardController;
 use App\Http\Controllers\Learn\LessonProgressController;
+use App\Http\Controllers\Learn\QuizAttemptController;
 use App\Http\Controllers\Learn\ShowLessonController;
+use App\Http\Controllers\Learn\ShowQuizController;
 use App\Http\Controllers\Learn\ShowRoadmapController;
 use App\Http\Controllers\Learn\ShowSkillController;
 use App\Http\Controllers\Learn\ShowTrackController;
@@ -55,6 +60,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('skills/{skill:slug}', ShowSkillController::class)->name('skills.show');
     // Images of the content: only with the signature MediaSources adds (ADR-034).
     Route::get('media/{media}', ShowMediaController::class)->middleware('signed:relative')->name('media.show');
+
+    Route::get('lessons/{lesson:slug}/quiz', ShowQuizController::class)->name('lessons.quiz');
+    Route::post('lessons/{lesson:slug}/quiz/attempts', [QuizAttemptController::class, 'store'])->middleware('throttle:quiz-attempts')->name('lessons.quiz.attempts.store');
+    Route::get('quiz-attempts/{attempt}', [QuizAttemptController::class, 'show'])->name('quiz-attempts.show');
+    Route::put('quiz-attempts/{attempt}', [QuizAttemptController::class, 'update'])->middleware('throttle:quiz-attempts')->name('quiz-attempts.update');
 
     Route::controller(LessonProgressController::class)->prefix('lessons/{lesson:slug}')->name('lessons.')->group(function () {
         Route::post('start', 'start')->name('start');
@@ -126,6 +136,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('resources/{resource}/verify', ResourceVerificationController::class)->name('resources.verify');
 
             Route::post('media', [MediaController::class, 'store'])->middleware('throttle:media-uploads')->name('media.store');
+
+            Route::get('quizzes', [QuizController::class, 'index'])->name('quizzes.index');
+            Route::get('lessons/{lesson:slug}/quiz', [LessonQuizController::class, 'edit'])->name('lessons.quiz.edit');
+            Route::put('lessons/{lesson:slug}/quiz', [LessonQuizController::class, 'update'])->name('lessons.quiz.update');
+            Route::put('quizzes/{quiz}/status', QuizStatusController::class)->name('quizzes.status');
 
             Route::get('videos', [VideoController::class, 'index'])->name('videos.index');
             Route::get('videos/create', [VideoController::class, 'create'])->name('videos.create');

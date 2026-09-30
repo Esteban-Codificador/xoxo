@@ -79,3 +79,25 @@ it('checks the videos of the package and those written in the text with oEmbed',
     Http::assertSent(fn (Request $request) => str_contains($request->url(), 'fake-abcdef'));
     $fixture->cleanup();
 });
+
+it('checks the videos written in the questions of a quiz', function () {
+    $fixture = ContentPackageFixture::valid();
+    $fixture->yaml('quizzes/base.primera.yaml', [
+        'key' => 'base.primera', 'lesson' => 'base.primera', 'title' => 'Quiz',
+        'questions' => [[
+            'type' => 'TRUE_FALSE', 'answer' => true,
+            'prompt' => "Mira el video:\n\n```video\nprovider: youtube\nid: fake-borrad\n```",
+            'explanation' => 'Así es.',
+        ]],
+    ]);
+    Http::fake([
+        'docs.example.test/*' => Http::response('', 200),
+        '*fake-borrad*' => Http::response('Not Found', 404),
+    ]);
+
+    $this->artisan('content:verify-links', ['path' => $fixture->path])
+        ->expectsOutputToContain('texto de quizzes/base.primera.yaml')
+        ->assertFailed();
+
+    $fixture->cleanup();
+});

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Content\Package;
 
+use App\Domain\Assessment\QuestionTypes\QuestionTypes;
 use App\Domain\Content\RichContent\InvalidRichContent;
 use App\Domain\Content\RichContent\Markdown\MarkdownToRichContent;
 use App\Domain\Content\RichContent\RichContent;
@@ -14,6 +15,7 @@ use App\Enums\ContentStatus;
 use App\Enums\ContentType;
 use App\Enums\DependencyKind;
 use App\Enums\Difficulty;
+use App\Enums\QuestionType;
 use App\Enums\ResourceType;
 use App\Enums\UnlockPolicy;
 use Closure;
@@ -170,6 +172,24 @@ final class PackageValidator
                 'language' => ['required', 'in:es,en'],
                 'status' => $status,
             ],
+            EntityType::Quiz => [
+                'key' => ['required', self::KEY],
+                'lesson' => ['required', 'string', self::KEY],
+                'title' => ['required', 'string', 'max:200'],
+                'description' => ['nullable', 'string', 'max:1000'],
+                'status' => $status,
+                'pass_threshold' => ['sometimes', 'integer', 'between:1,100'],
+                'time_limit_minutes' => ['nullable', 'integer', 'between:1,180'],
+                'max_attempts' => ['nullable', 'integer', 'between:1,100'],
+                'shuffle_questions' => ['sometimes', 'boolean'],
+                'questions' => ['present', 'list', 'max:50'],
+                'questions.*' => ['array'],
+                'questions.*.type' => ['required', Rule::enum(QuestionType::class)],
+                'questions.*.prompt' => ['required', 'string'],
+                'questions.*.explanation' => ['required', 'string'],
+                'questions.*.difficulty' => ['nullable', Rule::enum(Difficulty::class)],
+                'questions.*.points' => ['sometimes', 'integer', 'between:1,10'],
+            ],
             EntityType::Video => [
                 'key' => ['required', self::KEY],
                 'url' => ['required', 'string', 'max:2048', function (string $attribute, mixed $value, Closure $fail): void {
@@ -196,6 +216,7 @@ final class PackageValidator
         $this->uniqueWithin($package->all(EntityType::Module), fn (SourceEntity $e) => $e->parentKey.'/'.$e->string('slug'), 'slug dentro del track');
         $this->uniqueWithin($package->all(EntityType::Resource), fn (SourceEntity $e) => rtrim($e->string('url'), '/'), 'url');
         $this->uniqueWithin($package->all(EntityType::Video), fn (SourceEntity $e) => YouTubeId::parse($e->string('url')) ?? $e->string('url'), 'video');
+        $this->uniqueWithin($package->all(EntityType::Quiz), fn (SourceEntity $e) => $e->string('lesson'), 'quiz de la lección');
     }
 
     /**
@@ -234,6 +255,10 @@ final class PackageValidator
             $this->references($package, $lesson, EntityType::Skill, array_map(fn ($skill) => is_array($skill) ? (string) ($skill['key'] ?? '') : '', $lesson->list('skills')));
             $this->references($package, $lesson, EntityType::Resource, array_values(array_filter($lesson->list('resources'), 'is_string')));
             $this->references($package, $lesson, EntityType::Video, array_values(array_filter($lesson->list('videos'), 'is_string')));
+        }
+
+        foreach ($package->all(EntityType::Quiz) as $quiz) {
+            $this->references($package, $quiz, EntityType::Lesson, [$quiz->string('lesson')]);
         }
     }
 
@@ -283,6 +308,52 @@ final class PackageValidator
         foreach ($package->all(EntityType::Skill) as $skill) {
             if (trim((string) $skill->body) === '') {
                 $this->issue($skill->file, 'la skill necesita una descripción en el cuerpo del archivo.');
+            }
+        }
+
+        foreach ($package->all(EntityType::Quiz) as $quiz) {
+            $this->validateQuestions($quiz);
+        }
+    }
+
+    /**
+     * Each question: its answer data as its type requires (the same check
+     * as the CMS) and a statement and explanation that convert to content.
+     */
+    private function validateQuestions(SourceEntity $quiz): void
+    {
+        $questions = $quiz->list('questions');
+
+        if ($questions === [] && $quiz->isPublished()) {
+            $this->issue($quiz->file, 'un quiz publicado necesita al menos una pregunta.');
+        }
+
+        foreach ($questions as $index => $question) {
+            $number = $index + 1;
+            $type = is_array($question) ? QuestionType::tryFrom((string) ($question['type'] ?? '')) : null;
+
+            if ($type === null) {
+                continue; // The field rules report it.
+            }
+
+            foreach (QuestionTypes::for($type)->problems(QuizQuestions::payload($type, $question)) as $path => $message) {
+                $this->issue($quiz->file, "pregunta {$number}, {$path}: {$message}");
+            }
+
+            foreach (['prompt' => 'enunciado', 'explanation' => 'explicación'] as $field => $label) {
+                if (! is_string($question[$field] ?? null)) {
+                    continue;
+                }
+
+                try {
+                    if ($this->markdown->convert($question[$field], $this->images)->isEmpty()) {
+                        $this->issue($quiz->file, "pregunta {$number}: el {$label} está vacío.");
+                    }
+                } catch (InvalidRichContent $exception) {
+                    foreach ($exception->errors as $error) {
+                        $this->issue($quiz->file, "pregunta {$number}, {$label}: {$error}");
+                    }
+                }
             }
         }
     }

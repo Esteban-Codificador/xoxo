@@ -10,6 +10,7 @@ use App\Models\LearningActivity;
 use App\Models\Lesson;
 use App\Models\LessonVersion;
 use App\Models\Module;
+use App\Models\Quiz;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
@@ -53,6 +54,8 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('media-uploads', fn (Request $request) => Limit::perMinute(30)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
         // Each lookup is a request to YouTube on the user's behalf.
         RateLimiter::for('video-lookups', fn (Request $request) => Limit::perMinute(60)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        // Starting and submitting quiz attempts: grading runs on the server.
+        RateLimiter::for('quiz-attempts', fn (Request $request) => Limit::perMinute(20)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }
 
     /**
@@ -71,6 +74,7 @@ class AppServiceProvider extends ServiceProvider
             'skill' => Skill::class,
             'resource' => ExternalResource::class,
             'video' => Video::class,
+            'quiz' => Quiz::class,
             'learning_activity' => LearningActivity::class,
         ]);
 

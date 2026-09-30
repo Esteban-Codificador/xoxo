@@ -6,6 +6,7 @@ import {
     Gauge,
     Layers,
     Library,
+    ListChecks,
     ScrollText,
     Sparkles,
     SquarePlay,
@@ -34,6 +35,7 @@ import { index as reviewsIndex } from '@/routes/admin/reviews';
 import { index as skillsIndex } from '@/routes/admin/skills';
 import { index as tracksIndex } from '@/routes/admin/tracks';
 import { index as usersIndex } from '@/routes/admin/users';
+import { index as quizzesIndex } from '@/routes/admin/quizzes';
 import { index as videosIndex } from '@/routes/admin/videos';
 import type { NavItem } from '@/types';
 
@@ -78,6 +80,12 @@ export function AdminSidebar() {
             href: resourcesIndex(),
             icon: Library,
             isActive: isCurrentOrParentUrl(resourcesIndex()),
+        },
+        {
+            title: t('nav.quizzes'),
+            href: quizzesIndex(),
+            icon: ListChecks,
+            isActive: isCurrentOrParentUrl(quizzesIndex()),
         },
         {
             title: t('nav.videos'),

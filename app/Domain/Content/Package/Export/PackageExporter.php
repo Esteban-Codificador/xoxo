@@ -7,6 +7,7 @@ use App\Domain\Content\Package\EntityType;
 use App\Domain\Content\Package\Importers\EntityImporter;
 use App\Domain\Content\Package\Importers\LessonImporter;
 use App\Domain\Content\Package\Importers\ModuleImporter;
+use App\Domain\Content\Package\Importers\QuizImporter;
 use App\Domain\Content\Package\Importers\ResourceImporter;
 use App\Domain\Content\Package\Importers\RoadmapImporter;
 use App\Domain\Content\Package\Importers\SkillImporter;
@@ -56,6 +57,7 @@ final readonly class PackageExporter
         private TrackImporter $tracks,
         private ModuleImporter $modules,
         private LessonImporter $lessons,
+        private QuizImporter $quizzes,
     ) {}
 
     /**
@@ -150,6 +152,7 @@ final readonly class PackageExporter
             EntityType::Track => $this->tracks,
             EntityType::Module => $this->modules,
             EntityType::Lesson => $this->lessons,
+            EntityType::Quiz => $this->quizzes,
         };
     }
 
@@ -270,9 +273,11 @@ final readonly class PackageExporter
                     throw new ExportRefused("Dos entidades irían al mismo archivo ({$entity->file}): revisa sus posiciones en el CMS.");
                 }
 
-                $files[$entity->file] = $entity->type === EntityType::Roadmap
-                    ? $this->format->roadmapFile($entity->data, $entity->body)
-                    : $this->format->markdownFile($entity->data, (string) $entity->body);
+                $files[$entity->file] = match ($entity->type) {
+                    EntityType::Roadmap => $this->format->roadmapFile($entity->data, $entity->body),
+                    EntityType::Quiz => $this->format->quizFile($entity->data),
+                    default => $this->format->markdownFile($entity->data, (string) $entity->body),
+                };
             }
         }
 
@@ -372,6 +377,7 @@ final readonly class PackageExporter
             $merged = match (true) {
                 $this->same($old, $new) => $text,
                 $entity->type === EntityType::Roadmap => $this->merger->roadmapFile($text, $entity->data, $entity->body),
+                $entity->type === EntityType::Quiz => $this->merger->quizFile($text, $entity->data),
                 default => $this->merger->markdownFile($text, $entity->data, (string) $entity->body),
             };
 

@@ -16,6 +16,7 @@ use Symfony\Component\Yaml\Yaml;
  *   skills/*.md
  *   resources/*.yaml
  *   videos/*.yaml
+ *   quizzes/*.yaml         (one quiz per file, of the lesson it names)
  *   media/*.png|jpg|webp   (images, see PackageMedia)
  *
  * Structural problems are collected as issues instead of aborting, so a
@@ -45,6 +46,7 @@ final class PackageReader
         $this->readSkills();
         $this->readList('resources', EntityType::Resource, 'recursos', 'cada recurso');
         $this->readList('videos', EntityType::Video, 'videos', 'cada video');
+        $this->readQuizzes();
         $this->readMedia();
 
         return $this->package;
@@ -102,6 +104,30 @@ final class PackageReader
     {
         foreach ($this->files('skills', '*.md') as $file) {
             $this->markdownEntity(EntityType::Skill, $file, 0, null);
+        }
+    }
+
+    /**
+     * A quiz is a YAML object: its settings and its questions, whose
+     * statements and explanations are Markdown. Its parent is its lesson.
+     */
+    private function readQuizzes(): void
+    {
+        foreach ($this->files('quizzes', '*.yaml') as $file) {
+            $data = $this->yamlFile($file);
+
+            if (! is_array($data) || array_is_list($data)) {
+                $this->package->addIssue($file, 'debe ser un objeto YAML con el quiz.');
+
+                continue;
+            }
+
+            $key = $this->key($data, $file);
+            $lesson = $data['lesson'] ?? null;
+
+            if ($key !== null) {
+                $this->package->add(new SourceEntity(EntityType::Quiz, $key, $file, $data, null, 0, is_string($lesson) ? $lesson : null));
+            }
         }
     }
 

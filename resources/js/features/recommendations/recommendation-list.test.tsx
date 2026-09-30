@@ -55,6 +55,17 @@ describe('recommendationText', () => {
         ).toBe(
             'Es la siguiente lección disponible de Fundamentos de computación.',
         );
+        expect(
+            recommendationText({
+                ...resume,
+                reason: 'REVIEW',
+                params: { failed_at: '2026-09-29T09:00:00+00:00' },
+            }),
+        ).toEqual({
+            eyebrow: 'Repasa antes de reintentar',
+            reason: 'No aprobaste su quiz ayer. Repasa la lección y vuelve a intentarlo.',
+            action: 'Repasar',
+        });
     });
 });
 

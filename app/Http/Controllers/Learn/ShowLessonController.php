@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Learn;
 
+use App\Domain\Assessment\QuizRecord;
 use App\Domain\Content\Media\MediaSources;
 use App\Domain\Curriculum\Queries\TrackOutline;
 use App\Domain\Learning\State\Blocker;
@@ -14,6 +15,7 @@ use App\Http\Resources\VideoLinkResource;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Pivots\LessonDependency;
+use App\Models\Quiz;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -40,6 +42,10 @@ class ShowLessonController extends Controller
             ->with('publishedVersion')
             ->get();
 
+        // Only a published quiz; the lesson itself is visible (the policy said so).
+        $quiz = Quiz::query()->published()->whereBelongsTo($lesson)->first();
+        $quizRecord = $quiz === null ? null : QuizRecord::of($user, $quiz);
+
         $skills = $lesson->skills()
             ->published()
             ->orderByPivot('weight', 'desc')
@@ -65,6 +71,12 @@ class ShowLessonController extends Controller
             'resources' => ResourceLinkResource::collection($lesson->resources()->published()->get())->resolve(),
             // Only what YouTube confirmed on the last check (ADR-035).
             'videos' => VideoLinkResource::collection($lesson->videos()->visibleToLearners()->get())->resolve(),
+            'quiz' => $quiz === null || $quizRecord === null ? null : [
+                ...ShowQuizController::quiz($quiz),
+                'best_score' => $quizRecord->bestScore(),
+                'passed' => $quizRecord->passed(),
+                'attempts_left' => $quizRecord->attemptsLeft(),
+            ],
             'previous' => $neighbours['previous'] === null ? null : LessonLinkResource::make($neighbours['previous'])->resolve(),
             'next' => $neighbours['next'] === null ? null : LessonLinkResource::make($neighbours['next'])->resolve(),
             'progress' => [

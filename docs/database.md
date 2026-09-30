@@ -341,31 +341,38 @@ exercise_attempts
   created_at
   IX (user_id, exercise_id, created_at DESC)
 
-quizzes
-  id, lesson_id FK→lessons (RESTRICT) NULL, module_id FK→modules (RESTRICT) NULL
-  title, description text NULL
+quizzes                                           -- implementado en la Fase 6.3 (ADR-036)
+  id, lesson_id FK→lessons (RESTRICT) UK          -- uno por lección; los de módulo, cuando se necesiten
+  title, description varchar(1000) NULL
   pass_threshold smallint DEFAULT 70              CK BETWEEN 1 AND 100
-  time_limit_seconds integer NULL, max_attempts smallint NULL, shuffle_questions boolean DEFAULT true
-  status, timestamps
-  CK num_nonnulls(lesson_id, module_id) = 1       -- pertenece exactamente a una lección o a un módulo
+  time_limit_seconds integer NULL                 CK NULL o BETWEEN 60 AND 10800
+  max_attempts smallint NULL                      CK NULL o BETWEEN 1 AND 100
+  shuffle_questions boolean DEFAULT true
+  status, published_at, created_by, updated_by, timestamps
 
 quiz_questions
   id, quiz_id FK→quizzes (CASCADE), type enum QuestionType
-  prompt jsonb (rich), payload jsonb                 -- {options:[{id,text}], correct:[ids]} | {items, order} | {left, right, pairs}
-  explanation jsonb (rich), difficulty, points smallint DEFAULT 1, position
+  prompt jsonb (rich), payload jsonb                 -- {options:[{text,correct}]} | {answer} | {items} (en orden) | {pairs:[{left,right}]}
+  explanation jsonb (rich), difficulty NULL, points smallint DEFAULT 1 CK BETWEEN 1 AND 10, position
   IX (quiz_id, position)
+  -- Opciones, elementos y lados de pareja se identifican por un hash de su texto (OptionId): sin ids guardados
 
 quiz_attempts
   id, user_id FK→users (CASCADE), quiz_id FK→quizzes (RESTRICT), attempt_number smallint
-  started_at, submitted_at NULL, expires_at NULL  -- el tiempo se controla en el servidor
-  score smallint NULL (0-100), points_earned, points_total, passed boolean NULL
-  UK (user_id, quiz_id, attempt_number) · IX (user_id, quiz_id)
+  questions jsonb                                 -- ids de las preguntas mostradas, en su orden
+  started_at, expires_at NULL, submitted_at NULL  -- el tiempo se controla en el servidor
+  timed_out boolean DEFAULT false                 -- venció sin recibir respuestas
+  score smallint NULL (0-100), points_earned NULL, points_total NULL, passed boolean NULL
+  UK (user_id, quiz_id, attempt_number) · IX (quiz_id, passed)
+  UK parcial (user_id, quiz_id) WHERE submitted_at IS NULL   -- un intento abierto a la vez
+  CK submitted_at IS NULL OR (score IS NOT NULL AND passed IS NOT NULL)
 
 quiz_attempt_answers
-  id, quiz_attempt_id FK→quiz_attempts (CASCADE), quiz_question_id FK→quiz_questions (RESTRICT)
-  answer jsonb, is_correct boolean, points_awarded smallint
+  id, quiz_attempt_id FK→quiz_attempts (CASCADE), quiz_question_id FK→quiz_questions (CASCADE)
+  answer jsonb NULL (canónica; NULL = sin responder), is_correct boolean, points_awarded smallint
   UK (quiz_attempt_id, quiz_question_id)
   IX (quiz_question_id, is_correct)               -- analítica de preguntas más falladas
+  -- CASCADE (no RESTRICT, como decía el diseño): quitar una pregunta del quiz borra sus respuestas; el intento conserva su puntaje
 ```
 
 ### 4.6 Práctica (Fase 6)

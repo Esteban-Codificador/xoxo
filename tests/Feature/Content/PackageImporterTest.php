@@ -13,6 +13,7 @@ use App\Models\AuditLog;
 use App\Models\ContentImportRecord;
 use App\Models\Lesson;
 use App\Models\MediaAsset;
+use App\Models\Quiz;
 use App\Models\Skill;
 use App\Models\Track;
 use App\Models\Video;
@@ -198,4 +199,66 @@ it('imports the videos of the package and the lessons that show them, in order',
     expect($again->count(EntityType::Video, ImportOutcome::Unchanged))->toBe(2)
         ->and($again->count(EntityType::Lesson, ImportOutcome::Unchanged))->toBe(2);
     Http::assertSentCount(2);
+});
+
+/**
+ * @return array<string, mixed>
+ */
+function importerQuiz(array $overrides = []): array
+{
+    return [
+        'key' => 'base.primera', 'lesson' => 'base.primera', 'title' => 'Quiz de la primera',
+        'time_limit_minutes' => 10, 'max_attempts' => 3, 'shuffle_questions' => false,
+        'questions' => [
+            ['type' => 'SINGLE_CHOICE', 'prompt' => '¿Qué hace `git add`?', 'options' => [['text' => ' Prepara cambios ', 'correct' => true], ['text' => 'Los publica', 'correct' => false]], 'explanation' => 'Pasa los cambios al *staging*.'],
+            ['type' => 'ORDERING', 'points' => 2, 'difficulty' => 'INTERMEDIATE', 'prompt' => 'Ordena.', 'items' => ['add', 'commit', 'push'], 'explanation' => 'Así se publica.'],
+            ['type' => 'TRUE_FALSE', 'prompt' => 'Un commit es una instantánea.', 'answer' => true, 'explanation' => 'Lo es.'],
+        ],
+        ...$overrides,
+    ];
+}
+
+it('imports the quiz of a lesson with its questions, published', function () {
+    $this->fixture->yaml('quizzes/base.primera.yaml', importerQuiz());
+
+    $report = importFixture($this->fixture);
+    $quiz = Quiz::query()->with('questions')->sole();
+
+    expect($report->count(EntityType::Quiz, ImportOutcome::Created))->toBe(1)
+        ->and($quiz->lesson->slug)->toBe('primera')
+        ->and([$quiz->title, $quiz->time_limit_seconds, $quiz->max_attempts, $quiz->shuffle_questions, $quiz->pass_threshold, $quiz->status])
+        ->toBe(['Quiz de la primera', 600, 3, false, 70, ContentStatus::Published])
+        ->and($quiz->questions->pluck('type')->map->value->all())->toBe(['SINGLE_CHOICE', 'ORDERING', 'TRUE_FALSE'])
+        ->and($quiz->questions[0]->payload['options'][0])->toEqual(['text' => 'Prepara cambios', 'correct' => true])
+        ->and($quiz->questions[0]->prompt->plainText())->toBe('¿Qué hace git add?')
+        ->and($quiz->questions[1]->points)->toBe(2)
+        ->and(AuditLog::query()->where('auditable_type', 'quiz')->value('action'))->toBe(AuditAction::Imported)
+        ->and(importFixture($this->fixture)->count(EntityType::Quiz, ImportOutcome::Unchanged))->toBe(1);
+});
+
+it('keeps each question row while its place stays, and removes the ones beyond the new count', function () {
+    $this->fixture->yaml('quizzes/base.primera.yaml', importerQuiz());
+    importFixture($this->fixture);
+    $before = Quiz::query()->sole()->questions()->pluck('id')->all();
+
+    $questions = importerQuiz()['questions'];
+    $questions[1]['items'] = ['add', 'commit', 'push', 'pull'];
+    $this->fixture->yaml('quizzes/base.primera.yaml', importerQuiz(['questions' => array_slice($questions, 0, 2)]));
+    importFixture($this->fixture);
+
+    $after = Quiz::query()->sole()->questions()->get();
+    expect($after->pluck('id')->all())->toBe(array_slice($before, 0, 2))
+        ->and($after[1]->payload['items'])->toBe(['add', 'commit', 'push', 'pull']);
+});
+
+it('adopts the quiz a lesson got in the CMS before its package', function () {
+    importFixture($this->fixture);
+    $lesson = Lesson::firstWhere('slug', 'primera');
+    $existing = Quiz::factory()->for($lesson)->create(['title' => 'Hecho en el CMS']);
+
+    $this->fixture->yaml('quizzes/base.primera.yaml', importerQuiz());
+    importFixture($this->fixture);
+
+    expect(Quiz::query()->sole()->id)->toBe($existing->id)
+        ->and($existing->refresh()->title)->toBe('Quiz de la primera');
 });

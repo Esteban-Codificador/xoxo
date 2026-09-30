@@ -19,7 +19,7 @@ class ContentValidateCommand extends Command
         $issues = $validator->validate($package);
 
         $this->line(sprintf(
-            'Paquete "%s": %d roadmap, %d tracks, %d módulos, %d lecciones, %d skills, %d recursos.',
+            'Paquete "%s": %d roadmap, %d tracks, %d módulos, %d lecciones, %d skills, %d recursos, %d videos, %d quizzes.',
             $package->name,
             $package->count(EntityType::Roadmap),
             $package->count(EntityType::Track),
@@ -27,6 +27,8 @@ class ContentValidateCommand extends Command
             $package->count(EntityType::Lesson),
             $package->count(EntityType::Skill),
             $package->count(EntityType::Resource),
+            $package->count(EntityType::Video),
+            $package->count(EntityType::Quiz),
         ));
 
         if ($issues === []) {

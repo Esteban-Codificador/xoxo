@@ -46,12 +46,13 @@ it('counts content by status, links by status and shows recent activity', functi
     $this->get(route('admin.dashboard'))
         ->assertInertia(fn (Assert $page) => $page
             ->component('admin/dashboard')
-            ->has('content', 7)
+            ->has('content', 8)
             ->where('content.6', [
                 'entity' => 'video',
                 'counts' => ['DRAFT' => 0, 'REVIEW' => 0, 'PUBLISHED' => 0, 'ARCHIVED' => 0],
                 'total' => 0,
             ])
+            ->where('content.7.entity', 'quiz')
             ->where('content.1', [
                 'entity' => 'track',
                 'counts' => ['DRAFT' => 2, 'REVIEW' => 0, 'PUBLISHED' => 1, 'ARCHIVED' => 0],

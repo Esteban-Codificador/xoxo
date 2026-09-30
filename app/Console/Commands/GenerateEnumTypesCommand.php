@@ -13,6 +13,7 @@ use App\Enums\NodeState;
 use App\Enums\Permission;
 use App\Enums\ProfileVisibility;
 use App\Enums\ProgressStatus;
+use App\Enums\QuestionType;
 use App\Enums\RecommendationReason;
 use App\Enums\ResourceType;
 use App\Enums\Role;
@@ -45,6 +46,7 @@ class GenerateEnumTypesCommand extends Command
         Permission::class,
         ProfileVisibility::class,
         ProgressStatus::class,
+        QuestionType::class,
         RecommendationReason::class,
         ResourceType::class,
         Role::class,

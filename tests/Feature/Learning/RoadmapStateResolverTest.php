@@ -8,6 +8,8 @@ use App\Enums\UnlockPolicy;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Module;
+use App\Models\Quiz;
+use App\Models\QuizAttempt;
 use App\Models\Roadmap;
 use App\Models\Track;
 use App\Models\User;
@@ -100,6 +102,42 @@ it('never reaches MASTERED for a track without evidence', function () {
         ->and($state->track($this->trackA)->state)->toBe(NodeState::Completed);
 });
 
+it('masters a completed track when the learner passed every published quiz in it', function () {
+    progressOf($this->user, $this->a1, ProgressStatus::Completed);
+    progressOf($this->user, $this->a2, ProgressStatus::Completed);
+    $quiz = Quiz::factory()->for($this->a1)->create();
+    Quiz::factory()->draft()->for($this->a2)->create();
+
+    expect(stateFor($this->user, $this->roadmap)->track($this->trackA)->state)->toBe(NodeState::Completed);
+
+    QuizAttempt::query()->create([
+        'user_id' => $this->user->id, 'quiz_id' => $quiz->id, 'attempt_number' => 1, 'questions' => [],
+        'started_at' => now(), 'submitted_at' => now(), 'score' => 75, 'points_earned' => 3, 'points_total' => 4, 'passed' => true,
+    ]);
+    $state = stateFor($this->user, $this->roadmap);
+
+    // Passing is enough for the track; the lesson needs the mastery threshold (LessonMastery).
+    expect($state->track($this->trackA)->state)->toBe(NodeState::Mastered)
+        ->and($state->hasQuiz($this->a1))->toBeTrue()
+        ->and($state->hasQuiz($this->a2))->toBeFalse()
+        ->and($state->lesson($this->a1)->state)->toBe(NodeState::Completed);
+});
+
+it('keeps a track COMPLETED while one of its published quizzes is not passed', function () {
+    progressOf($this->user, $this->a1, ProgressStatus::Completed);
+    progressOf($this->user, $this->a2, ProgressStatus::Completed);
+    $passed = Quiz::factory()->for($this->a1)->create();
+    $failed = Quiz::factory()->for($this->a2)->create();
+    foreach ([[$passed, true], [$failed, false]] as [$quiz, $ok]) {
+        QuizAttempt::query()->create([
+            'user_id' => $this->user->id, 'quiz_id' => $quiz->id, 'attempt_number' => 1, 'questions' => [],
+            'started_at' => now(), 'submitted_at' => now(), 'score' => $ok ? 100 : 20, 'points_earned' => 0, 'points_total' => 1, 'passed' => $ok,
+        ]);
+    }
+
+    expect(stateFor($this->user, $this->roadmap)->track($this->trackA)->state)->toBe(NodeState::Completed);
+});
+
 it('keeps a started lesson in progress even if it is locked, and resumes the last one visited', function () {
     progressOf($this->user, $this->b1, ProgressStatus::InProgress, '2026-09-20 10:00:00');
     progressOf($this->user, $this->a1, ProgressStatus::InProgress, '2026-09-21 10:00:00');
@@ -154,7 +192,7 @@ it('runs in a fixed number of queries', function () {
     DB::enableQueryLog();
     stateFor($this->user, $this->roadmap);
 
-    expect(DB::getQueryLog())->toHaveCount(5);
+    expect(DB::getQueryLog())->toHaveCount(6);
 });
 
 it('starts a lesson on open only when it is available', function () {

@@ -155,3 +155,61 @@ it('checks the videos of the package and the lessons that use them', function ()
         ->toContain('referencia a video inexistente "fantasma"')
         ->not->toContain('videos/videos.yaml#1:');
 });
+
+/**
+ * A quiz of base.primera with one question of each type.
+ *
+ * @return array<string, mixed>
+ */
+function validatorQuiz(array $overrides = []): array
+{
+    return [
+        'key' => 'base.primera', 'lesson' => 'base.primera', 'title' => 'Quiz de la primera',
+        'questions' => [
+            ['type' => 'SINGLE_CHOICE', 'prompt' => '¿Cuál?', 'options' => [['text' => 'Esta', 'correct' => true], ['text' => 'Otra', 'correct' => false]], 'explanation' => 'Porque sí.'],
+            ['type' => 'TRUE_FALSE', 'prompt' => 'Es cierto.', 'answer' => true, 'explanation' => 'Lo es.'],
+            ['type' => 'ORDERING', 'points' => 2, 'prompt' => 'Ordena.', 'items' => ['uno', 'dos', 'tres'], 'explanation' => 'Así.'],
+            ['type' => 'MATCHING', 'prompt' => 'Relaciona.', 'pairs' => [['left' => 'a', 'right' => '1'], ['left' => 'b', 'right' => '2']], 'explanation' => 'Así.'],
+        ],
+        ...$overrides,
+    ];
+}
+
+it('accepts a quiz of a lesson with every question type', function () {
+    $this->fixture->yaml('quizzes/base.primera.yaml', validatorQuiz());
+
+    expect(packageIssues($this->fixture))->toBe('');
+});
+
+it('reports what is wrong in a quiz, question by question', function () {
+    $this->fixture->yaml('quizzes/base.primera.yaml', validatorQuiz([
+        'lesson' => 'base.fantasma',
+        'pass_threshold' => 0,
+        'questions' => [
+            ['type' => 'SINGLE_CHOICE', 'prompt' => '¿Cuál?', 'options' => [['text' => 'a', 'correct' => true], ['text' => 'b', 'correct' => true]], 'explanation' => 'x'],
+            ['type' => 'ORDERING', 'prompt' => 'Ordena.', 'items' => ['solo'], 'explanation' => 'x'],
+            ['type' => 'MATCHING', 'prompt' => ' ', 'pairs' => [['left' => 'a', 'right' => '1'], ['left' => 'b', 'right' => '1']], 'explanation' => 'x'],
+            ['type' => 'ESSAY', 'prompt' => 'x', 'explanation' => 'x'],
+            ['type' => 'TRUE_FALSE', 'prompt' => '![sin archivo](media/nada.png)', 'answer' => true, 'explanation' => 'x'],
+        ],
+    ]));
+
+    expect(packageIssues($this->fixture))
+        ->toContain('referencia a lesson inexistente "base.fantasma"')
+        ->toContain('pass threshold')
+        ->toContain('pregunta 1, options: Marca exactamente una opción correcta.')
+        ->toContain('pregunta 2, items: Entre 2 y 8 elementos.')
+        ->toContain('pregunta 3, pairs.1.right: Este texto está repetido')
+        ->toContain('pregunta 3: el enunciado está vacío.')
+        ->toContain('questions.3.type')
+        ->toContain('pregunta 5, enunciado: ');
+});
+
+it('allows one quiz per lesson, and a published one needs questions', function () {
+    $this->fixture->yaml('quizzes/base.primera.yaml', validatorQuiz());
+    $this->fixture->yaml('quizzes/copia.yaml', validatorQuiz(['key' => 'copia', 'questions' => []]));
+
+    expect(packageIssues($this->fixture))
+        ->toContain('quizzes/copia.yaml: quiz de la lección repetido "base.primera"')
+        ->toContain('quizzes/copia.yaml: un quiz publicado necesita al menos una pregunta.');
+});

@@ -46,7 +46,10 @@ content/ai-engineer/
 ├── tracks/NN-<track>/NN-<módulo>/module.md
 ├── tracks/NN-<track>/NN-<módulo>/NN-<lección>.md
 ├── skills/<skill>.md
-└── resources/<área>.yaml
+├── resources/<área>.yaml
+├── videos/videos.yaml
+├── quizzes/<clave de la lección>.yaml
+└── media/<archivo>.png|jpg|webp
 ```
 
 El prefijo `NN-` define el orden. La **clave** (`key`) del front matter es la identidad: renombrar o mover el archivo no crea un duplicado, pero **cambiar la `key` sí**, así que no la cambies.
@@ -133,6 +136,20 @@ En el paquete viven en `videos/*.yaml`, como los recursos:
 ```
 
 La lección los lista en orden con `videos: [redes-neuronales-intuicion]` en su front matter. **Nunca escribas un ID de memoria**: cópialo de YouTube. CI (`content:verify-links`) comprueba cada video del paquete, y cada bloque ```video del texto, con oEmbed y bloquea el merge si no existe o no se puede insertar.
+
+## Quizzes
+
+El quiz de una lección se escribe en su pestaña **Quiz** (en el CMS, dentro de la lección) o en `quizzes/<clave de la lección>.yaml` (formato en `docs/content-architecture.md` §6). Uno por lección: aprobarlo con 90 % o más, con la lección completada, la deja **dominada**. Se crea como borrador y se publica desde su panel de estado; no tiene versiones, así que lo guardado vale desde el siguiente intento.
+
+Cómo escribir buenas preguntas:
+
+- **Una idea por pregunta**, sobre lo que la lección enseña. Las lecciones de nivel A llevan entre 5 y 8.
+- **Distractores plausibles:** errores que alguien comete de verdad (los de "Errores comunes"), no opciones absurdas. Evita "todas las anteriores" y "ninguna de las anteriores".
+- **La explicación enseña el concepto; no dice "la correcta es la B".** El estudiante la lee al revisar un intento reprobado, y la respuesta correcta solo se le muestra cuando aprueba o se le acaban los intentos. Si la explicación la delata, el segundo intento es copiar.
+- **Opciones, elementos y parejas son texto plano.** Lo que va entre `comillas invertidas` se ve como código. Para código de varias líneas, ponlo en el enunciado (que admite todo lo del cuerpo de una lección) y pregunta por él.
+- **Ordenar:** escribe los elementos en el orden correcto; el estudiante los ve mezclados. **Relacionar:** cada pareja en su fila; la columna derecha se le muestra mezclada.
+- **Sin crédito parcial:** una pregunta de opción múltiple es correcta solo con exactamente las opciones correctas marcadas. Decide los puntos (1–10) por dificultad, no por número de opciones.
+- Cambiar el texto de una opción o la respuesta correcta de un quiz que ya tiene intentos no recalifica los intentos pasados.
 
 ## Recursos externos
 

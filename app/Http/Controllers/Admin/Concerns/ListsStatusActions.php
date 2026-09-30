@@ -7,6 +7,7 @@ use App\Enums\ContentStatus;
 use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Models\Quiz;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
@@ -22,7 +23,7 @@ trait ListsStatusActions
      *
      * @return list<string>
      */
-    protected function statusActions(Request $request, Roadmap|Track|Module|Lesson|Skill|ExternalResource|Video $subject): array
+    protected function statusActions(Request $request, Roadmap|Track|Module|Lesson|Skill|ExternalResource|Video|Quiz $subject): array
     {
         $user = $request->user();
 

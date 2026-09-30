@@ -20,10 +20,11 @@ use stdClass;
  *   AVAILABLE   ⇔ every REQUIRED skill prerequisite P has progress(P) ≥ min
  *   LOCKED      ⇔ otherwise
  *
- * MASTERED needs evidence, as for tracks (ADR-029): with no quizzes yet,
- * a skill tops out at COMPLETED. Skills never block lessons; their
- * blockers only say what to develop first. Only published skills and
- * visible lessons count.
+ *   MASTERED    ⇔ COMPLETED, at least one of its lessons has a published
+ *                 quiz, and every lesson with one is MASTERED (ADR-029)
+ *
+ * Skills never block lessons; their blockers only say what to develop
+ * first. Only published skills and visible lessons count.
  */
 final class SkillProgressCalculator
 {
@@ -62,9 +63,16 @@ final class SkillProgressCalculator
             $doneWeight = 0;
             $done = 0;
             $started = false;
+            $withQuiz = 0;
+            $masteredQuiz = 0;
             foreach ($rows as $row) {
                 $lesson = $roadmap->lesson((int) $row->lesson_id);
                 $weight += (int) $row->weight;
+
+                if ($roadmap->hasQuiz((int) $row->lesson_id)) {
+                    $withQuiz++;
+                    $masteredQuiz += $lesson->state === NodeState::Mastered ? 1 : 0;
+                }
                 $started = $started || $lesson->state !== NodeState::Available && $lesson->state !== NodeState::Locked;
 
                 if ($lesson->isDone()) {
@@ -79,6 +87,7 @@ final class SkillProgressCalculator
                 'completed' => $done,
                 'progress' => $weight === 0 ? 0 : intdiv(100 * $doneWeight, $weight),
                 'started' => $started,
+                'mastered' => $withQuiz > 0 && $masteredQuiz === $withQuiz,
             ];
         }
 
@@ -95,9 +104,11 @@ final class SkillProgressCalculator
             }
 
             $count = $counts[$skillId];
+            $complete = $count['total'] > 0 && $count['completed'] === $count['total'];
             $states[$skillId] = new SkillState(
                 match (true) {
-                    $count['total'] > 0 && $count['completed'] === $count['total'] => NodeState::Completed,
+                    $complete && $count['mastered'] => NodeState::Mastered,
+                    $complete => NodeState::Completed,
                     $count['started'] => NodeState::InProgress,
                     $blockers === [] => NodeState::Available,
                     default => NodeState::Locked,

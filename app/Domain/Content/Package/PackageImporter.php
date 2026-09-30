@@ -6,6 +6,7 @@ use App\Domain\Audit\AuditLogger;
 use App\Domain\Content\Package\Importers\EntityImporter;
 use App\Domain\Content\Package\Importers\LessonImporter;
 use App\Domain\Content\Package\Importers\ModuleImporter;
+use App\Domain\Content\Package\Importers\QuizImporter;
 use App\Domain\Content\Package\Importers\ResourceImporter;
 use App\Domain\Content\Package\Importers\RoadmapImporter;
 use App\Domain\Content\Package\Importers\SkillImporter;
@@ -41,9 +42,10 @@ final readonly class PackageImporter
         TrackImporter $tracks,
         ModuleImporter $modules,
         LessonImporter $lessons,
+        QuizImporter $quizzes,
     ) {
         // Order matters: every importer references only entities imported before it.
-        $this->importers = [$roadmaps, $skills, $resources, $videos, $tracks, $modules, $lessons];
+        $this->importers = [$roadmaps, $skills, $resources, $videos, $tracks, $modules, $lessons, $quizzes];
     }
 
     /**

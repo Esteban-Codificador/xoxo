@@ -9,6 +9,8 @@ use App\Enums\UnlockPolicy;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Module;
+use App\Models\Quiz;
+use App\Models\QuizAttempt;
 use App\Models\Roadmap;
 use App\Models\Track;
 use App\Models\User;
@@ -134,4 +136,35 @@ it('does not ask to unlock what a recommended prerequisite never locks', functio
     studied($this->user, $this->a1, ProgressStatus::Completed, '2026-09-28 10:00:00');
 
     expect(array_column(recommendationsFor($this->user, $this->roadmap), 'reason'))->toBe(['NEXT_IN_TRACK']);
+});
+
+it('sends the learner back to a lesson whose quiz they failed this week', function () {
+    studied($this->user, $this->a1, ProgressStatus::Completed, '2026-09-20 10:00:00');
+    studied($this->user, $this->a2, ProgressStatus::Completed, '2026-09-20 11:00:00');
+    $this->travelTo('2026-09-30 12:00:00');
+    $failed = function (Lesson $lesson, string $at, bool $passed = false): void {
+        QuizAttempt::query()->create([
+            'user_id' => $this->user->id, 'quiz_id' => Quiz::factory()->for($lesson)->create()->id, 'attempt_number' => 1, 'questions' => [],
+            'started_at' => $at, 'submitted_at' => $at, 'score' => $passed ? 100 : 40, 'points_earned' => 0, 'points_total' => 5, 'passed' => $passed,
+        ]);
+    };
+    $failed($this->a1, '2026-09-29 09:00:00');
+    // Failed too long ago: no longer a nudge.
+    $failed($this->a2, '2026-09-20 09:00:00');
+
+    $recommendations = recommendationsFor($this->user, $this->roadmap, limit: 5);
+    $review = collect($recommendations)->firstWhere('reason', 'REVIEW');
+
+    expect(array_column($recommendations, 'reason'))->toContain('REVIEW')
+        ->and($review['subject']['slug'])->toBe('a1')
+        ->and($review['params']['failed_at'])->toStartWith('2026-09-29T09:00:00')
+        ->and(collect($recommendations)->where('reason', 'REVIEW'))->toHaveCount(1);
+
+    // Passing it later ends the nudge.
+    QuizAttempt::query()->whereBelongsTo($this->user)->where('passed', false)->first()->quiz->attempts()->create([
+        'user_id' => $this->user->id, 'attempt_number' => 2, 'questions' => [], 'started_at' => now(), 'submitted_at' => now(),
+        'score' => 90, 'points_earned' => 0, 'points_total' => 5, 'passed' => true,
+    ]);
+
+    expect(array_column(recommendationsFor($this->user, $this->roadmap, limit: 5), 'reason'))->not->toContain('REVIEW');
 });

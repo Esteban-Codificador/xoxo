@@ -24,4 +24,7 @@ enum RecommendationReason: string
 
     /** Rule 3: the unmet prerequisite of the next track, which is LOCKED. */
     case Unlock = 'UNLOCK';
+
+    /** Rule 4: a lesson whose quiz was failed in the last days and not passed since. */
+    case Review = 'REVIEW';
 }

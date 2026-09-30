@@ -8,7 +8,9 @@ use App\Domain\Content\Package\Export\FileChangeKind;
 use App\Domain\Content\Package\Export\PackageExporter;
 use App\Domain\Content\Package\ImportOutcome;
 use App\Domain\Content\Package\PackageImporter;
+use App\Domain\Content\Package\PackageMedia;
 use App\Domain\Content\Package\PackageReader;
+use App\Domain\Content\RichContent\Markdown\MarkdownToRichContent;
 use App\Domain\Content\RichContent\RichContent;
 use App\Domain\Curriculum\Actions\CreateLesson;
 use App\Domain\Curriculum\Actions\CreateModule;
@@ -24,10 +26,13 @@ use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\MediaAsset;
 use App\Models\Module;
+use App\Models\Quiz;
+use App\Models\QuizQuestion;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
 use App\Models\Video;
+use Database\Factories\QuizQuestionFactory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
@@ -538,4 +543,79 @@ it('exports the video catalog and the videos of each lesson, and imports them ba
     expect([$restored->external_id, $restored->title, $restored->duration_seconds])->toBe(['fake-abcdef', 'Git branching, visual', 754])
         ->and(Lesson::firstWhere('slug', 'ramas-merge-y-rebase')->videos()->pluck('videos.id')->all())->toBe([$restored->id])
         ->and(exportPlan($this->path)->pending())->toBe([]);
+});
+
+it('exports the quiz of a lesson, and a fresh import brings it back', function () {
+    $lesson = Lesson::firstWhere('slug', 'ramas-merge-y-rebase');
+    $quiz = Quiz::factory()->for($lesson)->create([
+        'title' => 'Ramas y rebase', 'time_limit_seconds' => 600, 'max_attempts' => 3, 'shuffle_questions' => false,
+    ]);
+    QuizQuestion::factory()->for($quiz)->create([
+        'position' => 1,
+        'prompt' => app(MarkdownToRichContent::class)->convert("¿Qué muestra este comando?\n\n```bash\ngit log --graph\n```", PackageMedia::comparable()),
+        'payload' => ['options' => [['text' => 'La historia como grafo', 'correct' => true], ['text' => '`git status`', 'correct' => false]]],
+        'explanation' => QuizQuestionFactory::text('Dibuja las ramas con sus uniones.'),
+    ]);
+    QuizQuestion::factory()->for($quiz)->ordering()->create(['position' => 2, 'points' => 2, 'difficulty' => 'INTERMEDIATE']);
+    QuizQuestion::factory()->for($quiz)->matching()->create(['position' => 3]);
+    QuizQuestion::factory()->for($quiz)->trueFalse(false)->create(['position' => 4]);
+
+    $plan = exportTo($this->path);
+
+    expect(changedPaths($plan))->toBe(['created quizzes/git.ramas-merge-rebase.yaml'])
+        ->and(exportPlan($this->path)->pending())->toBe([]);
+
+    $yaml = (string) file_get_contents("{$this->path}/quizzes/git.ramas-merge-rebase.yaml");
+    expect($yaml)->toStartWith(<<<'YAML'
+        key: git.ramas-merge-rebase
+        lesson: git.ramas-merge-rebase
+        title: 'Ramas y rebase'
+        time_limit_minutes: 10
+        max_attempts: 3
+        shuffle_questions: false
+        questions:
+          - type: SINGLE_CHOICE
+            prompt: |
+              ¿Qué muestra este comando?
+
+              ```bash
+              git log --graph
+              ```
+            options:
+              - { text: 'La historia como grafo', correct: true }
+              - { text: '`git status`', correct: false }
+        YAML)
+        ->toContain("  - type: ORDERING\n    points: 2\n    difficulty: INTERMEDIATE\n")
+        ->toContain("    items:\n      - Primero\n      - Segundo\n      - Tercero\n")
+        ->toContain("      - { left: 'git add', right: 'Prepara cambios' }");
+
+    // A new environment gets the quiz back, questions in order.
+    $prompt = $quiz->questions()->first()->prompt->hash();
+    wipeContent();
+    $this->artisan('content:import', ['path' => $this->path])->assertSuccessful();
+
+    $restored = Quiz::query()->with('questions')->sole();
+    expect($restored->lesson->slug)->toBe('ramas-merge-y-rebase')
+        ->and([$restored->time_limit_seconds, $restored->max_attempts, $restored->shuffle_questions])->toBe([600, 3, false])
+        ->and($restored->questions->pluck('type')->map->value->all())->toBe(['SINGLE_CHOICE', 'ORDERING', 'MATCHING', 'TRUE_FALSE'])
+        ->and($restored->questions[0]->prompt->hash())->toBe($prompt)
+        ->and(exportPlan($this->path)->pending())->toBe([]);
+});
+
+it('rewrites only the quiz field that changed and keeps the hand-written text of the rest', function () {
+    $lesson = Lesson::firstWhere('slug', 'ramas-merge-y-rebase');
+    $quiz = Quiz::factory()->for($lesson)->create(['title' => 'Ramas']);
+    QuizQuestion::factory()->for($quiz)->trueFalse()->create(['position' => 1]);
+    exportTo($this->path);
+
+    $file = "{$this->path}/quizzes/git.ramas-merge-rebase.yaml";
+    // Written by hand: a comment and a folded title.
+    File::put($file, "# Quiz de la lección de ramas\n".str_replace("title: Ramas\n", "title: >-\n  Ramas\n", (string) file_get_contents($file)));
+    $this->artisan('content:import', ['path' => $this->path])->assertSuccessful();
+
+    $quiz->update(['max_attempts' => 2]);
+    $plan = exportTo($this->path);
+
+    expect(changedPaths($plan))->toBe(['updated quizzes/git.ramas-merge-rebase.yaml'])
+        ->and((string) file_get_contents($file))->toStartWith("# Quiz de la lección de ramas\nkey: git.ramas-merge-rebase\nlesson: git.ramas-merge-rebase\ntitle: >-\n  Ramas\nmax_attempts: 2\n");
 });

@@ -29,13 +29,12 @@ export function recommendationText(recommendation: Recommendation): {
     action: string;
 } {
     const { reason, subject, params } = recommendation;
+    // Continue says when the lesson was opened; review, when the quiz was failed.
+    const date = params.viewed_at ?? params.failed_at;
     const values = {
         ...params,
         track: subject.type === 'track' ? subject.title : (subject.track ?? ''),
-        when:
-            typeof params.viewed_at === 'string'
-                ? formatRelativeDay(params.viewed_at)
-                : '',
+        when: typeof date === 'string' ? formatRelativeDay(date) : '',
     };
 
     return {

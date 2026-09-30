@@ -11,6 +11,7 @@ use App\Enums\UnlockPolicy;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Module;
+use App\Models\Quiz;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
@@ -118,6 +119,19 @@ it('never reaches MASTERED without evidence', function () {
     }
 
     expect(skillsFor($this->user, $this->roadmap)->state($this->git->id)->state)->toBe(NodeState::Completed);
+});
+
+it('masters a completed skill when every lesson of it with a quiz is MASTERED', function () {
+    Quiz::factory()->for($this->a2)->create();
+    done($this->user, $this->a1);
+    done($this->user, $this->a2);
+
+    expect(skillsFor($this->user, $this->roadmap)->state($this->git->id)->state)->toBe(NodeState::Completed);
+
+    LessonProgress::query()->whereBelongsTo($this->a2)->update(['status' => ProgressStatus::Mastered, 'mastered_at' => now()]);
+
+    // a1 has no quiz: completed is enough for it.
+    expect(skillsFor($this->user, $this->roadmap)->state($this->git->id)->state)->toBe(NodeState::Mastered);
 });
 
 it('only counts lessons learners can see', function () {

@@ -87,6 +87,19 @@ final readonly class FileMerger
     }
 
     /**
+     * A quiz file: every top-level field keeps its text unless it changed.
+     * The questions are one field, rewritten whole when any of them did.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function quizFile(string $existing, array $data): ?string
+    {
+        $yaml = $this->mapping(rtrim($existing, "\n"), $data, inline: ExportFormat::QUIZ_INLINE);
+
+        return $yaml === null ? null : "{$yaml}\n";
+    }
+
+    /**
      * A YAML list of resources or videos: each item keeps its text, or its
      * unchanged fields when it changed; new items are appended in the given
      * order.
@@ -147,7 +160,7 @@ final readonly class FileMerger
      * @param  array<string, mixed>  $data
      * @param  list<string>  $markdownKeys
      */
-    private function mapping(string $yaml, array $data, array $markdownKeys = []): ?string
+    private function mapping(string $yaml, array $data, array $markdownKeys = [], int $inline = 2): ?string
     {
         $data = array_filter($data, fn (mixed $value) => $value !== null);
         // Top-level blocks: the key (null for text before the first one) and its lines.
@@ -191,7 +204,7 @@ final readonly class FileMerger
 
             $out[] = [$key, $this->format->sameField($key, $parsed[$key] ?? null, $data[$key], $markdown)
                 ? $text
-                : $this->format->field($key, $markdown ? $this->markdownField($parsed[$key] ?? null, $data[$key]) : $data[$key])];
+                : $this->format->field($key, $markdown ? $this->markdownField($parsed[$key] ?? null, $data[$key]) : $data[$key], $inline)];
         }
 
         $order = array_keys($data);
@@ -212,7 +225,7 @@ final readonly class FileMerger
                 }
             }
 
-            array_splice($out, $at, 0, [[$key, $this->format->field($key, $data[$key])]]);
+            array_splice($out, $at, 0, [[$key, $this->format->field($key, $data[$key], $inline)]]);
         }
 
         return implode("\n", array_column($out, 1));

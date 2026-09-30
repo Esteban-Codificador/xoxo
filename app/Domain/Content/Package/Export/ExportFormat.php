@@ -18,6 +18,9 @@ final readonly class ExportFormat
 {
     private const int YAML_FLAGS = Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK | Yaml::DUMP_EMPTY_ARRAY_AS_SEQUENCE | Yaml::DUMP_COMPACT_NESTED_MAPPING;
 
+    /** Levels written as blocks in a quiz file; deeper ones (an option, a pair) go inline. */
+    public const int QUIZ_INLINE = 4;
+
     public function __construct(private MarkdownToRichContent $markdown) {}
 
     /**
@@ -39,6 +42,17 @@ final readonly class ExportFormat
     }
 
     /**
+     * quizzes/*.yaml: settings, then the questions, each with its fields
+     * on their own lines and options or pairs one per line.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function quizFile(array $data): string
+    {
+        return $this->yaml($data, self::QUIZ_INLINE);
+    }
+
+    /**
      * A YAML list of keyed items: resources/*.yaml, videos/*.yaml.
      *
      * @param  list<array<string, mixed>>  $items
@@ -51,9 +65,9 @@ final readonly class ExportFormat
     /**
      * One top-level field as YAML, without the trailing newline.
      */
-    public function field(string $key, mixed $value): string
+    public function field(string $key, mixed $value, int $inline = 2): string
     {
-        return rtrim($this->yaml([$key => $value]), "\n");
+        return rtrim($this->yaml([$key => $value], $inline), "\n");
     }
 
     /**
@@ -98,11 +112,53 @@ final readonly class ExportFormat
             unset($data['slug']);
         }
 
+        if ($entity->type === EntityType::Quiz) {
+            $data = $this->comparableQuiz($data);
+        }
+
         foreach ($data as $key => $value) {
             $data[$key] = $this->normalizeField((string) $key, $value);
         }
 
         return [$this->normalize($data), $this->body($entity)];
+    }
+
+    /**
+     * A quiz without its defaults, and statements and explanations as the
+     * documents they convert to.
+     *
+     * @param  array<mixed>  $data
+     * @return array<mixed>
+     */
+    private function comparableQuiz(array $data): array
+    {
+        foreach (['pass_threshold' => 70, 'shuffle_questions' => true] as $field => $default) {
+            if (($data[$field] ?? $default) === $default) {
+                unset($data[$field]);
+            }
+        }
+
+        if (is_array($data['questions'] ?? null)) {
+            $data['questions'] = array_map(function (mixed $question): mixed {
+                if (! is_array($question)) {
+                    return $question;
+                }
+
+                if (($question['points'] ?? 1) === 1) {
+                    unset($question['points']);
+                }
+
+                foreach (['prompt', 'explanation'] as $field) {
+                    if (is_string($question[$field] ?? null)) {
+                        $question[$field] = $this->documentHash(trim($question[$field]));
+                    }
+                }
+
+                return $question;
+            }, $data['questions']);
+        }
+
+        return $data;
     }
 
     /**
@@ -170,9 +226,9 @@ final readonly class ExportFormat
         return array_filter(array_map($this->normalize(...), $value), fn (mixed $item) => $item !== null && $item !== '' && $item !== []);
     }
 
-    private function yaml(mixed $data): string
+    private function yaml(mixed $data, int $inline = 2): string
     {
-        return Yaml::dump($this->withoutNulls($data), 2, 2, self::YAML_FLAGS);
+        return Yaml::dump($this->withoutNulls($data), $inline, 2, self::YAML_FLAGS);
     }
 
     private function withoutNulls(mixed $data): mixed

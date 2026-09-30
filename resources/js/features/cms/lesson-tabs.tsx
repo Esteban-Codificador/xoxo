@@ -2,13 +2,14 @@ import { Link } from '@inertiajs/react';
 import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { edit } from '@/routes/admin/lessons';
+import { edit as editQuiz } from '@/routes/admin/lessons/quiz';
 import { edit as editRelations } from '@/routes/admin/lessons/relations';
 
-type Section = 'content' | 'relations';
+type Section = 'content' | 'relations' | 'quiz';
 
 /**
- * Content (versioned, published from the panel) and relations (live) are
- * saved separately, so they live on two pages.
+ * Content (versioned, published from the panel), relations and the quiz
+ * (both live) are saved separately, so they live on their own pages.
  */
 export function LessonTabs({
     slug,
@@ -20,6 +21,7 @@ export function LessonTabs({
     const sections: { key: Section; href: ReturnType<typeof edit> }[] = [
         { key: 'content', href: edit(slug) },
         { key: 'relations', href: editRelations(slug) },
+        { key: 'quiz', href: editQuiz(slug) },
     ];
 
     return (

@@ -167,6 +167,14 @@ class Lesson extends Model
     }
 
     /**
+     * @return HasOne<Quiz, $this>
+     */
+    public function quiz(): HasOne
+    {
+        return $this->hasOne(Quiz::class);
+    }
+
+    /**
      * @return HasMany<LessonProgress, $this>
      */
     public function progress(): HasMany

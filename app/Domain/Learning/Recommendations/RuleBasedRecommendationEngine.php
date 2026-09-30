@@ -4,11 +4,13 @@ namespace App\Domain\Learning\Recommendations;
 
 use App\Domain\Learning\Recommendations\Rules\ContinueLesson;
 use App\Domain\Learning\Recommendations\Rules\NextLesson;
+use App\Domain\Learning\Recommendations\Rules\ReviewLesson;
 use App\Domain\Learning\Recommendations\Rules\UnlockTrack;
 use App\Domain\Learning\State\RoadmapState;
 
 /**
- * The V1 rules in order (architecture §8): continue, next lesson, unlock.
+ * The rules in order (architecture §8): continue, next lesson, unlock and
+ * review a failed quiz.
  * Earlier rules win: a subject is recommended once, with the first reason.
  */
 final readonly class RuleBasedRecommendationEngine implements RecommendationEngine
@@ -21,7 +23,7 @@ final readonly class RuleBasedRecommendationEngine implements RecommendationEngi
      */
     public function __construct(?array $rules = null)
     {
-        $this->rules = $rules ?? [new ContinueLesson, new NextLesson, new UnlockTrack];
+        $this->rules = $rules ?? [new ContinueLesson, new NextLesson, new UnlockTrack, new ReviewLesson];
     }
 
     public function recommend(RoadmapState $state, int $limit = 3): array

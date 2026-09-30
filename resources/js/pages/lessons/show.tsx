@@ -6,6 +6,8 @@ import { LessonPager } from '@/features/lesson/lesson-pager';
 import type { ResourceLink } from '@/features/lesson/resource-list';
 import { ResourceList } from '@/features/lesson/resource-list';
 import type { VideoLink } from '@/features/lesson/video-list';
+import type { LessonQuizSummary } from '@/features/quiz/lesson-quiz';
+import { LessonQuiz } from '@/features/quiz/lesson-quiz';
 import { VideoList } from '@/features/lesson/video-list';
 import { TableOfContents } from '@/features/lesson/table-of-contents';
 import { BlockerNotice } from '@/features/progress/blocker-notice';
@@ -51,6 +53,8 @@ type Props = {
     resources: ResourceLink[];
     /** Published videos YouTube confirmed on the last check. */
     videos: VideoLink[];
+    /** The published quiz of the lesson, with how the learner did. */
+    quiz: LessonQuizSummary | null;
     previous: LessonLink | null;
     next: LessonLink | null;
     progress: LessonProgress;
@@ -69,6 +73,7 @@ export default function LessonShow({
     skills,
     resources,
     videos,
+    quiz,
     previous,
     next,
     progress,
@@ -285,6 +290,10 @@ export default function LessonShow({
                             </h2>
                             <ResourceList resources={resources} />
                         </section>
+                    )}
+
+                    {quiz && (
+                        <LessonQuiz lessonSlug={lesson.slug} quiz={quiz} />
                     )}
 
                     <footer className="max-w-[72ch] space-y-6 border-t pt-6">

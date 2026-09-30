@@ -7,6 +7,7 @@ use App\Enums\ContentStatus;
 use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Models\Quiz;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
@@ -23,7 +24,7 @@ use Illuminate\Validation\Rule;
  */
 abstract class ChangeStatusRequest extends FormRequest
 {
-    abstract public function subject(): Roadmap|Track|Module|Lesson|Skill|ExternalResource|Video;
+    abstract public function subject(): Roadmap|Track|Module|Lesson|Skill|ExternalResource|Video|Quiz;
 
     public function authorize(): Response|bool
     {

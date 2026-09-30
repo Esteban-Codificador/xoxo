@@ -1,5 +1,5 @@
 import { Form, Link } from '@inertiajs/react';
-import { ArrowRight, CircleCheck } from 'lucide-react';
+import { ArrowRight, Award, CircleCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import { formatDate } from '@/lib/format';
@@ -37,6 +37,12 @@ export function CompleteLesson({ lessonSlug, progress, next }: Props) {
                           })
                         : t('states.COMPLETED')}
                 </p>
+                {progress.state === 'MASTERED' && (
+                    <p className="flex items-center gap-2 text-sm font-medium text-state-mastered">
+                        <Award className="size-4 shrink-0" aria-hidden="true" />
+                        {t('progress.mastered')}
+                    </p>
+                )}
                 <div className="flex flex-wrap items-center gap-2">
                     {progress.state === 'COMPLETED' &&
                         progress.can_progress && (

@@ -8,6 +8,7 @@ use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\LessonVersion;
 use App\Models\Module;
+use App\Models\Quiz;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
@@ -91,9 +92,17 @@ final class AuditEntries
             $subject instanceof Skill => route('admin.skills.edit', $subject, false),
             $subject instanceof ExternalResource => route('admin.resources.edit', $subject, false),
             $subject instanceof Video => route('admin.videos.edit', $subject, false),
+            $subject instanceof Quiz => $this->quizHref($subject),
             $subject instanceof User && $viewer->can(Permission::UsersView->value) => route('admin.users.edit', $subject, false),
             default => null,
         };
+    }
+
+    private function quizHref(Quiz $quiz): string
+    {
+        $lesson = $quiz->loadMissing('lesson:id,slug')->lesson;
+
+        return route('admin.lessons.quiz.edit', ['lesson' => $lesson->slug], false);
     }
 
     private function versionHref(LessonVersion $version): ?string
