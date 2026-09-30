@@ -11,6 +11,7 @@ use App\Domain\Content\Package\Importers\ResourceImporter;
 use App\Domain\Content\Package\Importers\RoadmapImporter;
 use App\Domain\Content\Package\Importers\SkillImporter;
 use App\Domain\Content\Package\Importers\TrackImporter;
+use App\Domain\Content\Package\Importers\VideoImporter;
 use App\Domain\Content\Package\PackageIssue;
 use App\Domain\Content\Package\PackageReader;
 use App\Domain\Content\Package\PackageValidator;
@@ -38,6 +39,9 @@ use Illuminate\Support\Str;
  */
 final readonly class PackageExporter
 {
+    /** Entities written several per file, as YAML lists. */
+    private const array LIST_TYPES = [EntityType::Resource, EntityType::Video];
+
     public function __construct(
         private PackageReader $reader,
         private PackageValidator $validator,
@@ -48,6 +52,7 @@ final readonly class PackageExporter
         private RoadmapImporter $roadmaps,
         private SkillImporter $skills,
         private ResourceImporter $resources,
+        private VideoImporter $videos,
         private TrackImporter $tracks,
         private ModuleImporter $modules,
         private LessonImporter $lessons,
@@ -141,6 +146,7 @@ final readonly class PackageExporter
             EntityType::Roadmap => $this->roadmaps,
             EntityType::Skill => $this->skills,
             EntityType::Resource => $this->resources,
+            EntityType::Video => $this->videos,
             EntityType::Track => $this->tracks,
             EntityType::Module => $this->modules,
             EntityType::Lesson => $this->lessons,
@@ -259,7 +265,7 @@ final readonly class PackageExporter
         $files = [];
 
         foreach ($entities as $entity) {
-            if ($entity->type !== EntityType::Resource) {
+            if (! in_array($entity->type, self::LIST_TYPES, true)) {
                 if (isset($files[$entity->file])) {
                     throw new ExportRefused("Dos entidades irían al mismo archivo ({$entity->file}): revisa sus posiciones en el CMS.");
                 }
@@ -270,8 +276,10 @@ final readonly class PackageExporter
             }
         }
 
-        foreach ($this->resourceGroups($entities) as $file => $items) {
-            $files[$file] = $this->format->resourcesFile(array_map(fn (ExportedEntity $item) => $item->data, $items));
+        foreach (self::LIST_TYPES as $type) {
+            foreach ($this->listGroups($entities, $type) as $file => $items) {
+                $files[$file] = $this->format->listFile(array_map(fn (ExportedEntity $item) => $item->data, $items));
+            }
         }
 
         return $files;
@@ -304,12 +312,12 @@ final readonly class PackageExporter
      * @param  list<ExportedEntity>  $entities
      * @return array<string, list<ExportedEntity>> In file order.
      */
-    private function resourceGroups(array $entities): array
+    private function listGroups(array $entities, EntityType $type): array
     {
         $groups = [];
 
         foreach ($entities as $entity) {
-            if ($entity->type === EntityType::Resource) {
+            if ($entity->type === $type) {
                 $groups[$entity->file][] = $entity;
             }
         }
@@ -349,7 +357,7 @@ final readonly class PackageExporter
         $files = [];
 
         foreach ($entities as $entity) {
-            if ($entity->type === EntityType::Resource) {
+            if (in_array($entity->type, self::LIST_TYPES, true)) {
                 continue;
             }
 
@@ -372,18 +380,20 @@ final readonly class PackageExporter
             }
         }
 
-        $old = $this->byFile($existing->all(EntityType::Resource));
-        $new = $this->byFile($canonical->all(EntityType::Resource));
+        foreach (self::LIST_TYPES as $type) {
+            $old = $this->byFile($existing->all($type));
+            $new = $this->byFile($canonical->all($type));
 
-        foreach ($this->resourceGroups($entities) as $file => $items) {
-            if (! isset($old[$file])) {
-                continue;
+            foreach ($this->listGroups($entities, $type) as $file => $items) {
+                if (! isset($old[$file])) {
+                    continue;
+                }
+
+                $text = (string) file_get_contents("{$existing->path}/{$file}");
+                $unchanged = array_keys($old[$file]) === array_keys($new[$file] ?? [])
+                    && array_filter($new[$file], fn (SourceEntity $item) => ! $this->same($old[$file][$item->key], $item)) === [];
+                $files[$file] = $unchanged ? $text : $this->merger->listFile($text, array_map(fn (ExportedEntity $item) => $item->data, $items));
             }
-
-            $text = (string) file_get_contents("{$existing->path}/{$file}");
-            $unchanged = array_keys($old[$file]) === array_keys($new[$file] ?? [])
-                && array_filter($new[$file], fn (SourceEntity $item) => ! $this->same($old[$file][$item->key], $item)) === [];
-            $files[$file] = $unchanged ? $text : $this->merger->resourcesFile($text, array_map(fn (ExportedEntity $item) => $item->data, $items));
         }
 
         return $files;
@@ -413,7 +423,7 @@ final readonly class PackageExporter
 
     /**
      * @param  array<string, SourceEntity>  $resources
-     * @return array<string, array<string, SourceEntity>> Resources by file, in file order.
+     * @return array<string, array<string, SourceEntity>> Resources (or videos) by file, in file order.
      */
     private function byFile(array $resources): array
     {

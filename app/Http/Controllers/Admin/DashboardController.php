@@ -15,6 +15,7 @@ use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
 use App\Models\User;
+use App\Models\Video;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -36,6 +37,7 @@ class DashboardController extends Controller
         'lesson' => Lesson::class,
         'skill' => Skill::class,
         'resource' => ExternalResource::class,
+        'video' => Video::class,
     ];
 
     public function __construct(private readonly AuditEntries $entries) {}

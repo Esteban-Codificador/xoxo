@@ -60,3 +60,22 @@ it('fails the command when a link is broken', function () {
 
     $fixture->cleanup();
 });
+
+it('checks the videos of the package and those written in the text with oEmbed', function () {
+    $fixture = ContentPackageFixture::valid();
+    $fixture->yaml('videos/videos.yaml', [['key' => 'intuicion', 'url' => 'fake-abcdef', 'title' => 'La intuición', 'language' => 'en']]);
+    $fixture->lesson('01-primera', ['key' => 'base.primera', 'slug' => 'primera'], ContentPackageFixture::lessonBody("```video\nprovider: youtube\nid: fake-privad\n```"));
+    Http::fake([
+        'docs.example.test/*' => Http::response('', 200),
+        '*fake-abcdef*' => Http::response(['title' => 'La intuición']),
+        '*fake-privad*' => Http::response('Unauthorized', 401),
+    ]);
+
+    $this->artisan('content:verify-links', ['path' => $fixture->path])
+        ->expectsOutputToContain('YouTube fake-privad: el video es privado o no permite insertarlo')
+        ->expectsOutputToContain('1 enlace(s) roto(s) (404/410) o video(s) que no se pueden ver.')
+        ->assertFailed();
+
+    Http::assertSent(fn (Request $request) => str_contains($request->url(), 'fake-abcdef'));
+    $fixture->cleanup();
+});

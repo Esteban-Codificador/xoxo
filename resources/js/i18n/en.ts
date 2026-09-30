@@ -36,6 +36,7 @@ export const en: Messages = {
         tracks: 'Tracks',
         skills: 'Skills',
         resources: 'Resources',
+        videos: 'Videos',
         users: 'Users',
         audit: 'Audit log',
         settings: 'Settings',
@@ -271,6 +272,7 @@ export const en: Messages = {
             lesson: 'Lessons',
             skill: 'Skills',
             resource: 'Resources',
+            video: 'Videos',
             lesson_version: 'Lesson versions',
             user: 'Accounts',
             learning_activity: 'Activities',
@@ -305,6 +307,7 @@ export const en: Messages = {
             lesson_version: 'a lesson version',
             skill: 'the skill',
             resource: 'the resource',
+            video: 'the video',
             user: 'the account',
             learning_activity: 'an activity',
         },
@@ -489,6 +492,65 @@ export const en: Messages = {
             newHint:
                 'Missing a resource? Create it in Resources and come back to attach it.',
         },
+        videos: {
+            head: 'Videos',
+            title: 'Videos',
+            description:
+                'YouTube videos the lessons recommend. YouTube confirms each one when it is saved and every night: learners only see the available ones.',
+            create: 'New video',
+            searchLabel: 'Search videos',
+            searchPlaceholder: 'Title, channel or ID',
+            search: 'Search',
+            availabilityFilter: 'Availability',
+            all: 'All',
+            video: 'Video',
+            availability: 'On YouTube',
+            usedIn: 'Lessons',
+            never: 'Never',
+            empty: 'No videos match.',
+            edit: 'Edit {video}',
+            createHead: 'New video',
+            editHead: 'Edit: {video}',
+            details: 'Video details',
+            fields: {
+                url: 'YouTube link',
+                urlHelp:
+                    'Paste the video link (or its ID) and look it up: YouTube confirms it exists and brings its title and channel.',
+                lookup: 'Look up on YouTube',
+                title: 'Title',
+                instructor: 'Channel or author',
+                description: 'Description',
+                descriptionHelp:
+                    'What it adds to the lesson and which part is worth watching.',
+                duration: 'Duration',
+                durationHelp:
+                    'Minutes:seconds (12:34). YouTube does not give it.',
+                language: 'Language',
+                difficulty: 'Difficulty',
+                noDifficulty: 'Not set',
+            },
+            lookup: {
+                searching: 'Looking it up on YouTube…',
+                available: 'Available on YouTube',
+                unavailable: 'It cannot be used: {reason}.',
+                inconclusive:
+                    'YouTube did not answer. You can save it: it will be checked again and learners will not see it until confirmed.',
+                existing: 'Already in the catalog:',
+                useData: 'Use title and channel',
+                failed: 'The lookup failed. Try again.',
+            },
+            availabilityTitle: 'On YouTube',
+            checkedAt: 'Checked on {date}.',
+            neverChecked: 'Not checked yet.',
+            hiddenUntilChecked:
+                'Learners do not see it until YouTube confirms it is available.',
+            verifyNow: 'Check now',
+            verifyHelp: 'The check runs in the background and every night.',
+            usedInTitle: 'Lessons that use it',
+            notUsed: 'No lesson uses it yet.',
+            status: 'Status',
+            watch: 'Watch on YouTube',
+        },
         skills: {
             head: 'Skills',
             title: 'Skills',
@@ -537,6 +599,14 @@ export const en: Messages = {
                 'In the order shown at the end of the lesson. Only published ones appear.',
             addResource: 'Add resource',
             noResources: 'No resources.',
+            videos: 'Videos',
+            videosHelp:
+                'In the order they show in the lesson. Only published ones that YouTube confirms as available show.',
+            addVideo: 'Add video',
+            noVideos: 'No videos.',
+            newVideoHint:
+                'Missing a video? Add it to the catalog and come back.',
+            newVideo: 'New video',
             moveUp: 'Move {name} up',
             moveDown: 'Move {name} down',
             remove: 'Remove {name}',
@@ -850,6 +920,15 @@ export const en: Messages = {
                         'It stops showing in lessons. It can be restored as a draft.',
                     restore: 'It comes back as a draft, still hidden.',
                 },
+                video: {
+                    PUBLISHED:
+                        'It will show in the lessons that use it while YouTube keeps it available.',
+                    DRAFT: 'It will stop showing in lessons.',
+                    REVIEW: 'It will stop showing in lessons until published.',
+                    ARCHIVED:
+                        'It stops showing in lessons. It can be restored as a draft.',
+                    restore: 'It comes back as a draft, still hidden.',
+                },
                 skill: {
                     PUBLISHED: 'It will show in the lessons that develop it.',
                     DRAFT: 'It will stop showing in lessons.',
@@ -911,6 +990,7 @@ export const en: Messages = {
         diagramCaption: 'Diagram (Mermaid)',
         videoCaption: 'YouTube · {id}',
         apply: 'Apply',
+        checking: 'Checking…',
         prompts: {
             linkTitle: 'Link',
             linkLabel: 'Address',
@@ -931,6 +1011,8 @@ export const en: Messages = {
             videoHelp:
                 'Paste the YouTube link. Only the video ID is stored, never an iframe.',
             videoInvalid: 'This is not a valid YouTube link or ID.',
+            videoUnavailable:
+                'YouTube does not show it: {reason}. Choose another video.',
         },
         image: {
             button: 'Image',
@@ -999,6 +1081,9 @@ export const en: Messages = {
             'Lessons appear here once the editorial team publishes them.',
     },
     lesson: {
+        videos: 'Videos',
+        playVideo: 'Play: {title}',
+        videoDuration: 'Duration:',
         module: 'Module: {module}',
         whyItMatters: 'Why it matters',
         objectives: 'By the end you will be able to',
@@ -1056,6 +1141,12 @@ export const en: Messages = {
         REVIEW: 'In review',
         PUBLISHED: 'Published',
         ARCHIVED: 'Archived',
+    },
+    videoAvailability: {
+        UNCHECKED: 'Not checked',
+        OK: 'Available',
+        REDIRECTED: 'Available',
+        BROKEN: 'Unavailable',
     },
     linkStatus: {
         UNCHECKED: 'Unchecked',

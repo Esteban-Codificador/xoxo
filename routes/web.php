@@ -26,6 +26,9 @@ use App\Http\Controllers\Admin\TrackController as AdminTrackController;
 use App\Http\Controllers\Admin\TrackDependencyController;
 use App\Http\Controllers\Admin\TrackStatusController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VideoController;
+use App\Http\Controllers\Admin\VideoStatusController;
+use App\Http\Controllers\Admin\VideoVerificationController;
 use App\Http\Controllers\Dev\DesignSystemController;
 use App\Http\Controllers\Learn\CurrentRoadmapController;
 use App\Http\Controllers\Learn\DashboardController;
@@ -123,6 +126,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('resources/{resource}/verify', ResourceVerificationController::class)->name('resources.verify');
 
             Route::post('media', [MediaController::class, 'store'])->middleware('throttle:media-uploads')->name('media.store');
+
+            Route::get('videos', [VideoController::class, 'index'])->name('videos.index');
+            Route::get('videos/create', [VideoController::class, 'create'])->name('videos.create');
+            Route::get('videos/lookup', [VideoController::class, 'lookup'])->middleware('throttle:video-lookups')->name('videos.lookup');
+            Route::post('videos', [VideoController::class, 'store'])->name('videos.store');
+            Route::get('videos/{video}/edit', [VideoController::class, 'edit'])->name('videos.edit');
+            Route::put('videos/{video}', [VideoController::class, 'update'])->name('videos.update');
+            Route::put('videos/{video}/status', VideoStatusController::class)->name('videos.status');
+            Route::post('videos/{video}/verify', VideoVerificationController::class)->name('videos.verify');
         });
 });
 

@@ -28,6 +28,15 @@ export function ContentStatusBadge({ status }: { status: ContentStatus }) {
     );
 }
 
+/** A video's link status, in words about the video: available or not on YouTube. */
+export function VideoAvailabilityBadge({ status }: { status: LinkStatus }) {
+    return (
+        <span className={cn(base, linkStatus[status])}>
+            {t(`videoAvailability.${status}`)}
+        </span>
+    );
+}
+
 export function LinkStatusBadge({ status }: { status: LinkStatus }) {
     return (
         <span className={cn(base, linkStatus[status])}>

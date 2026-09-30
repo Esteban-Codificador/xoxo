@@ -78,9 +78,15 @@ final class LessonImporter implements EntityImporter
             $resources[(string) $key] = ['position' => $position];
         }
 
+        $videos = [];
+        foreach ($entity->list('videos') as $position => $key) {
+            $videos[(string) $key] = ['position' => $position + 1];
+        }
+
         $model->skills()->sync($context->resolve($entity, EntityType::Skill, $skills));
         $model->prerequisites()->sync($context->resolve($entity, EntityType::Lesson, $prerequisites));
         $model->resources()->sync($context->resolve($entity, EntityType::Resource, $resources));
+        $model->videos()->sync($context->resolve($entity, EntityType::Video, $videos));
     }
 
     public function finalize(SourceEntity $entity, Model $model, ImportContext $context): void
@@ -96,6 +102,9 @@ final class LessonImporter implements EntityImporter
     {
         assert($model instanceof Lesson);
 
+        $videos = DB::table('video_links')->where('linkable_type', $model->getMorphClass())->where('linkable_id', $model->id)
+            ->orderBy('position')->pluck('video_id')->map(fn (mixed $id) => (int) $id)->all();
+
         return [
             $model->module_id, $model->slug, $model->position, $model->status->value, $model->last_reviewed_at?->format('Y-m-d'),
             $model->workingCopyHash(),
@@ -105,6 +114,8 @@ final class LessonImporter implements EntityImporter
                 ->map(fn (LessonDependency $d) => [$d->prerequisite_lesson_id, $d->kind->value])->all(),
             DB::table('resource_links')->where('linkable_type', $model->getMorphClass())->where('linkable_id', $model->id)
                 ->orderBy('position')->pluck('resource_id')->map(fn (mixed $id) => (int) $id)->all(),
+            // Only when there are videos: lessons without any keep the hash their sync records have.
+            ...($videos === [] ? [] : [$videos]),
         ];
     }
 }

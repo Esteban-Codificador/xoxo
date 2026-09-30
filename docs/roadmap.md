@@ -90,6 +90,7 @@ Tokens semánticos (estados de nodo), tipografía, `AppLayout` y `AdminLayout` (
 Motor de tipos de pregunta, ejercicios (7 tipos), quizzes (intentos, tiempo en el servidor, puntaje, preguntas falladas y MASTERED), laboratorios, proyectos con milestones, videos (oEmbed y verificación), subida segura de imágenes, 20 lecciones [A] con quiz y ejercicio, 10 proyectos completos y las 155 lecciones A+B publicadas. Reglas de recomendación 4 y 5. Las metas de volumen siguen en suspenso por D8.
 
 - **6.1 · imágenes ✅** (2026-09-30): subida segura desde el editor, nodo `image` con texto alternativo obligatorio, URLs firmadas e ida y vuelta por el paquete de contenido (ADR-034). Detalle en [progress.md](progress.md).
+- **6.2 · videos ✅** (2026-09-30): catálogo de YouTube con oEmbed (título, canal, miniatura), verificación al guardar, cada noche y en CI, videos adjuntos a las lecciones con fachada, y en el paquete (ADR-035).
 
 ### Fase 7 — Experiencia avanzada · estimación: 3 sesiones
 

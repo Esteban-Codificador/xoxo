@@ -116,6 +116,24 @@ No se admiten HTML crudo ni encabezados H1 (el título ya lo es).
 
 **Revisar cómo se ve:** en local, `/_dev/design-system?lesson=<slug>` renderiza cualquier lección publicada con el mismo componente que verá el estudiante, en claro, oscuro y móvil.
 
+## Videos
+
+Lo normal es añadirlos desde el CMS (**Videos → Nuevo video**): pegas el enlace de YouTube, "Buscar en YouTube" confirma que existe y trae el título y el canal, y escribes la duración, el idioma y para qué sirve. Después se adjuntan a una lección en su pestaña **Relaciones**. El estudiante solo ve los publicados que YouTube confirma como disponibles (se comprueban al guardarlos y cada noche).
+
+En el paquete viven en `videos/*.yaml`, como los recursos:
+
+```yaml
+- key: redes-neuronales-intuicion
+  url: 'https://www.youtube.com/watch?v=<ID>'   # o youtu.be/<ID>, o el ID de 11 caracteres
+  title: 'But what is a neural network?'
+  instructor: 3Blue1Brown
+  duration: '18:40'                             # minutos:segundos; entre comillas
+  language: en
+  description: 'Qué aporta a la lección.'
+```
+
+La lección los lista en orden con `videos: [redes-neuronales-intuicion]` en su front matter. **Nunca escribas un ID de memoria**: cópialo de YouTube. CI (`content:verify-links`) comprueba cada video del paquete, y cada bloque ```video del texto, con oEmbed y bloquea el merge si no existe o no se puede insertar.
+
 ## Recursos externos
 
 ```yaml

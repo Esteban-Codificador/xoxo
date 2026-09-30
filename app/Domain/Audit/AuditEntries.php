@@ -12,6 +12,7 @@ use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
 use App\Models\User;
+use App\Models\Video;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -89,6 +90,7 @@ final class AuditEntries
             $subject instanceof Module => route('admin.tracks.edit', ['track' => $subject->track_id], false),
             $subject instanceof Skill => route('admin.skills.edit', $subject, false),
             $subject instanceof ExternalResource => route('admin.resources.edit', $subject, false),
+            $subject instanceof Video => route('admin.videos.edit', $subject, false),
             $subject instanceof User && $viewer->can(Permission::UsersView->value) => route('admin.users.edit', $subject, false),
             default => null,
         };

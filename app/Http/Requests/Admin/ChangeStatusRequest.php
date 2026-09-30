@@ -10,6 +10,7 @@ use App\Models\Module;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
+use App\Models\Video;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -22,7 +23,7 @@ use Illuminate\Validation\Rule;
  */
 abstract class ChangeStatusRequest extends FormRequest
 {
-    abstract public function subject(): Roadmap|Track|Module|Lesson|Skill|ExternalResource;
+    abstract public function subject(): Roadmap|Track|Module|Lesson|Skill|ExternalResource|Video;
 
     public function authorize(): Response|bool
     {

@@ -15,6 +15,7 @@ use Symfony\Component\Yaml\Yaml;
  *   tracks/NN-track/NN-module/NN-lesson.md
  *   skills/*.md
  *   resources/*.yaml
+ *   videos/*.yaml
  *   media/*.png|jpg|webp   (images, see PackageMedia)
  *
  * Structural problems are collected as issues instead of aborting, so a
@@ -42,7 +43,8 @@ final class PackageReader
         $roadmapKey = $this->readRoadmap();
         $this->readTracks($roadmapKey);
         $this->readSkills();
-        $this->readResources();
+        $this->readList('resources', EntityType::Resource, 'recursos', 'cada recurso');
+        $this->readList('videos', EntityType::Video, 'videos', 'cada video');
         $this->readMedia();
 
         return $this->package;
@@ -118,13 +120,16 @@ final class PackageReader
         }
     }
 
-    private function readResources(): void
+    /**
+     * Resources and videos: YAML lists of keyed items, several per file.
+     */
+    private function readList(string $directory, EntityType $type, string $plural, string $each): void
     {
-        foreach ($this->files('resources', '*.yaml') as $file) {
+        foreach ($this->files($directory, '*.yaml') as $file) {
             $items = $this->yamlFile($file);
 
             if (! is_array($items) || ! array_is_list($items)) {
-                $this->package->addIssue($file, 'debe ser una lista YAML de recursos.');
+                $this->package->addIssue($file, "debe ser una lista YAML de {$plural}.");
 
                 continue;
             }
@@ -133,7 +138,7 @@ final class PackageReader
                 $location = "{$file}#".($index + 1);
 
                 if (! is_array($item)) {
-                    $this->package->addIssue($location, 'cada recurso debe ser un objeto.');
+                    $this->package->addIssue($location, "{$each} debe ser un objeto.");
 
                     continue;
                 }
@@ -141,7 +146,7 @@ final class PackageReader
                 $key = $this->key($item, $location);
 
                 if ($key !== null) {
-                    $this->package->add(new SourceEntity(EntityType::Resource, $key, $location, $item, null, $index));
+                    $this->package->add(new SourceEntity($type, $key, $location, $item, null, $index));
                 }
             }
         }

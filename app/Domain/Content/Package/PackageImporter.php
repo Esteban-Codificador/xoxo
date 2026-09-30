@@ -10,6 +10,7 @@ use App\Domain\Content\Package\Importers\ResourceImporter;
 use App\Domain\Content\Package\Importers\RoadmapImporter;
 use App\Domain\Content\Package\Importers\SkillImporter;
 use App\Domain\Content\Package\Importers\TrackImporter;
+use App\Domain\Content\Package\Importers\VideoImporter;
 use App\Enums\AuditAction;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -36,12 +37,13 @@ final readonly class PackageImporter
         RoadmapImporter $roadmaps,
         SkillImporter $skills,
         ResourceImporter $resources,
+        VideoImporter $videos,
         TrackImporter $tracks,
         ModuleImporter $modules,
         LessonImporter $lessons,
     ) {
         // Order matters: every importer references only entities imported before it.
-        $this->importers = [$roadmaps, $skills, $resources, $tracks, $modules, $lessons];
+        $this->importers = [$roadmaps, $skills, $resources, $videos, $tracks, $modules, $lessons];
     }
 
     /**

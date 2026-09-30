@@ -5,6 +5,8 @@ namespace App\Domain\Content\Package;
 use App\Domain\Content\RichContent\InvalidRichContent;
 use App\Domain\Content\RichContent\Markdown\MarkdownToRichContent;
 use App\Domain\Content\RichContent\RichContent;
+use App\Domain\Content\Videos\VideoDuration;
+use App\Domain\Content\Videos\YouTubeId;
 use App\Domain\Curriculum\Graph\DependencyGraph;
 use App\Domain\Curriculum\Publishing\LessonDraft;
 use App\Domain\Curriculum\Publishing\LessonReadiness;
@@ -143,6 +145,8 @@ final class PackageValidator
                 'skills.*.weight' => ['required', 'integer', 'between:1,5'],
                 'resources' => ['sometimes', 'array'],
                 'resources.*' => ['required', 'string', self::KEY],
+                'videos' => ['sometimes', 'array'],
+                'videos.*' => ['required', 'string', self::KEY],
                 ...$dependencies('lesson', false),
             ],
             EntityType::Skill => [
@@ -166,6 +170,21 @@ final class PackageValidator
                 'language' => ['required', 'in:es,en'],
                 'status' => $status,
             ],
+            EntityType::Video => [
+                'key' => ['required', self::KEY],
+                'url' => ['required', 'string', 'max:2048', function (string $attribute, mixed $value, Closure $fail): void {
+                    if (! is_string($value) || YouTubeId::parse($value) === null) {
+                        $fail('url: debe ser un enlace de YouTube o el ID de 11 caracteres del video.');
+                    }
+                }],
+                'title' => ['required', 'string', 'max:200'],
+                'instructor' => ['nullable', 'string', 'max:160'],
+                'duration' => ['nullable', 'string', 'regex:'.VideoDuration::PATTERN],
+                'difficulty' => ['nullable', Rule::enum(Difficulty::class)],
+                'language' => ['required', 'in:es,en'],
+                'description' => ['nullable', 'string', 'max:2000'],
+                'status' => $status,
+            ],
         };
     }
 
@@ -176,6 +195,7 @@ final class PackageValidator
         $this->uniqueWithin($package->all(EntityType::Skill), fn (SourceEntity $e) => $e->string('slug', $e->key), 'slug');
         $this->uniqueWithin($package->all(EntityType::Module), fn (SourceEntity $e) => $e->parentKey.'/'.$e->string('slug'), 'slug dentro del track');
         $this->uniqueWithin($package->all(EntityType::Resource), fn (SourceEntity $e) => rtrim($e->string('url'), '/'), 'url');
+        $this->uniqueWithin($package->all(EntityType::Video), fn (SourceEntity $e) => YouTubeId::parse($e->string('url')) ?? $e->string('url'), 'video');
     }
 
     /**
@@ -213,6 +233,7 @@ final class PackageValidator
             $this->references($package, $lesson, EntityType::Lesson, $this->dependencyKeys($lesson, 'lesson'));
             $this->references($package, $lesson, EntityType::Skill, array_map(fn ($skill) => is_array($skill) ? (string) ($skill['key'] ?? '') : '', $lesson->list('skills')));
             $this->references($package, $lesson, EntityType::Resource, array_values(array_filter($lesson->list('resources'), 'is_string')));
+            $this->references($package, $lesson, EntityType::Video, array_values(array_filter($lesson->list('videos'), 'is_string')));
         }
     }
 

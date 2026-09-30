@@ -39,9 +39,11 @@ final readonly class ExportFormat
     }
 
     /**
+     * A YAML list of keyed items: resources/*.yaml, videos/*.yaml.
+     *
      * @param  list<array<string, mixed>>  $items
      */
-    public function resourcesFile(array $items): string
+    public function listFile(array $items): string
     {
         return $this->yaml($items);
     }

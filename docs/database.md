@@ -34,7 +34,7 @@
 | `ExerciseType` | MULTIPLE_CHOICE, CODE, CONCEPTUAL, ORDERING, MATCHING, DEBUGGING, ARCHITECTURE | `exercises` |
 | `QuestionType` | SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE, ORDERING, MATCHING | `quiz_questions` (solo tipos calificables automáticamente) |
 | `ResourceType` | DOCUMENTATION, ARTICLE, TUTORIAL, COURSE, BOOK, PAPER, REPOSITORY, TOOL | `resources` |
-| `VideoProvider` | YOUTUBE, VIMEO, HOSTED | `videos` |
+| `VideoProvider` | YOUTUBE (VIMEO y HOSTED cuando se implementen, ADR-035) | `videos` |
 | `MediaKind` | IMAGE, AUDIO, VIDEO, FILE | `media_assets` (TEXT, CODE, DIAGRAM y EMBED de §55 se expresan en el Markdown) |
 | `UserProjectStatus` | IN_PROGRESS, SUBMITTED, COMPLETED | `user_projects` |
 | `ActivityType` | LESSON_STARTED, LESSON_COMPLETED, LESSON_MASTERED, EXERCISE_SOLVED, QUIZ_PASSED, QUIZ_FAILED, LAB_COMPLETED, MILESTONE_COMPLETED, PROJECT_COMPLETED, SKILL_MASTERED, TRACK_COMPLETED, BADGE_EARNED, CERTIFICATE_ISSUED | `learning_activities` |
@@ -279,16 +279,17 @@ resource_links                                    -- adjunto polimórfico
   position smallint DEFAULT 0, note varchar NULL
   UK (resource_id, linkable_type, linkable_id) · IX (linkable_type, linkable_id, position)
 
-videos
-  id, provider enum VideoProvider, external_id varchar(64) NULL, url varchar(2048) NULL
-  title, description text NULL, duration_seconds integer NULL, thumbnail_url NULL
+videos                                            -- catálogo (Fase 6, ADR-035)
+  id, provider enum VideoProvider (hoy solo YOUTUBE), external_id varchar(64)
+  title varchar(200), description text NULL, duration_seconds integer NULL, thumbnail_url NULL
   instructor varchar(160) NULL, difficulty NULL, language varchar(5)
-  storage_disk varchar(32) NULL, storage_path varchar NULL, mime_type NULL, size_bytes bigint NULL
-  link_status, last_checked_at, status, timestamps
-  UK (provider, external_id)
-  CK (provider = 'HOSTED' AND storage_path IS NOT NULL) OR (provider <> 'HOSTED' AND external_id IS NOT NULL)
+  link_status, last_checked_at, last_http_status, status, published_at, created_by/updated_by, timestamps
+  UK (provider, external_id) · IX (link_status)
+  CK provider IN ('YOUTUBE') · CK YOUTUBE ⇒ external_id ~ '^[A-Za-z0-9_-]{11}$' · CK duration_seconds > 0
+  -- sin url: se deriva del ID. VIMEO y HOSTED (con storage_disk/path) se añaden cuando algo los use
 
 video_links                                       -- igual que resource_links, más start_seconds integer NULL
+  UK (video_id, linkable_type, linkable_id) · IX (linkable_type, linkable_id, position)
 
 media_assets                                      -- imágenes del contenido (Fase 6, ADR-034)
   id, kind enum MediaKind, disk, path UK, original_name, mime_type, size_bytes,

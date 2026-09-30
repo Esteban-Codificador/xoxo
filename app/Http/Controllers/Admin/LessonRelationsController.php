@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Content\Videos\VideoDuration;
 use App\Domain\Curriculum\Actions\SyncLessonRelations;
 use App\Domain\Curriculum\Graph\CycleDetected;
 use App\Enums\ContentStatus;
@@ -11,6 +12,7 @@ use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\Pivots\LessonDependency;
 use App\Models\Skill;
+use App\Models\Video;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -18,7 +20,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Skills, prerequisites and resources of a lesson. They are not versioned
+ * Skills, prerequisites, resources and videos of a lesson. They are not versioned
  * (TD-6): a saved change is live, filtered to what is published.
  */
 class LessonRelationsController extends Controller
@@ -27,7 +29,7 @@ class LessonRelationsController extends Controller
     {
         Gate::authorize('edit', $lesson);
 
-        $lesson->load(['module.track', 'skills', 'prerequisites', 'resources']);
+        $lesson->load(['module.track', 'skills', 'prerequisites', 'resources', 'videos']);
 
         $candidates = Lesson::query()
             ->inRoadmapOf($lesson)
@@ -77,6 +79,16 @@ class LessonRelationsController extends Controller
                 'link_status' => $resource->link_status->value,
                 'published' => $resource->status === ContentStatus::Published,
             ])->values()->all(),
+            'videos' => $lesson->videos->pluck('id')->values()->all(),
+            'video_options' => Video::query()->orderBy('title')->get()->map(fn (Video $video) => [
+                'id' => $video->id,
+                'title' => $video->title,
+                'instructor' => $video->instructor,
+                'duration' => VideoDuration::format($video->duration_seconds),
+                'url' => $video->url(),
+                'link_status' => $video->link_status->value,
+                'published' => $video->status === ContentStatus::Published,
+            ])->values()->all(),
             // Frozen for the author while in review (ADR-032).
             'can' => ['save' => $request->user()?->can('update', $lesson) ?? false],
         ]);
@@ -85,7 +97,7 @@ class LessonRelationsController extends Controller
     public function update(SyncLessonRelationsRequest $request, Lesson $lesson, SyncLessonRelations $action): RedirectResponse
     {
         try {
-            $action->handle($lesson, $request->skills(), $request->prerequisites(), $request->resources());
+            $action->handle($lesson, $request->skills(), $request->prerequisites(), $request->resources(), $request->videos());
         } catch (CycleDetected $cycle) {
             $titles = Lesson::query()->whereKey($cycle->path)->pluck('title', 'id');
 

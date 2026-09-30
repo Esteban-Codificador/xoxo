@@ -9,6 +9,7 @@ use App\Domain\Content\RichContent\InvalidRichContent;
 use App\Domain\Content\RichContent\Markdown\MarkdownToRichContent;
 use App\Domain\Content\RichContent\Markdown\RichContentToMarkdown;
 use App\Domain\Content\RichContent\RichContent;
+use App\Domain\Content\Videos\VideoDuration;
 use App\Enums\ContentStatus;
 use App\Models\ContentImportRecord;
 use App\Models\ExternalResource;
@@ -21,6 +22,7 @@ use App\Models\Pivots\TrackDependency;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
+use App\Models\Video;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -45,6 +47,8 @@ final class DatabaseSnapshot
 {
     public const string UNUSED_RESOURCES_FILE = 'resources/otros.yaml';
 
+    public const string VIDEOS_FILE = 'videos/videos.yaml';
+
     /** @var array<string, array<int, string>> Keys by type and id. */
     private array $keys = [];
 
@@ -54,8 +58,8 @@ final class DatabaseSnapshot
     /** @var array<string, array<string, string>> Existing file by type and key. */
     private array $files = [];
 
-    /** @var array<string, int> Place of each existing resource inside its file. */
-    private array $resourceOrder = [];
+    /** @var array<string, array<string, int>> Place of each existing resource or video inside its file, by type and key. */
+    private array $listOrder = [];
 
     /** @var list<string> */
     private array $warnings = [];
@@ -77,17 +81,18 @@ final class DatabaseSnapshot
      */
     public function take(Roadmap $roadmap, string $package, ?ContentPackage $existing): array
     {
-        $this->keys = $this->taken = $this->files = $this->resourceOrder = [];
+        $this->keys = $this->taken = $this->files = $this->listOrder = [];
         $this->warnings = $this->unfaithful = [];
         $this->media = new MediaNames;
         $this->remember($package, $existing);
 
         $tracks = $roadmap->tracks()->with(['prerequisites', 'modules.lessons' => fn ($query) => $query->with([
-            'publishedVersion', 'skills', 'prerequisites', 'resources',
+            'publishedVersion', 'skills', 'prerequisites', 'resources', 'videos',
         ])])->get();
         $lessons = $tracks->flatMap(fn (Track $track) => $track->modules->flatMap(fn (Module $module) => $module->lessons));
         $skills = Skill::query()->whereNotIn('id', $this->foreignIds('skill', $package))->with('prerequisites')->orderBy('slug')->get();
         $resources = ExternalResource::query()->whereNotIn('id', $this->foreignIds('resource', $package))->orderBy('id')->get();
+        $videos = Video::query()->whereNotIn('id', $this->foreignIds('video', $package))->orderBy('id')->get();
 
         // Keys first: entities reference each other by key.
         $this->key(EntityType::Roadmap, $roadmap, $roadmap->slug);
@@ -101,6 +106,7 @@ final class DatabaseSnapshot
         $lessons->each(fn (Lesson $lesson) => $this->key(EntityType::Lesson, $lesson, $lesson->slug));
         $skills->each(fn (Skill $skill) => $this->key(EntityType::Skill, $skill, $skill->slug));
         $resources->each(fn (ExternalResource $resource) => $this->key(EntityType::Resource, $resource, Str::limit(Str::slug($resource->title), 60, '') ?: 'recurso'));
+        $videos->each(fn (Video $video) => $this->key(EntityType::Video, $video, Str::limit(Str::slug($video->title), 60, '') ?: 'video'));
 
         $entities = [$this->roadmap($roadmap)];
 
@@ -124,6 +130,7 @@ final class DatabaseSnapshot
         }
 
         array_push($entities, ...$this->resources($resources, $tracks));
+        array_push($entities, ...$this->videos($videos));
 
         return $entities;
     }
@@ -171,8 +178,8 @@ final class DatabaseSnapshot
                 $this->taken[$type->value][$entity->key] = true;
                 $this->files[$type->value][$entity->key] = (string) preg_replace('/#\d+$/', '', $entity->file);
 
-                if ($type === EntityType::Resource) {
-                    $this->resourceOrder[$entity->key] = $entity->position;
+                if (in_array($type, [EntityType::Resource, EntityType::Video], true)) {
+                    $this->listOrder[$type->value][$entity->key] = $entity->position;
                 }
             }
         }
@@ -320,6 +327,10 @@ final class DatabaseSnapshot
             'resources' => $lesson->resources
                 ->map(fn (ExternalResource $resource) => $this->keys[EntityType::Resource->value][$resource->id] ?? null)
                 ->filter()->values()->all(),
+            // Absent when there are none: files written before videos existed stay as they are.
+            'videos' => $lesson->videos
+                ->map(fn (Video $video) => $this->keys[EntityType::Video->value][$video->id] ?? null)
+                ->filter()->values()->all() ?: null,
         ], $this->richText($source->body, "la lección «{$source->title}»") ?? '');
     }
 
@@ -389,7 +400,37 @@ final class DatabaseSnapshot
                 'language' => $resource->language,
                 'status' => $resource->status === ContentStatus::Published ? null : $resource->status->value,
                 'description' => $resource->description,
-            ], order: $this->resourceOrder[$key] ?? 100_000 + $new++);
+            ], order: $this->listOrder[EntityType::Resource->value][$key] ?? 100_000 + $new++);
+        }
+
+        return $entities;
+    }
+
+    /**
+     * The video catalog: a video already in the package stays in its file
+     * and place; a new one goes to VIDEOS_FILE.
+     *
+     * @param  Collection<int, Video>  $videos
+     * @return list<ExportedEntity>
+     */
+    private function videos(Collection $videos): array
+    {
+        $entities = [];
+        $new = 0;
+
+        foreach ($videos as $video) {
+            $key = $this->keyOf(EntityType::Video, $video);
+            $entities[] = new ExportedEntity(EntityType::Video, $key, $video, $this->files[EntityType::Video->value][$key] ?? self::VIDEOS_FILE, [
+                'key' => $key,
+                'url' => $video->url(),
+                'title' => $video->title,
+                'instructor' => $video->instructor,
+                'duration' => VideoDuration::format($video->duration_seconds),
+                'difficulty' => $video->difficulty?->value,
+                'language' => $video->language,
+                'status' => $video->status === ContentStatus::Published ? null : $video->status->value,
+                'description' => $video->description,
+            ], order: $this->listOrder[EntityType::Video->value][$key] ?? 100_000 + $new++);
         }
 
         return $entities;

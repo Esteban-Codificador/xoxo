@@ -87,12 +87,13 @@ final readonly class FileMerger
     }
 
     /**
-     * A YAML list of resources: each item keeps its text, or its unchanged
-     * fields when it changed; new items are appended in the given order.
+     * A YAML list of resources or videos: each item keeps its text, or its
+     * unchanged fields when it changed; new items are appended in the given
+     * order.
      *
      * @param  list<array<string, mixed>>  $items
      */
-    public function resourcesFile(string $existing, array $items): string
+    public function listFile(string $existing, array $items): string
     {
         $old = [];
         $prefix = [];
@@ -126,7 +127,7 @@ final readonly class FileMerger
         foreach ($items as $item) {
             $key = (string) ($item['key'] ?? '');
             $mapping = isset($byKey[$key]) ? $this->mapping($byKey[$key], $item) : null;
-            $lines = explode("\n", $mapping ?? rtrim($this->format->resourcesFile([$item]), "\n"));
+            $lines = explode("\n", $mapping ?? rtrim($this->format->listFile([$item]), "\n"));
 
             if ($mapping !== null) {
                 $lines = array_map(fn (string $line, int $index) => ($index === 0 ? '- ' : ($line === '' ? '' : '  ')).$line, $lines, array_keys($lines));

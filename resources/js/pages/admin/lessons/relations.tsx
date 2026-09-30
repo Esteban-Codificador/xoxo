@@ -6,6 +6,8 @@ import { PageHeader } from '@/components/page-header';
 import { LessonTabs } from '@/features/cms/lesson-tabs';
 import type { ResourceOption } from '@/features/cms/resources-editor';
 import { ResourcesEditor } from '@/features/cms/resources-editor';
+import type { VideoOption } from '@/features/cms/videos-editor';
+import { VideosEditor } from '@/features/cms/videos-editor';
 import { SaveBar } from '@/features/cms/save-bar';
 import type { SkillOption, SkillRow } from '@/features/cms/skills-editor';
 import { SkillsEditor } from '@/features/cms/skills-editor';
@@ -20,6 +22,7 @@ import { dashboard } from '@/routes/admin';
 import { edit, index } from '@/routes/admin/lessons';
 import { update } from '@/routes/admin/lessons/relations';
 import { create as createResource } from '@/routes/admin/resources';
+import { create as createVideo } from '@/routes/admin/videos';
 
 type Props = {
     lesson: { slug: string; title: string; track: string; module: string };
@@ -29,6 +32,8 @@ type Props = {
     prerequisite_options: DependencyOption[];
     resources: number[];
     resource_options: ResourceOption[];
+    videos: number[];
+    video_options: VideoOption[];
     /** False while in review for its author (ADR-032). */
     can: { save: boolean };
 };
@@ -41,6 +46,8 @@ export default function AdminLessonRelations({
     prerequisite_options,
     resources,
     resource_options,
+    videos,
+    video_options,
     can,
 }: Props) {
     setLayoutProps({
@@ -52,7 +59,7 @@ export default function AdminLessonRelations({
     });
 
     const id = useId();
-    const form = useForm({ skills, prerequisites, resources });
+    const form = useForm({ skills, prerequisites, resources, videos });
     const errors = form.errors as Partial<Record<string, string>>;
 
     useUnsavedChangesGuard(form.isDirty);
@@ -197,6 +204,41 @@ export default function AdminLessonRelations({
                                     className="underline underline-offset-4"
                                 >
                                     {t('cms.resources.createAction')}
+                                </Link>
+                            </p>
+                        </section>
+
+                        <section
+                            aria-labelledby={`${id}-videos`}
+                            className="space-y-3"
+                        >
+                            <div className="space-y-1">
+                                <h2 id={`${id}-videos`} className="font-medium">
+                                    {t('cms.relations.videos')}
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    {t('cms.relations.videosHelp')}
+                                </p>
+                            </div>
+                            <VideosEditor
+                                options={video_options}
+                                value={form.data.videos}
+                                errorFor={(position) =>
+                                    errors[`videos.${position}`]
+                                }
+                                onChange={(ids) => {
+                                    form.setData('videos', ids);
+                                    changed();
+                                }}
+                            />
+                            <InputError message={errors.videos} />
+                            <p className="text-xs text-muted-foreground">
+                                {t('cms.relations.newVideoHint')}{' '}
+                                <Link
+                                    href={createVideo()}
+                                    className="underline underline-offset-4"
+                                >
+                                    {t('cms.relations.newVideo')}
                                 </Link>
                             </p>
                         </section>

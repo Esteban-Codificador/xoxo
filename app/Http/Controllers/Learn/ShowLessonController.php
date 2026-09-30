@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\LessonLinkResource;
 use App\Http\Resources\LessonPageResource;
 use App\Http\Resources\ResourceLinkResource;
+use App\Http\Resources\VideoLinkResource;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Pivots\LessonDependency;
@@ -62,6 +63,8 @@ class ShowLessonController extends Controller
                 'name' => $skill->name,
             ])->values()->all(),
             'resources' => ResourceLinkResource::collection($lesson->resources()->published()->get())->resolve(),
+            // Only what YouTube confirmed on the last check (ADR-035).
+            'videos' => VideoLinkResource::collection($lesson->videos()->visibleToLearners()->get())->resolve(),
             'previous' => $neighbours['previous'] === null ? null : LessonLinkResource::make($neighbours['previous'])->resolve(),
             'next' => $neighbours['next'] === null ? null : LessonLinkResource::make($neighbours['next'])->resolve(),
             'progress' => [

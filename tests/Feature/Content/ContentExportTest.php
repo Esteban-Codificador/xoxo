@@ -27,8 +27,10 @@ use App\Models\Module;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
+use App\Models\Video;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -496,4 +498,44 @@ it('refuses to export an image whose file is gone', function () {
     Storage::disk('local')->delete($image->path);
 
     expect(fn () => exportPlan($this->path))->toThrow(ExportRefused::class, "Falta el archivo de la imagen {$image->id}");
+});
+
+it('exports the video catalog and the videos of each lesson, and imports them back', function () {
+    Http::fake(['www.youtube.com/oembed*' => Http::response(['title' => 'Un video', 'thumbnail_url' => 'https://i.ytimg.com/vi/x/hqdefault.jpg'])]);
+    $lesson = Lesson::firstWhere('slug', 'ramas-merge-y-rebase');
+    $file = 'tracks/01-fundamentos-computacion/04-git-y-colaboracion/02-ramas-merge-y-rebase.md';
+    $before = (string) file_get_contents("{$this->path}/{$file}");
+    $video = Video::factory()->create([
+        'external_id' => 'fake-abcdef', 'title' => 'Git branching, visual', 'instructor' => 'Un canal',
+        'duration_seconds' => 754, 'description' => 'Ramas en dos minutos.',
+    ]);
+    $lesson->videos()->attach($video, ['position' => 1]);
+
+    $plan = exportTo($this->path);
+    $after = (string) file_get_contents("{$this->path}/{$file}");
+
+    expect(changedPaths($plan))->toBe(["updated {$file}", 'created videos/videos.yaml'])
+        // One line more in the lesson: the list of its videos, after its resources.
+        ->and(array_values(array_diff(explode("\n", $after), explode("\n", $before))))->toBe(['videos:', '  - git-branching-visual'])
+        ->and((string) file_get_contents("{$this->path}/videos/videos.yaml"))->toBe(<<<'YAML'
+            - key: git-branching-visual
+              url: 'https://www.youtube.com/watch?v=fake-abcdef'
+              title: 'Git branching, visual'
+              instructor: 'Un canal'
+              duration: '12:34'
+              language: en
+              description: 'Ramas en dos minutos.'
+
+            YAML)
+        ->and(exportPlan($this->path)->pending())->toBe([]);
+
+    // A new environment gets the video back, linked to the lesson.
+    wipeContent();
+    DB::table('videos')->delete();
+    $this->artisan('content:import', ['path' => $this->path])->assertSuccessful();
+
+    $restored = Video::query()->sole();
+    expect([$restored->external_id, $restored->title, $restored->duration_seconds])->toBe(['fake-abcdef', 'Git branching, visual', 754])
+        ->and(Lesson::firstWhere('slug', 'ramas-merge-y-rebase')->videos()->pluck('videos.id')->all())->toBe([$restored->id])
+        ->and(exportPlan($this->path)->pending())->toBe([]);
 });

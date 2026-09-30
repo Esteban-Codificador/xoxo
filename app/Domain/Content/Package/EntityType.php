@@ -10,6 +10,7 @@ enum EntityType: string
     case Roadmap = 'roadmap';
     case Skill = 'skill';
     case Resource = 'resource';
+    case Video = 'video';
     case Track = 'track';
     case Module = 'module';
     case Lesson = 'lesson';

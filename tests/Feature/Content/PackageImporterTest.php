@@ -8,12 +8,15 @@ use App\Domain\Content\Package\PackageImporter;
 use App\Domain\Content\Package\PackageReader;
 use App\Enums\AuditAction;
 use App\Enums\ContentStatus;
+use App\Enums\LinkStatus;
 use App\Models\AuditLog;
 use App\Models\ContentImportRecord;
 use App\Models\Lesson;
 use App\Models\MediaAsset;
 use App\Models\Skill;
 use App\Models\Track;
+use App\Models\Video;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\ContentPackageFixture;
 
@@ -162,4 +165,37 @@ it('imports the images of the package as they are, once each', function () {
 
     expect($report->count(EntityType::Lesson, ImportOutcome::Unchanged))->toBe(2)
         ->and(MediaAsset::count())->toBe(1);
+});
+
+it('imports the videos of the package and the lessons that show them, in order', function () {
+    Http::preventStrayRequests();
+    Http::fake(['www.youtube.com/oembed*' => Http::response(['title' => 'Un video', 'thumbnail_url' => 'https://i.ytimg.com/vi/x/hqdefault.jpg'])]);
+    $this->fixture->yaml('videos/videos.yaml', [
+        ['key' => 'intuicion', 'url' => 'https://www.youtube.com/watch?v=fake-abcdef', 'title' => 'La intuición', 'instructor' => '3Blue1Brown', 'duration' => '18:40', 'language' => 'en', 'difficulty' => 'BEGINNER', 'description' => 'Antes de las fórmulas.'],
+        ['key' => 'detalle', 'url' => 'fake-ghijkl', 'title' => 'Backpropagation', 'language' => 'en', 'status' => 'DRAFT'],
+    ]);
+    $this->fixture->lesson('01-primera', ['key' => 'base.primera', 'slug' => 'primera', 'videos' => ['detalle', 'intuicion']]);
+
+    // A dry run asks YouTube nothing.
+    importFixture($this->fixture, dryRun: true);
+    Http::assertNothingSent();
+    expect(Video::count())->toBe(0);
+
+    $report = importFixture($this->fixture);
+    $intuicion = Video::query()->firstWhere('external_id', 'fake-abcdef');
+
+    expect($report->count(EntityType::Video, ImportOutcome::Created))->toBe(2)
+        ->and([$intuicion->title, $intuicion->instructor, $intuicion->duration_seconds, $intuicion->status])
+        ->toBe(['La intuición', '3Blue1Brown', 1120, ContentStatus::Published])
+        // Checked with oEmbed once imported.
+        ->and($intuicion->link_status)->toBe(LinkStatus::Ok)
+        ->and(Video::query()->firstWhere('external_id', 'fake-ghijkl')->status)->toBe(ContentStatus::Draft)
+        ->and(Lesson::firstWhere('slug', 'primera')->videos()->pluck('external_id')->all())->toBe(['fake-ghijkl', 'fake-abcdef']);
+    Http::assertSentCount(2);
+
+    // Importing again changes nothing and asks nothing.
+    $again = importFixture($this->fixture);
+    expect($again->count(EntityType::Video, ImportOutcome::Unchanged))->toBe(2)
+        ->and($again->count(EntityType::Lesson, ImportOutcome::Unchanged))->toBe(2);
+    Http::assertSentCount(2);
 });

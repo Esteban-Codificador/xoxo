@@ -162,7 +162,7 @@ content/
     ├── resources/
     │   └── llm-engineering.yaml             # lista de recursos del área, cada uno con su key
     ├── videos/
-    │   └── transformers.yaml
+    │   └── videos.yaml                      # catálogo: key, url (YouTube), title, instructor, duration "mm:ss", language…
     ├── quizzes/        <quiz-key>.yaml       (Fase 6)
     ├── media/          <16 hex del sha256>.png|jpg|webp   (imágenes; ADR-034)
     ├── exercises/      <track>/<key>.md      (Fase 6)
@@ -246,7 +246,7 @@ Campos que solo aparecen cuando difieren del valor por defecto (los escribe `con
 | `content:validate {path}` | Valida el esquema del front matter y los enums. Comprueba claves únicas, referencias resolubles (skills, lecciones, recursos) y **aciclicidad** de los tres grafos, contrato pedagógico en lo que tenga `status: PUBLISHED`, y que el Markdown se convierta a un RichContent válido. Sale con código ≠ 0 y errores con archivo y línea. Corre en CI | 3 |
 | `content:import {path} [--dry-run] [--force] [--only=…]` | Upsert idempotente en una transacción. Resuelve la identidad por `(package, key)` en `content_import_records`. **Si el hash actual de la entidad difiere del `source_hash` registrado, se editó en el CMS y se salta** (con aviso) salvo `--force`. Convierte el Markdown a RichContent y crea `lesson_versions` para lo publicado. Registra `IMPORTED` en `audit_logs`. `--dry-run` informa de lo que crearía, actualizaría o saltaría | 3 |
 | `content:export {path} [--dry-run] [--force] [--copy] [--roadmap=]` | BD → paquete, con el mismo formato (ADR-031). Cada lección como la ven los estudiantes: su versión publicada; los cambios sin publicar se avisan y no se exportan. Lo creado en el CMS recibe una clave (su slug) y un archivo nuevo; lo que no cambió conserva su texto, campo a campo y bloque a bloque, así que el diff muestra solo lo editado. Valida el resultado antes de escribir y se niega si la BD tiene algo que el paquete no puede reproducir. Deja la BD sincronizada con el paquete (un import posterior no cambia nada) y no pisa un archivo editado a mano que no se importó, salvo `--force`. `--copy` escribe una copia (backup, revisión) sin tocar los registros | 5b (adelantado de la 7 por D8) |
-| `content:verify-links {path}` | Verifica las URLs de los recursos del paquete: HEAD con fallback a GET, 2 reintentos y seguimiento de redirecciones. Solo 404/410 hacen fallar el comando; timeouts, 5xx y bloqueos quedan como "no concluyentes" | 3 (archivos); 5 (modo BD que actualiza `link_status`); 6 (videos por oEmbed) |
+| `content:verify-links {path}` | Verifica las URLs de los recursos del paquete (HEAD con fallback a GET, 2 reintentos y seguimiento de redirecciones) y, por oEmbed, los videos de `videos/*.yaml` y los bloques ```video del texto. Fallan un 404/410 y un video que no existe o no se puede insertar; timeouts, 5xx y bloqueos quedan como "no concluyentes" | 3 (archivos); 5 (modo BD `content:verify-resources`); 6 (videos por oEmbed y `content:verify-videos` en BD) |
 
 ## 8. Verificación de enlaces y videos
 
@@ -257,7 +257,7 @@ Controles, en capas:
 1. **Política editorial:** solo se admiten dominios de documentación oficial, repositorios oficiales, papers (arXiv o DOI) y fuentes reconocidas. Nada de blogs anónimos ni URLs "plausibles".
 2. **CI (job `content`)** en cada PR que toque `content/`: `content:verify-links --source=files`. **Un 404 o 410 bloquea el merge.** Los 5xx y los *timeouts* se reintentan y, si persisten, solo avisan (una caída externa temporal no debe bloquear).
 3. **Producción:** el scheduler ejecuta `content:verify-links --source=db` cada semana. Un recurso `BROKEN` **se oculta al estudiante** y aparece en el admin con un filtro "enlaces rotos".
-4. **Videos:** solo entran con un ID validado por oEmbed. Un video eliminado o privado pasa a `BROKEN` y se oculta.
+4. **Videos (ADR-035):** el estudiante solo ve los que oEmbed confirmó en la última comprobación (al guardarlos, cada noche con `content:verify-videos` y en CI con `content:verify-links`). Un video eliminado o privado pasa a `BROKEN` y se oculta; uno sin comprobar tampoco se muestra.
 
 ## 9. Niveles de profundidad y plan del seed
 

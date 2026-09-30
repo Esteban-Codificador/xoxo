@@ -2,6 +2,7 @@ import { mergeAttributes, Node } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import type { ReactNodeViewProps } from '@tiptap/react';
 import { VideoEmbed } from '@/features/rich-content/nodes/video-embed';
+import { lookupVideo } from '@/features/videos/video-lookup';
 import { t } from '@/i18n';
 import { NodeFrame } from '../node-frame';
 import { useAsk } from '../prompt-dialog';
@@ -22,6 +23,17 @@ export async function askVideoId(
             parseYouTubeId(input) === null
                 ? t('editor.prompts.videoInvalid')
                 : null,
+        // YouTube confirms it before it goes in; if YouTube does not
+        // answer, it goes in anyway and content:verify-links checks it.
+        check: async (input) => {
+            const result = await lookupVideo(input);
+
+            return result?.available === false
+                ? t('editor.prompts.videoUnavailable', {
+                      reason: result.reason ?? '',
+                  })
+                : null;
+        },
     });
 
     return value === null ? null : parseYouTubeId(value);

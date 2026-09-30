@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 // Link status of stored resources, shown in the CMS (needs `schedule:run` in cron).
 Schedule::command('content:verify-resources')->dailyAt('03:30')->withoutOverlapping();
+Schedule::command('content:verify-videos')->dailyAt('03:45')->withoutOverlapping();

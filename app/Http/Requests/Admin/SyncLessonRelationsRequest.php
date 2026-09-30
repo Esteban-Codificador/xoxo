@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 /**
- * Skills (with weight), prerequisites and resources (in order) of a lesson,
+ * Skills (with weight), prerequisites, resources and videos (in order) of a lesson,
  * each as a full list. Cycles are checked by SyncLessonRelations.
  */
 class SyncLessonRelationsRequest extends FormRequest
@@ -40,6 +40,9 @@ class SyncLessonRelationsRequest extends FormRequest
             'prerequisites.*.kind' => ['required', Rule::enum(DependencyKind::class)],
             'resources' => ['present', 'list', 'max:30'],
             'resources.*' => ['required', 'integer', 'distinct', Rule::exists('resources', 'id')],
+            // Optional: a client that does not send them leaves the videos as they are.
+            'videos' => ['sometimes', 'list', 'max:20'],
+            'videos.*' => ['required', 'integer', 'distinct', Rule::exists('videos', 'id')],
         ];
     }
 
@@ -72,6 +75,21 @@ class SyncLessonRelationsRequest extends FormRequest
     {
         /** @var list<int|string> $ids */
         $ids = $this->validated('resources');
+
+        return array_map(intval(...), $ids);
+    }
+
+    /**
+     * @return list<int>|null video ids in display order, or null when not sent
+     */
+    public function videos(): ?array
+    {
+        if (! $this->has('videos')) {
+            return null;
+        }
+
+        /** @var list<int|string> $ids */
+        $ids = $this->validated('videos');
 
         return array_map(intval(...), $ids);
     }

@@ -10,6 +10,7 @@ use App\Models\Module;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
+use App\Models\Video;
 use Illuminate\Http\Request;
 
 trait ListsStatusActions
@@ -21,7 +22,7 @@ trait ListsStatusActions
      *
      * @return list<string>
      */
-    protected function statusActions(Request $request, Roadmap|Track|Module|Lesson|Skill|ExternalResource $subject): array
+    protected function statusActions(Request $request, Roadmap|Track|Module|Lesson|Skill|ExternalResource|Video $subject): array
     {
         $user = $request->user();
 

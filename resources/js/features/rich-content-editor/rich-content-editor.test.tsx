@@ -275,3 +275,91 @@ describe('image dialog', () => {
         ).toBeInTheDocument();
     });
 });
+
+describe('video prompt', () => {
+    const renderEmpty = (onChange = vi.fn()) => {
+        render(
+            <>
+                <span id="body-label">Contenido</span>
+                <RichContentEditor
+                    value={{
+                        version: 1,
+                        doc: { type: 'doc', content: [{ type: 'paragraph' }] },
+                    }}
+                    onChange={onChange}
+                    labelledBy="body-label"
+                />
+            </>,
+        );
+
+        return onChange;
+    };
+
+    const answer = (body: object) =>
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(() =>
+                Promise.resolve(
+                    new Response(JSON.stringify(body), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' },
+                    }),
+                ),
+            ),
+        );
+
+    const insert = async (link: string) => {
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Video de YouTube' }),
+        );
+        const dialog = await screen.findByRole('dialog', {
+            name: 'Video de YouTube',
+        });
+        await userEvent.type(
+            within(dialog).getByLabelText('Enlace o ID del video'),
+            link,
+        );
+        await userEvent.click(
+            within(dialog).getByRole('button', { name: 'Aplicar' }),
+        );
+
+        return dialog;
+    };
+
+    it('does not insert a video YouTube says cannot be watched', async () => {
+        answer({
+            available: false,
+            reason: 'el video es privado o no permite insertarlo',
+        });
+        const onChange = renderEmpty();
+
+        const dialog = await insert('https://youtu.be/aircAruvnKk');
+
+        expect(
+            await within(dialog).findByText(
+                'YouTube no lo muestra: el video es privado o no permite insertarlo. Elige otro video.',
+            ),
+        ).toBeInTheDocument();
+        expect(onChange).not.toHaveBeenCalled();
+        vi.unstubAllGlobals();
+    });
+
+    it('inserts the video once YouTube confirms it', async () => {
+        answer({ available: true, reason: null });
+        const onChange = renderEmpty();
+
+        await insert('https://youtu.be/aircAruvnKk');
+
+        await waitFor(() => expect(onChange).toHaveBeenCalled());
+        const envelope = onChange.mock.lastCall?.[0] as RichContent;
+        expect(envelope.doc.content).toContainEqual({
+            type: 'video',
+            attrs: { provider: 'youtube', videoId: 'aircAruvnKk' },
+        });
+        expect(fetch).toHaveBeenCalledWith(
+            expect.stringContaining('/admin/videos/lookup?url='),
+            expect.anything(),
+        );
+        vi.unstubAllGlobals();
+    });
+});

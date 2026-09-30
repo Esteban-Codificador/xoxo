@@ -14,6 +14,7 @@ use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
 use App\Models\User;
+use App\Models\Video;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -50,6 +51,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Each upload decodes and re-encodes an image: cheap to send, not to process.
         RateLimiter::for('media-uploads', fn (Request $request) => Limit::perMinute(30)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        // Each lookup is a request to YouTube on the user's behalf.
+        RateLimiter::for('video-lookups', fn (Request $request) => Limit::perMinute(60)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }
 
     /**
@@ -67,6 +70,7 @@ class AppServiceProvider extends ServiceProvider
             'lesson_version' => LessonVersion::class,
             'skill' => Skill::class,
             'resource' => ExternalResource::class,
+            'video' => Video::class,
             'learning_activity' => LearningActivity::class,
         ]);
 

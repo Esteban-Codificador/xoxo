@@ -8,6 +8,7 @@ import {
     Library,
     ScrollText,
     Sparkles,
+    SquarePlay,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -33,6 +34,7 @@ import { index as reviewsIndex } from '@/routes/admin/reviews';
 import { index as skillsIndex } from '@/routes/admin/skills';
 import { index as tracksIndex } from '@/routes/admin/tracks';
 import { index as usersIndex } from '@/routes/admin/users';
+import { index as videosIndex } from '@/routes/admin/videos';
 import type { NavItem } from '@/types';
 
 export function AdminSidebar() {
@@ -76,6 +78,12 @@ export function AdminSidebar() {
             href: resourcesIndex(),
             icon: Library,
             isActive: isCurrentOrParentUrl(resourcesIndex()),
+        },
+        {
+            title: t('nav.videos'),
+            href: videosIndex(),
+            icon: SquarePlay,
+            isActive: isCurrentOrParentUrl(videosIndex()),
         },
         ...(access.users
             ? [

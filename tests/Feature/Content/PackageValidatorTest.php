@@ -138,3 +138,20 @@ it('accepts lessons, tracks and the roadmap showing images of the package', func
 
     expect(packageIssues($this->fixture))->toBe('');
 });
+
+it('checks the videos of the package and the lessons that use them', function () {
+    $this->fixture->yaml('videos/videos.yaml', [
+        ['key' => 'intuicion', 'url' => 'https://www.youtube.com/watch?v=fake-abcdef', 'title' => 'La intuición', 'language' => 'en', 'duration' => '18:40'],
+        ['key' => 'copia', 'url' => 'https://youtu.be/fake-abcdef', 'title' => 'El mismo video', 'language' => 'en'],
+        ['key' => 'vimeo', 'url' => 'https://vimeo.com/123', 'title' => 'Otro sitio', 'language' => 'en'],
+        ['key' => 'larga', 'url' => 'fake-ghijkl', 'title' => 'Sin formato', 'language' => 'en', 'duration' => '90 min'],
+    ]);
+    $this->fixture->lesson('01-primera', ['key' => 'base.primera', 'slug' => 'primera', 'videos' => ['intuicion', 'fantasma']]);
+
+    expect(packageIssues($this->fixture))
+        ->toContain('videos/videos.yaml#2: video repetido "fake-abcdef"')
+        ->toContain('videos/videos.yaml#3: url: debe ser un enlace de YouTube o el ID de 11 caracteres del video.')
+        ->toContain('videos/videos.yaml#4: ')
+        ->toContain('referencia a video inexistente "fantasma"')
+        ->not->toContain('videos/videos.yaml#1:');
+});

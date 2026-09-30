@@ -5,6 +5,8 @@ import type { LessonLink } from '@/features/lesson/lesson-pager';
 import { LessonPager } from '@/features/lesson/lesson-pager';
 import type { ResourceLink } from '@/features/lesson/resource-list';
 import { ResourceList } from '@/features/lesson/resource-list';
+import type { VideoLink } from '@/features/lesson/video-list';
+import { VideoList } from '@/features/lesson/video-list';
 import { TableOfContents } from '@/features/lesson/table-of-contents';
 import { BlockerNotice } from '@/features/progress/blocker-notice';
 import { CompleteLesson } from '@/features/progress/complete-lesson';
@@ -47,6 +49,8 @@ type Props = {
     prerequisites: (LessonLink & { kind: DependencyKind; state: NodeState })[];
     skills: { slug: string; name: string }[];
     resources: ResourceLink[];
+    /** Published videos YouTube confirmed on the last check. */
+    videos: VideoLink[];
     previous: LessonLink | null;
     next: LessonLink | null;
     progress: LessonProgress;
@@ -64,6 +68,7 @@ export default function LessonShow({
     prerequisites,
     skills,
     resources,
+    videos,
     previous,
     next,
     progress,
@@ -252,6 +257,18 @@ export default function LessonShow({
                                     </li>
                                 ))}
                             </ul>
+                        </section>
+                    )}
+
+                    {videos.length > 0 && (
+                        <section
+                            aria-labelledby="videos"
+                            className="max-w-[72ch] space-y-3"
+                        >
+                            <h2 id="videos" className="text-lg font-semibold">
+                                {t('lesson.videos')}
+                            </h2>
+                            <VideoList videos={videos} />
                         </section>
                     )}
 

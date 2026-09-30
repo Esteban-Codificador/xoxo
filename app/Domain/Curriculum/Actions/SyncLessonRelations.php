@@ -11,7 +11,7 @@ use App\Models\Pivots\LessonDependency;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Replaces the skills, prerequisites and resources of a lesson. Relations
+ * Replaces the skills, prerequisites, resources and videos of a lesson. Relations
  * are not versioned (TD-6): learners see them right away, filtered to what
  * is published. The lesson graph must stay acyclic (§25).
  */
@@ -23,10 +23,11 @@ final readonly class SyncLessonRelations
      * @param  array<int, int>  $skills  skill id => weight (1–5)
      * @param  array<int, string>  $prerequisites  lesson id => kind
      * @param  list<int>  $resources  resource ids in display order
+     * @param  list<int>|null  $videos  video ids in display order; null leaves them as they are
      *
      * @throws CycleDetected
      */
-    public function handle(Lesson $lesson, array $skills, array $prerequisites, array $resources): void
+    public function handle(Lesson $lesson, array $skills, array $prerequisites, array $resources, ?array $videos = null): void
     {
         $graph = DependencyGraph::fromEdges(
             LessonDependency::query()->where('lesson_id', '!=', $lesson->id)->get()
@@ -45,11 +46,15 @@ final readonly class SyncLessonRelations
 
         $before = $this->snapshot($lesson);
 
-        DB::transaction(function () use ($lesson, $skills, $prerequisites, $resources): void {
+        DB::transaction(function () use ($lesson, $skills, $prerequisites, $resources, $videos): void {
             $lesson->skills()->sync(array_map(fn (int $weight) => ['weight' => $weight], $skills));
             $lesson->prerequisites()->sync(array_map(fn (string $kind) => ['kind' => $kind], $prerequisites));
             // Keeps the note of resources that stay; only the order changes.
             $lesson->resources()->sync(collect($resources)->mapWithKeys(fn (int $id, int $index) => [$id => ['position' => $index + 1]])->all());
+
+            if ($videos !== null) {
+                $lesson->videos()->sync(collect($videos)->mapWithKeys(fn (int $id, int $index) => [$id => ['position' => $index + 1]])->all());
+            }
         });
 
         $after = $this->snapshot($lesson);
@@ -67,7 +72,7 @@ final readonly class SyncLessonRelations
     }
 
     /**
-     * @return array{skills: array<int, int>, prerequisites: array<int, string>, resources: list<int>}
+     * @return array{skills: array<int, int>, prerequisites: array<int, string>, resources: list<int>, videos: list<int>}
      */
     private function snapshot(Lesson $lesson): array
     {
@@ -79,6 +84,10 @@ final readonly class SyncLessonRelations
             ->where('linkable_type', $lesson->getMorphClass())->where('linkable_id', $lesson->id)
             ->orderBy('position')->pluck('resource_id')->map(fn (mixed $id) => (int) $id)->all());
 
-        return ['skills' => $skills, 'prerequisites' => $prerequisites, 'resources' => $resources];
+        $videos = array_values(DB::table('video_links')
+            ->where('linkable_type', $lesson->getMorphClass())->where('linkable_id', $lesson->id)
+            ->orderBy('position')->pluck('video_id')->map(fn (mixed $id) => (int) $id)->all());
+
+        return ['skills' => $skills, 'prerequisites' => $prerequisites, 'resources' => $resources, 'videos' => $videos];
     }
 }

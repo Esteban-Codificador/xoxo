@@ -23,6 +23,8 @@ export type PromptRequest = {
     multiline?: boolean;
     /** Returns an error message, or null when the value is acceptable. */
     validate?: (value: string) => string | null;
+    /** A check that needs the server (a video on YouTube), after `validate`. */
+    check?: (value: string) => Promise<string | null>;
 };
 
 /** Resolves with the accepted value, or null when the editor cancels. */
@@ -89,6 +91,7 @@ function PromptDialog({
     const id = useId();
     const [value, setValue] = useState(request.initial ?? '');
     const [error, setError] = useState<string | null>(null);
+    const [checking, setChecking] = useState(false);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -103,7 +106,22 @@ function PromptDialog({
             return;
         }
 
-        onClose(value);
+        if (request.check === undefined) {
+            onClose(value);
+
+            return;
+        }
+
+        setChecking(true);
+        void request.check(value).then((problem) => {
+            setChecking(false);
+
+            if (problem === null) {
+                onClose(value);
+            } else {
+                setError(problem);
+            }
+        });
     };
 
     const fieldProps = {
@@ -155,7 +173,11 @@ function PromptDialog({
                         >
                             {t('common.cancel')}
                         </Button>
-                        <Button type="submit">{t('editor.apply')}</Button>
+                        <Button type="submit" disabled={checking}>
+                            {checking
+                                ? t('editor.checking')
+                                : t('editor.apply')}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

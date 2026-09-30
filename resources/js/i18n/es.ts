@@ -39,6 +39,7 @@ export const es = {
         tracks: 'Tracks',
         skills: 'Skills',
         resources: 'Recursos',
+        videos: 'Videos',
         users: 'Usuarios',
         audit: 'Auditoría',
         settings: 'Configuración',
@@ -277,6 +278,7 @@ export const es = {
             lesson: 'Lecciones',
             skill: 'Skills',
             resource: 'Recursos',
+            video: 'Videos',
             lesson_version: 'Versiones de lección',
             user: 'Cuentas',
             learning_activity: 'Actividades',
@@ -312,6 +314,7 @@ export const es = {
             lesson_version: 'una versión de la lección',
             skill: 'la skill',
             resource: 'el recurso',
+            video: 'el video',
             user: 'la cuenta',
             learning_activity: 'una actividad',
         },
@@ -496,6 +499,65 @@ export const es = {
             newHint:
                 '¿Falta un recurso? Créalo en Recursos y vuelve aquí para asociarlo.',
         },
+        videos: {
+            head: 'Videos',
+            title: 'Videos',
+            description:
+                'Videos de YouTube que recomiendan las lecciones. YouTube confirma cada uno al guardarlo y cada noche: los estudiantes solo ven los disponibles.',
+            create: 'Nuevo video',
+            searchLabel: 'Buscar videos',
+            searchPlaceholder: 'Título, canal o ID',
+            search: 'Buscar',
+            availabilityFilter: 'Disponibilidad',
+            all: 'Todos',
+            video: 'Video',
+            availability: 'En YouTube',
+            usedIn: 'Lecciones',
+            never: 'Nunca',
+            empty: 'No hay videos que coincidan.',
+            edit: 'Editar {video}',
+            createHead: 'Nuevo video',
+            editHead: 'Editar: {video}',
+            details: 'Datos del video',
+            fields: {
+                url: 'Enlace de YouTube',
+                urlHelp:
+                    'Pega el enlace del video (o su ID) y búscalo: YouTube confirma que existe y trae el título y el canal.',
+                lookup: 'Buscar en YouTube',
+                title: 'Título',
+                instructor: 'Canal o autor',
+                description: 'Descripción',
+                descriptionHelp:
+                    'Qué aporta a la lección y qué parte conviene ver.',
+                duration: 'Duración',
+                durationHelp: 'Minutos:segundos (12:34). YouTube no la da.',
+                language: 'Idioma',
+                difficulty: 'Dificultad',
+                noDifficulty: 'Sin indicar',
+            },
+            lookup: {
+                searching: 'Buscando en YouTube…',
+                available: 'Disponible en YouTube',
+                unavailable: 'No se puede usar: {reason}.',
+                inconclusive:
+                    'YouTube no respondió. Puedes guardarlo: se comprobará de nuevo y los estudiantes no lo verán hasta confirmarlo.',
+                existing: 'Ya está en el catálogo:',
+                useData: 'Usar título y canal',
+                failed: 'No se pudo consultar. Inténtalo de nuevo.',
+            },
+            availabilityTitle: 'En YouTube',
+            checkedAt: 'Comprobado el {date}.',
+            neverChecked: 'Todavía no se comprobó.',
+            hiddenUntilChecked:
+                'Los estudiantes no lo ven hasta que YouTube confirme que está disponible.',
+            verifyNow: 'Comprobar ahora',
+            verifyHelp:
+                'La comprobación corre en segundo plano y se repite cada noche.',
+            usedInTitle: 'Lecciones que lo usan',
+            notUsed: 'Ninguna lección lo usa todavía.',
+            status: 'Estado',
+            watch: 'Ver en YouTube',
+        },
         skills: {
             head: 'Skills',
             title: 'Skills',
@@ -543,6 +605,13 @@ export const es = {
                 'En el orden en que se muestran al final de la lección. Solo aparecen los publicados.',
             addResource: 'Añadir recurso',
             noResources: 'Sin recursos.',
+            videos: 'Videos',
+            videosHelp:
+                'En el orden en que se muestran en la lección. Solo aparecen los publicados que YouTube confirma como disponibles.',
+            addVideo: 'Añadir video',
+            noVideos: 'Sin videos.',
+            newVideoHint: '¿Falta un video? Añádelo al catálogo y vuelve aquí.',
+            newVideo: 'Nuevo video',
             moveUp: 'Subir {name}',
             moveDown: 'Bajar {name}',
             remove: 'Quitar {name}',
@@ -859,6 +928,15 @@ export const es = {
                         'Deja de aparecer en las lecciones. Se puede restaurar como borrador.',
                     restore: 'Vuelve como borrador, todavía sin aparecer.',
                 },
+                video: {
+                    PUBLISHED:
+                        'Aparecerá en las lecciones que lo usan mientras YouTube lo tenga disponible.',
+                    DRAFT: 'Dejará de aparecer en las lecciones.',
+                    REVIEW: 'Dejará de aparecer en las lecciones hasta que se publique.',
+                    ARCHIVED:
+                        'Deja de aparecer en las lecciones. Se puede restaurar como borrador.',
+                    restore: 'Vuelve como borrador, todavía sin aparecer.',
+                },
                 skill: {
                     PUBLISHED: 'Aparecerá en las lecciones que la desarrollan.',
                     DRAFT: 'Dejará de aparecer en las lecciones.',
@@ -920,6 +998,7 @@ export const es = {
         diagramCaption: 'Diagrama (Mermaid)',
         videoCaption: 'YouTube · {id}',
         apply: 'Aplicar',
+        checking: 'Comprobando…',
         prompts: {
             linkTitle: 'Enlace',
             linkLabel: 'Dirección',
@@ -940,6 +1019,8 @@ export const es = {
             videoHelp:
                 'Pega el enlace de YouTube. Se guarda solo el ID del video, nunca un iframe.',
             videoInvalid: 'No es un enlace ni un ID de YouTube válido.',
+            videoUnavailable:
+                'YouTube no lo muestra: {reason}. Elige otro video.',
         },
         image: {
             button: 'Imagen',
@@ -1009,6 +1090,9 @@ export const es = {
             'Las lecciones aparecen aquí cuando el equipo editorial las publica.',
     },
     lesson: {
+        videos: 'Videos',
+        playVideo: 'Reproducir: {title}',
+        videoDuration: 'Duración:',
         module: 'Módulo: {module}',
         whyItMatters: 'Por qué importa',
         objectives: 'Al terminar podrás',
@@ -1066,6 +1150,12 @@ export const es = {
         REVIEW: 'En revisión',
         PUBLISHED: 'Publicado',
         ARCHIVED: 'Archivado',
+    },
+    videoAvailability: {
+        UNCHECKED: 'Sin comprobar',
+        OK: 'Disponible',
+        REDIRECTED: 'Disponible',
+        BROKEN: 'No disponible',
     },
     linkStatus: {
         UNCHECKED: 'Sin verificar',

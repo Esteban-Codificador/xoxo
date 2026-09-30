@@ -157,6 +157,16 @@ class Lesson extends Model
     }
 
     /**
+     * @return MorphToMany<Video, $this>
+     */
+    public function videos(): MorphToMany
+    {
+        return $this->morphToMany(Video::class, 'linkable', 'video_links', 'linkable_id', 'video_id')
+            ->withPivot(['position', 'note', 'start_seconds'])
+            ->orderByPivot('position');
+    }
+
+    /**
      * @return HasMany<LessonProgress, $this>
      */
     public function progress(): HasMany
