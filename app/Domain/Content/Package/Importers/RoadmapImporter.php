@@ -34,7 +34,7 @@ final class RoadmapImporter implements EntityImporter
             'slug' => $entity->string('slug'),
             'title' => $entity->string('title'),
             'summary' => $entity->string('summary'),
-            'description' => ($entity->body ?? '') === '' ? null : $this->markdown->convert((string) $entity->body),
+            'description' => ($entity->body ?? '') === '' ? null : $this->markdown->convert((string) $entity->body, $context->images),
             'locale' => $entity->string('locale', 'es'),
             'unlock_policy' => UnlockPolicy::from($entity->string('unlock_policy')),
             'mastery_threshold' => $entity->int('mastery_threshold', 90),

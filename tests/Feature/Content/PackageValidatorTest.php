@@ -109,3 +109,32 @@ it('reports structural problems in the directory tree', function () {
         ->toContain('tracks/01-base/suelta.md: archivo inesperado')
         ->toContain('skills/sin-front-matter.md: falta el front matter');
 });
+
+it('checks the images the package shows', function () {
+    $this->fixture->write('media/ciclo.png', imageBytes());
+    $this->fixture->write('media/texto.png', 'no soy una imagen');
+    $this->fixture->write('media/Mal nombre.png', imageBytes());
+    $this->fixture->lesson('01-primera', ['key' => 'base.primera', 'slug' => 'primera'], ContentPackageFixture::lessonBody(
+        "![Ciclo de vida](media/ciclo.png)\n\n![Falsa](media/texto.png)\n\n![Ausente](media/nada.png)\n\n![Fuera](../ciclo.png)\n\n![](media/ciclo.png)",
+    ));
+
+    expect(packageIssues($this->fixture))
+        ->toContain('media/Mal nombre.png: nombre no válido')
+        ->toContain('imagen "media/texto.png": solo se admiten imágenes PNG, JPEG o WebP.')
+        ->toContain('imagen "media/nada.png": el archivo no existe en el paquete.')
+        ->toContain('imagen "../ciclo.png": la ruta debe ser media/<archivo>')
+        ->toContain('imagen "media/ciclo.png": el texto alternativo es obligatorio')
+        ->not->toContain('"media/ciclo.png": el archivo');
+});
+
+it('accepts lessons, tracks and the roadmap showing images of the package', function () {
+    $this->fixture->write('media/ciclo.png', imageBytes());
+    $this->fixture->lesson('01-primera', ['key' => 'base.primera', 'slug' => 'primera'], ContentPackageFixture::lessonBody('![Ciclo de vida](media/ciclo.png)'));
+    $this->fixture->markdown('tracks/02-avanzado/track.md', [
+        'key' => 'avanzado', 'slug' => 'avanzado', 'title' => 'Avanzado', 'difficulty' => 'ADVANCED', 'status' => 'PUBLISHED',
+        'summary' => 'Track avanzado.', 'why_it_matters' => 'Porque sí.',
+        'depends_on' => [['track' => 'base', 'kind' => 'REQUIRED', 'min_progress' => 80]],
+    ], "Mapa del track:\n\n![Mapa del track avanzado](media/ciclo.png)");
+
+    expect(packageIssues($this->fixture))->toBe('');
+});

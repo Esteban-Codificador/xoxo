@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Field } from '@/features/cms/field';
 import { SaveBar } from '@/features/cms/save-bar';
 import { useUnsavedChangesGuard } from '@/features/cms/use-unsaved-changes-guard';
-import type { RichContent } from '@/features/rich-content';
+import type { MediaMap, RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';
 import { dashboard } from '@/routes/admin';
 import { edit, status, update } from '@/routes/admin/roadmaps';
@@ -45,6 +45,8 @@ type RoadmapFields = {
 };
 
 type Props = {
+    /** Images of the content, by media id (MediaSources). */
+    media: MediaMap;
     roadmap: RoadmapFields & {
         id: number;
         description: RichContent | null;
@@ -59,6 +61,7 @@ type Props = {
 
 export default function AdminRoadmapEdit({
     roadmap,
+    media,
     unlock_policies,
     status_actions,
 }: Props) {
@@ -292,6 +295,7 @@ export default function AdminRoadmapEdit({
                                     value={
                                         roadmap.description ?? EMPTY_DOCUMENT
                                     }
+                                    media={media}
                                     labelledBy={`${id}-description`}
                                     describedBy={`${id}-description-help`}
                                     invalid={errors.description !== undefined}

@@ -3,6 +3,7 @@
 namespace App\Domain\Content\Package\Export;
 
 use App\Domain\Content\Package\EntityType;
+use App\Domain\Content\Package\PackageMedia;
 use App\Domain\Content\Package\SourceEntity;
 use App\Domain\Content\RichContent\InvalidRichContent;
 use App\Domain\Content\RichContent\Markdown\MarkdownToRichContent;
@@ -142,7 +143,7 @@ final readonly class ExportFormat
         }
 
         try {
-            return $this->markdown->convert($markdown)->hash();
+            return $this->markdown->convert($markdown, PackageMedia::comparable())->hash();
         } catch (InvalidRichContent) {
             return 'invalid:'.hash('sha256', $markdown);
         }

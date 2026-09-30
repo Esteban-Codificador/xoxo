@@ -1,7 +1,12 @@
 import 'katex/dist/katex.min.css';
 import { EditorContent, useEditor } from '@tiptap/react';
-import { useEffect, useId, useRef } from 'react';
-import type { RichContent, RichNode } from '@/features/rich-content/types';
+import { useEffect, useId, useRef, useState } from 'react';
+import { MediaProvider } from '@/features/rich-content/media';
+import type {
+    MediaMap,
+    RichContent,
+    RichNode,
+} from '@/features/rich-content/types';
 import { cn } from '@/lib/utils';
 import type { EditMath } from './extensions';
 import { editorExtensions } from './extensions';
@@ -12,6 +17,8 @@ import { Toolbar } from './toolbar';
 export type RichContentEditorProps = {
     /** Initial document. The editor owns the content afterwards. */
     value: RichContent;
+    /** Images the initial document shows (the page's `media`). */
+    media?: MediaMap;
     onChange: (value: RichContent) => void;
     labelledBy: string;
     describedBy?: string;
@@ -38,6 +45,7 @@ export default function RichContentEditor(props: RichContentEditorProps) {
 
 function Editor({
     value,
+    media: initialMedia = {},
     onChange,
     labelledBy,
     describedBy,
@@ -47,6 +55,8 @@ function Editor({
 }: RichContentEditorProps) {
     const ask = useAsk();
     const contentId = useId();
+    // Grows with every upload: new images show before the page reloads.
+    const [media, setMedia] = useState<MediaMap>(() => ({ ...initialMedia }));
     const onChangeRef = useRef(onChange);
     const editMathRef = useRef<EditMath>(() => undefined);
 
@@ -109,8 +119,18 @@ function Editor({
                 invalid && 'border-destructive',
             )}
         >
-            {!readOnly && <Toolbar editor={editor} controls={contentId} />}
-            <EditorContent editor={editor} />
+            {!readOnly && (
+                <Toolbar
+                    editor={editor}
+                    controls={contentId}
+                    onImageUploaded={({ id, ...source }) =>
+                        setMedia((current) => ({ ...current, [id]: source }))
+                    }
+                />
+            )}
+            <MediaProvider media={media}>
+                <EditorContent editor={editor} />
+            </MediaProvider>
         </div>
     );
 }

@@ -11,7 +11,7 @@ import { CompleteLesson } from '@/features/progress/complete-lesson';
 import { StateBadge } from '@/features/progress/state-badge';
 import type { LessonProgress } from '@/features/progress/types';
 import { collectHeadings, RichContentRenderer } from '@/features/rich-content';
-import type { RichContent } from '@/features/rich-content';
+import type { MediaMap, RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';
 import { formatDate, formatMinutes } from '@/lib/format';
 import { dashboard } from '@/routes';
@@ -26,6 +26,8 @@ import type {
 } from '@/types/enums';
 
 type Props = {
+    /** Images of the content, by media id (MediaSources). */
+    media: MediaMap;
     roadmap: { slug: string; title: string };
     track: { slug: string; title: string };
     module: { slug: string; title: string };
@@ -58,6 +60,7 @@ export default function LessonShow({
     track,
     module,
     lesson,
+    media,
     prerequisites,
     skills,
     resources,
@@ -227,7 +230,7 @@ export default function LessonShow({
                         />
                     </details>
 
-                    <RichContentRenderer content={lesson.body} />
+                    <RichContentRenderer content={lesson.body} media={media} />
 
                     {skills.length > 0 && (
                         <section

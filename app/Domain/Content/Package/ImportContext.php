@@ -2,6 +2,7 @@
 
 namespace App\Domain\Content\Package;
 
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -12,7 +13,14 @@ final class ImportContext
     /** @var array<string, array<string, int>> */
     private array $ids = [];
 
-    public function __construct(public readonly ContentPackage $package, public readonly ImportReport $report) {}
+    /**
+     * @param  Closure(string): (int|string)  $images  Media id of each image of the package (PackageMedia::importer).
+     */
+    public function __construct(
+        public readonly ContentPackage $package,
+        public readonly ImportReport $report,
+        public readonly Closure $images,
+    ) {}
 
     public function remember(SourceEntity $entity, Model $model): void
     {

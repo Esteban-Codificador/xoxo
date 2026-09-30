@@ -98,8 +98,17 @@ Es Markdown compatible con GitHub, así que se ve igual en un PR. Se convierte a
 | Fórmula en línea / en bloque | `$a \cdot b$` / ```` ```math ```` |
 | Diagrama | ```` ```mermaid ```` |
 | Video de YouTube | ```` ```video ```` con las líneas `provider: youtube` e `id: <ID>` |
+| Imagen | `![texto alternativo](media/archivo.png)`, sola en su párrafo |
 
-No se admiten HTML crudo, encabezados H1 (el título ya lo es) ni, hasta la Fase 6, imágenes.
+No se admiten HTML crudo ni encabezados H1 (el título ya lo es).
+
+**Imágenes.** Lo normal es subirlas desde el editor del CMS (botón "Imagen"): se guarda una copia limpia, sin metadatos, de hasta 2400 px por lado, y `content:export` la escribe en `media/` con un nombre sacado de su contenido (`media/3f2a9c1e4b5d6a7f.png`). Si la añades a mano al paquete:
+
+- PNG, JPEG o WebP, hasta 5 MB y 4096 px por lado, en `media/` (sin subcarpetas; nombre con letras, números, `.`, `-` o `_`).
+- La ruta en el Markdown es relativa a la **raíz del paquete**, no al archivo de la lección: `media/…` desde cualquier lección.
+- El **texto alternativo es obligatorio**: describe lo que la imagen enseña para quien no puede verla ("Diagrama: los datos pasan por entrenamiento, evaluación y despliegue"), no "imagen" ni el nombre del archivo. Una sola línea, hasta 300 caracteres.
+- Sin título (`![alt](ruta "título")` es un error).
+- El importador guarda el archivo tal cual (no lo reencodifica): quítale tú los metadatos si es una foto. El siguiente `content:export` lo renombra por su contenido y actualiza la ruta.
 
 **Lenguajes con resaltado:** `python`, `bash`, `javascript`, `typescript`, `tsx`, `jsx`, `json`, `yaml`, `toml`, `ini`, `sql`, `php`, `html`, `css`, `xml`, `markdown`, `dockerfile`, `diff`, `go`, `rust`, `java`, `c` y `cpp`, más alias comunes (`py`, `sh`, `shell`, `console`, `js`, `ts`, `yml`, `md`, `docker`). Cualquier otro se muestra como texto plano con su etiqueta.
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Learn;
 
+use App\Domain\Content\Media\MediaSources;
 use App\Domain\Curriculum\Queries\TrackOutline;
 use App\Domain\Learning\State\RoadmapStateResolver;
 use App\Http\Controllers\Controller;
@@ -20,7 +21,7 @@ use Inertia\Response;
 
 class ShowTrackController extends Controller
 {
-    public function __invoke(Request $request, Roadmap $roadmap, Track $track, RoadmapStateResolver $states): Response
+    public function __invoke(Request $request, Roadmap $roadmap, Track $track, RoadmapStateResolver $states, MediaSources $media): Response
     {
         $track->setRelation('roadmap', $roadmap);
         Gate::authorize('view', $track);
@@ -43,6 +44,7 @@ class ShowTrackController extends Controller
                 'lessons_count' => $outline->lessons()->count(),
                 'total_minutes' => $outline->totalMinutes(),
             ],
+            'media' => $media->for($track->description),
             'progress' => $trackState->toArray(),
             'policy' => $state->policy->value,
             // First lesson not done yet, in study order: "Empezar" or "Continuar".

@@ -3,6 +3,7 @@
 namespace App\Domain\Curriculum\Publishing;
 
 use App\Domain\Content\Diff\TextDiff;
+use App\Domain\Content\Media\MediaNames;
 use App\Domain\Content\RichContent\Markdown\RichContentToMarkdown;
 use App\Domain\Content\RichContent\RichContent;
 
@@ -25,7 +26,10 @@ final readonly class LessonChanges
 
     private const array ATTRIBUTES = ['content_type', 'difficulty', 'estimated_minutes'];
 
-    public function __construct(private RichContentToMarkdown $markdown) {}
+    public function __construct(
+        private RichContentToMarkdown $markdown,
+        private MediaNames $media,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $before
@@ -74,6 +78,10 @@ final readonly class LessonChanges
 
     private function body(mixed $body): string
     {
-        return $this->markdown->convert($body instanceof RichContent ? $body : RichContent::fromArray($body ?? RichContent::empty()->toArray()));
+        // Images read as in the package: an image swapped for another is a changed line.
+        return $this->markdown->convert(
+            $body instanceof RichContent ? $body : RichContent::fromArray($body ?? RichContent::empty()->toArray()),
+            $this->media->pathOf(...),
+        );
     }
 }

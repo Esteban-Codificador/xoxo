@@ -153,6 +153,13 @@
                 "attrs": { "provider": "youtube", "videoId": "aircAruvnKk" }
             },
             {
+                "type": "image",
+                "attrs": {
+                    "mediaId": 1,
+                    "alt": "Ciclo de vida de un modelo: datos, entrenamiento, evaluación y despliegue"
+                }
+            },
+            {
                 "type": "table",
                 "content": [
                     {

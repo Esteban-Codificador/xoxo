@@ -6,7 +6,7 @@ import type { VersionEntry } from '@/features/cms/publish-panel';
 import type { Changes } from '@/features/cms/lesson-changes';
 import { LessonChanges } from '@/features/cms/lesson-changes';
 import { RichContentRenderer } from '@/features/rich-content';
-import type { RichContent } from '@/features/rich-content';
+import type { MediaMap, RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';
 import { formatDate, formatMinutes } from '@/lib/format';
 import { dashboard } from '@/routes/admin';
@@ -15,6 +15,8 @@ import { show } from '@/routes/admin/lessons/versions';
 import type { ContentType, Difficulty } from '@/types/enums';
 
 type Props = {
+    /** Images of the content, by media id (MediaSources). */
+    media: MediaMap;
     lesson: { slug: string; title: string };
     version: VersionEntry;
     /** The version this one is compared with; null for the first. */
@@ -38,6 +40,7 @@ export default function AdminLessonVersion({
     previous,
     changes,
     content,
+    media,
 }: Props) {
     setLayoutProps({
         breadcrumbs: [
@@ -169,7 +172,7 @@ export default function AdminLessonVersion({
                             </ul>
                         </div>
                     </div>
-                    <RichContentRenderer content={content.body} />
+                    <RichContentRenderer content={content.body} media={media} />
                 </section>
             </div>
         </>

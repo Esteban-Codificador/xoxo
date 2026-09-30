@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Content\Media\MediaSources;
 use App\Domain\Curriculum\Publishing\LessonChanges;
 use App\Http\Controllers\Controller;
 use App\Models\Lesson;
@@ -17,7 +18,7 @@ use Inertia\Response;
  */
 class LessonVersionController extends Controller
 {
-    public function show(Lesson $lesson, LessonVersion $version, LessonChanges $changes): Response
+    public function show(Lesson $lesson, LessonVersion $version, LessonChanges $changes, MediaSources $media): Response
     {
         Gate::authorize('edit', $lesson);
 
@@ -45,6 +46,7 @@ class LessonVersionController extends Controller
                 'estimated_minutes' => $version->estimated_minutes,
                 'body' => $version->body,
             ],
+            'media' => $media->for($version->body),
         ]);
     }
 

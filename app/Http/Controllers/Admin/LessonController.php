@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Content\Media\MediaSources;
 use App\Domain\Curriculum\Actions\CreateLesson;
 use App\Domain\Curriculum\Actions\UpdateLesson;
 use App\Domain\Curriculum\Publishing\LessonDraft;
@@ -90,7 +91,7 @@ class LessonController extends Controller
         return to_route('admin.lessons.edit', ['lesson' => $lesson->slug]);
     }
 
-    public function edit(Request $request, Lesson $lesson, LessonReadiness $readiness, ReviewEligibility $eligibility): Response
+    public function edit(Request $request, Lesson $lesson, LessonReadiness $readiness, ReviewEligibility $eligibility, MediaSources $media): Response
     {
         Gate::authorize('edit', $lesson);
 
@@ -115,6 +116,7 @@ class LessonController extends Controller
                 'track' => $lesson->module->track->title,
                 'module' => $lesson->module->title,
             ],
+            'media' => $media->for($lesson->body),
             // Computed on the saved working copy: the checklist a publish would run.
             'readiness' => array_map(
                 fn (ReadinessIssue $issue) => ['code' => $issue->code, 'message' => $issue->message()],

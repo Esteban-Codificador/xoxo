@@ -26,7 +26,7 @@ import { PublishPanel } from '@/features/cms/publish-panel';
 import type { ReviewState } from '@/features/cms/review-panel';
 import { SaveBar } from '@/features/cms/save-bar';
 import { useUnsavedChangesGuard } from '@/features/cms/use-unsaved-changes-guard';
-import type { RichContent } from '@/features/rich-content';
+import type { MediaMap, RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';
 import { dashboard } from '@/routes/admin';
 import { edit, index, update } from '@/routes/admin/lessons';
@@ -51,6 +51,8 @@ type LessonFields = {
 };
 
 type Props = {
+    /** Images of the content, by media id (MediaSources). */
+    media: MediaMap;
     lesson: LessonFields & {
         body: RichContent;
         status: ContentStatus;
@@ -75,6 +77,7 @@ type Props = {
 
 export default function AdminLessonEdit({
     lesson,
+    media,
     readiness,
     publication,
     versions,
@@ -430,6 +433,7 @@ export default function AdminLessonEdit({
                                 >
                                     <RichContentEditor
                                         value={lesson.body}
+                                        media={media}
                                         labelledBy={`${id}-body`}
                                         describedBy={`${id}-body-help`}
                                         invalid={errors.body !== undefined}

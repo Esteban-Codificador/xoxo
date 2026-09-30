@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // RichContent is saved as sent: trimming its text nodes would glue
+        // "un **commit**" into "un**commit**" (every {version, doc} field).
+        $middleware->trimStrings(except: ['*.doc.*']);
+
         $middleware->web(append: [
             SetLocale::class,
             RecordLastActivity::class,

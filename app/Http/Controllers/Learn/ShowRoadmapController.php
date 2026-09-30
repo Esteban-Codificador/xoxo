@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Learn;
 
+use App\Domain\Content\Media\MediaSources;
 use App\Domain\Learning\State\RoadmapStateResolver;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TrackSummaryResource;
@@ -20,7 +21,7 @@ use Inertia\Response;
  */
 class ShowRoadmapController extends Controller
 {
-    public function __invoke(Request $request, Roadmap $roadmap, RoadmapStateResolver $states): Response
+    public function __invoke(Request $request, Roadmap $roadmap, RoadmapStateResolver $states, MediaSources $media): Response
     {
         Gate::authorize('view', $roadmap);
 
@@ -55,6 +56,7 @@ class ShowRoadmapController extends Controller
                 'summary' => $roadmap->summary,
                 'description' => $roadmap->description,
             ],
+            'media' => $media->for($roadmap->description),
             'policy' => $state->policy->value,
             'tracks' => $tracks->map(function (Track $track) use ($state) {
                 $lessons = $state->lessonsOf($track);

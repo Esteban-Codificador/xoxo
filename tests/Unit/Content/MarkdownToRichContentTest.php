@@ -132,9 +132,43 @@ it('rejects constructs outside the schema with the line number', function (strin
     'h1' => ["# Título\n", 'línea 1: encabezado de nivel 1'],
     'raw html block' => ["Intro\n\n<div>hola</div>\n", 'línea 3: el HTML crudo no está permitido'],
     'inline html' => ['texto <span>x</span>', 'el HTML crudo no está permitido'],
-    'image' => ['![diagrama](diagrama.png)', 'las imágenes se habilitan en la Fase 6'],
+    'image outside a package' => ['![diagrama](media/diagrama.png)', 'las imágenes solo se admiten dentro de un paquete de contenido'],
     'javascript link' => ['[clic](javascript:alert(1))', 'esquema de enlace no permitido'],
     'video without id' => ["```video\nprovider: youtube\n```", 'necesita las líneas "provider:" e "id:"'],
     'invalid video id' => ["```video\nprovider: youtube\nid: nope\n```", 'videoId: formato inválido'],
     'empty callout' => ["> [!TIP]\n", 'el callout está vacío'],
+]);
+
+it('converts an image on its own paragraph, with the id its resolver gives the path', function () {
+    $paths = [];
+    $blocks = (new MarkdownToRichContent)->convert(
+        "Antes.\n\n![Diagrama del ciclo \\[v2\\] con *énfasis* y `código`](media/ciclo.png)\n\n- ![En una lista](media/lista.webp)",
+        function (string $path) use (&$paths): int {
+            $paths[] = $path;
+
+            return count($paths);
+        },
+    )->doc['content'];
+
+    expect($paths)->toBe(['media/ciclo.png', 'media/lista.webp'])
+        ->and($blocks[1])->toBe(['type' => 'image', 'attrs' => ['mediaId' => 1, 'alt' => 'Diagrama del ciclo [v2] con énfasis y código']])
+        ->and($blocks[2]['content'][0]['content'][0])->toBe(['type' => 'image', 'attrs' => ['mediaId' => 2, 'alt' => 'En una lista']]);
+});
+
+it('explains what is wrong with an image', function (string $markdown, string $expected) {
+    try {
+        (new MarkdownToRichContent)->convert($markdown, fn (string $path) => $path === 'media/ok.png' ? 1 : 'el archivo no existe en el paquete.');
+        $errors = '';
+    } catch (InvalidRichContent $exception) {
+        $errors = implode("\n", $exception->errors);
+    }
+
+    expect($errors)->toContain($expected);
+})->with([
+    'inside text' => ['Mira ![x](media/ok.png) aquí', 'línea 1: una imagen va sola en su párrafo'],
+    'no alternative text' => ['![](media/ok.png)', 'el texto alternativo es obligatorio'],
+    'blank alternative text' => ['![   ](media/ok.png)', 'el texto alternativo es obligatorio'],
+    'title' => ['![x](media/ok.png "Título")', 'las imágenes no admiten título'],
+    'unknown file' => ["Intro\n\n![x](media/otra.png)", 'línea 3: imagen "media/otra.png": el archivo no existe en el paquete.'],
+    'in a table' => ["| A |\n|---|\n| ![x](media/ok.png) |", 'una imagen va sola en su párrafo'],
 ]);

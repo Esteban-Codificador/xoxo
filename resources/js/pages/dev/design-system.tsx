@@ -14,13 +14,15 @@ import {
     LinkStatusBadge,
 } from '@/components/publishing/status-badges';
 import { RichContentRenderer } from '@/features/rich-content';
-import type { RichContent } from '@/features/rich-content';
+import type { MediaMap, RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { ContentStatus, LinkStatus, NodeState } from '@/types/enums';
 
 type Props = {
+    /** Images of the content, by media id (MediaSources). */
+    media: MediaMap;
     lessons: { slug: string; title: string }[];
     lesson: { slug: string; title: string; body: RichContent } | null;
 };
@@ -52,7 +54,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
     );
 }
 
-export default function DesignSystem({ lessons, lesson }: Props) {
+export default function DesignSystem({ lessons, lesson, media }: Props) {
     return (
         <>
             <Head title={t('designSystem.head')} />
@@ -190,6 +192,7 @@ export default function DesignSystem({ lessons, lesson }: Props) {
                                 <RichContentRenderer
                                     key={lesson.slug}
                                     content={lesson.body}
+                                    media={media}
                                 />
                             </article>
                         </div>

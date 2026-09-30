@@ -37,7 +37,7 @@ final class TrackImporter implements EntityImporter
             'title' => $entity->string('title'),
             'summary' => $entity->string('summary'),
             'why_it_matters' => $entity->string('why_it_matters'),
-            'description' => ($entity->body ?? '') === '' ? null : $this->markdown->convert((string) $entity->body),
+            'description' => ($entity->body ?? '') === '' ? null : $this->markdown->convert((string) $entity->body, $context->images),
             'icon' => $entity->nullableString('icon'),
             'position' => $entity->position,
             'difficulty' => Difficulty::from($entity->string('difficulty')),

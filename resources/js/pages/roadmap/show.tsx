@@ -4,7 +4,7 @@ import { lazy, Suspense, useState } from 'react';
 import { EmptyState } from '@/components/empty-state';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { RichContentRenderer } from '@/features/rich-content';
-import type { RichContent } from '@/features/rich-content';
+import type { MediaMap, RichContent } from '@/features/rich-content';
 import { NodeDetailPanel } from '@/features/roadmap-graph/node-detail-panel';
 import { RoadmapListView } from '@/features/roadmap-graph/roadmap-list-view';
 import type { RoadmapEdge, RoadmapTrack } from '@/features/roadmap-graph/types';
@@ -18,6 +18,8 @@ const RoadmapCanvas = lazy(
 );
 
 type Props = {
+    /** Images of the content, by media id (MediaSources). */
+    media: MediaMap;
     roadmap: {
         slug: string;
         title: string;
@@ -41,7 +43,13 @@ function initialView(): View {
         : 'graph';
 }
 
-export default function RoadmapShow({ roadmap, policy, tracks, edges }: Props) {
+export default function RoadmapShow({
+    roadmap,
+    media,
+    policy,
+    tracks,
+    edges,
+}: Props) {
     setLayoutProps({
         breadcrumbs: [
             { title: t('nav.dashboard'), href: dashboard() },
@@ -125,6 +133,7 @@ export default function RoadmapShow({ roadmap, policy, tracks, edges }: Props) {
                         <div className="mt-3">
                             <RichContentRenderer
                                 content={roadmap.description}
+                                media={media}
                             />
                         </div>
                     </details>

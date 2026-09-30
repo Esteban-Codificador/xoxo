@@ -7,6 +7,7 @@ import {
     Heading2,
     Heading3,
     Heading4,
+    ImagePlus,
     Info,
     Italic,
     Link,
@@ -25,12 +26,14 @@ import {
     Undo2,
     Workflow,
 } from 'lucide-react';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import type { MathKind } from './extensions';
+import type { UploadedImage } from './image-dialog';
+import { ImageDialog } from './image-dialog';
 import { askDiagram } from './nodes/diagram';
 import { askVideoId } from './nodes/video';
 import { useAsk } from './prompt-dialog';
@@ -99,12 +102,16 @@ function TextButton({
 export function Toolbar({
     editor,
     controls,
+    onImageUploaded,
 }: {
     editor: Editor;
     controls: string;
+    /** The editor shows the new image with the URL the upload returned. */
+    onImageUploaded: (image: UploadedImage) => void;
 }) {
     const ask = useAsk();
     const languageId = useId();
+    const [addingImage, setAddingImage] = useState(false);
 
     const state = useEditorState({
         editor,
@@ -349,7 +356,31 @@ export function Toolbar({
                     icon={SquarePlay}
                     onClick={() => void insertVideo()}
                 />
+                <ToolbarButton
+                    label={t('editor.image.button')}
+                    icon={ImagePlus}
+                    onClick={() => setAddingImage(true)}
+                />
             </div>
+
+            {addingImage && (
+                <ImageDialog
+                    onClose={() => {
+                        setAddingImage(false);
+                        editor.commands.focus();
+                    }}
+                    onInsert={(image, alt) => {
+                        onImageUploaded(image);
+                        setAddingImage(false);
+                        chain()
+                            .insertContent({
+                                type: 'image',
+                                attrs: { mediaId: image.id, alt },
+                            })
+                            .run();
+                    }}
+                />
+            )}
 
             {state.table && (
                 <div

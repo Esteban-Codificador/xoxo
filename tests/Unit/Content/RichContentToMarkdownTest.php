@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Content\Package\PackageMedia;
 use App\Domain\Content\RichContent\Markdown\MarkdownToRichContent;
 use App\Domain\Content\RichContent\Markdown\RichContentToMarkdown;
 use App\Domain\Content\RichContent\RichContent;
@@ -12,7 +13,18 @@ use App\Domain\Content\RichContent\RichContent;
 
 function toMarkdown(array $content): string
 {
-    return (new RichContentToMarkdown)->convert(RichContent::fromDocument(['type' => 'doc', 'content' => $content]));
+    return (new RichContentToMarkdown)->convert(RichContent::fromDocument(['type' => 'doc', 'content' => $content]), imagePath(...));
+}
+
+/** Stand-in for MediaNames: media id 7 is media/imagen-7.png. */
+function imagePath(int $id): string
+{
+    return "media/imagen-{$id}.png";
+}
+
+function imageId(string $path): int|string
+{
+    return preg_match('/^media\/imagen-(\d+)\.png$/', $path, $match) === 1 ? (int) $match[1] : 'desconocida';
 }
 
 /**
@@ -42,9 +54,9 @@ function comparableDocument(mixed $value): mixed
 
 function roundTrip(array $doc): array
 {
-    $markdown = (new RichContentToMarkdown)->convert(RichContent::fromDocument($doc));
+    $markdown = (new RichContentToMarkdown)->convert(RichContent::fromDocument($doc), imagePath(...));
 
-    return (new MarkdownToRichContent)->convert($markdown)->doc;
+    return (new MarkdownToRichContent)->convert($markdown, imageId(...))->doc;
 }
 
 it('round-trips the fixture with every node and mark', function () {
@@ -66,7 +78,8 @@ it('round-trips every Markdown body of the content package', function () {
 
     foreach ($files as $file) {
         $body = (string) preg_replace('/\A---\n.*?\n---\n/s', '', (string) file_get_contents((string) $file));
-        $doc = (new MarkdownToRichContent)->convert($body)->doc;
+        // Images of the package get stand-in ids; the round trip keeps them.
+        $doc = (new MarkdownToRichContent)->convert($body, PackageMedia::comparable())->doc;
 
         expect(roundTrip($doc))->toEqual($doc, (string) $file);
         $checked++;
@@ -128,3 +141,22 @@ it('keeps overlapping marks and spaces at the edge of a run valid', function () 
 it('serializes an empty document as an empty string', function () {
     expect((new RichContentToMarkdown)->convert(RichContent::empty()))->toBe('');
 });
+
+it('writes images as a paragraph with the path the caller gives', function () {
+    expect(toMarkdown([
+        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Antes.']]],
+        ['type' => 'image', 'attrs' => ['mediaId' => 7, 'alt' => 'Pesos [w] y *sesgo* con $b$']],
+    ]))->toBe("Antes.\n\n".'![Pesos \[w\] y \*sesgo\* con \$b\$](media/imagen-7.png)'."\n");
+
+    expect(roundTrip(['type' => 'doc', 'content' => [
+        ['type' => 'image', 'attrs' => ['mediaId' => 7, 'alt' => 'Pesos [w] y *sesgo* con $b$ y `x`']],
+    ]]))->toBe(['type' => 'doc', 'content' => [
+        ['type' => 'image', 'attrs' => ['mediaId' => 7, 'alt' => 'Pesos [w] y *sesgo* con $b$ y `x`']],
+    ]]);
+});
+
+it('needs a path resolver for documents with images', function () {
+    (new RichContentToMarkdown)->convert(RichContent::fromDocument(['type' => 'doc', 'content' => [
+        ['type' => 'image', 'attrs' => ['mediaId' => 7, 'alt' => 'x']],
+    ]]));
+})->throws(LogicException::class);

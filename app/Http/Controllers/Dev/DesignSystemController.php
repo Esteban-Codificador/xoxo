@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Dev;
 
+use App\Domain\Content\Media\MediaSources;
 use App\Http\Controllers\Controller;
 use App\Models\Lesson;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ use Inertia\Response;
  */
 class DesignSystemController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, MediaSources $media): Response
     {
         $lessons = Lesson::query()
             ->visibleToLearners()
@@ -35,6 +36,7 @@ class DesignSystemController extends Controller
                 'title' => $selected->publishedVersion->title,
                 'body' => $selected->publishedVersion->body,
             ],
+            'media' => $media->for($selected?->publishedVersion?->body),
         ]);
     }
 }

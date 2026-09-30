@@ -14,6 +14,7 @@ use App\Enums\DependencyKind;
 use App\Enums\Difficulty;
 use App\Enums\ResourceType;
 use App\Enums\UnlockPolicy;
+use Closure;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -31,10 +32,16 @@ final class PackageValidator
     /** @var list<PackageIssue> */
     private array $issues = [];
 
+    /** @var Closure(string): (int|string) */
+    private Closure $images;
+
     public function __construct(
         private readonly MarkdownToRichContent $markdown,
         private readonly LessonReadiness $readiness,
-    ) {}
+        private readonly PackageMedia $media,
+    ) {
+        $this->images = PackageMedia::comparable();
+    }
 
     /**
      * @return list<PackageIssue>
@@ -42,6 +49,7 @@ final class PackageValidator
     public function validate(ContentPackage $package): array
     {
         $this->issues = $package->readIssues();
+        $this->images = $this->media->checker($package);
 
         if ($package->roadmap() === null) {
             $this->issue('roadmap.yaml', 'el paquete necesita un roadmap.');
@@ -309,7 +317,7 @@ final class PackageValidator
     private function richContent(SourceEntity $entity, bool $report = true): ?RichContent
     {
         try {
-            return $this->markdown->convert((string) $entity->body);
+            return $this->markdown->convert((string) $entity->body, $this->images);
         } catch (InvalidRichContent $exception) {
             if ($report) {
                 foreach ($exception->errors as $error) {

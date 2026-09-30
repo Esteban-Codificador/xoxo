@@ -1,9 +1,12 @@
 <?php
 
+use App\Domain\Content\Media\ImageProcessor;
+use App\Domain\Content\Media\MediaStore;
 use App\Domain\Content\RichContent\RichContent;
 use App\Domain\Curriculum\Actions\PublishLesson;
 use App\Enums\Role;
 use App\Models\Lesson;
+use App\Models\MediaAsset;
 use App\Models\Module;
 use App\Models\Roadmap;
 use App\Models\Skill;
@@ -62,6 +65,38 @@ function publishedLesson(array $attributes = [], ?Module $module = null): Lesson
     app(PublishLesson::class)->handle($lesson);
 
     return $lesson->refresh();
+}
+
+/**
+ * Bytes of a real image drawn by GD, one solid colour.
+ *
+ * @param  array{0: int, 1: int, 2: int}  $rgb
+ */
+function imageBytes(int $width = 120, int $height = 80, string $type = 'png', array $rgb = [30, 90, 200]): string
+{
+    $image = imagecreatetruecolor($width, $height);
+    imagefill($image, 0, 0, (int) imagecolorallocate($image, ...$rgb));
+    ob_start();
+    match ($type) {
+        'jpeg' => imagejpeg($image),
+        'webp' => imagewebp($image),
+        'gif' => imagegif($image),
+        default => imagepng($image),
+    };
+
+    return (string) ob_get_clean();
+}
+
+/**
+ * An image stored as uploads and imports store them, on the (fake) media disk.
+ *
+ * @param  array{0: int, 1: int, 2: int}  $rgb
+ */
+function storedImage(int $width = 120, int $height = 80, array $rgb = [30, 90, 200]): MediaAsset
+{
+    $bytes = imageBytes($width, $height, 'png', $rgb);
+
+    return app(MediaStore::class)->put($bytes, app(ImageProcessor::class)->inspect($bytes), 'imagen.png', null);
 }
 
 /** A user with a CMS role (or a learner, with Role::Student). */

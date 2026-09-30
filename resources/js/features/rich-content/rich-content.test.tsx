@@ -319,6 +319,45 @@ describe('video', () => {
     });
 });
 
+describe('image', () => {
+    const image: RichNode = {
+        type: 'image',
+        attrs: { mediaId: 7, alt: 'Ciclo de vida de un modelo' },
+    };
+
+    it('shows the stored image with its size and alternative text', () => {
+        render(
+            <RichContentRenderer
+                content={{ version: 1, doc: { type: 'doc', content: [image] } }}
+                media={{
+                    7: {
+                        url: '/media/7?signature=abc',
+                        width: 640,
+                        height: 480,
+                    },
+                }}
+            />,
+        );
+
+        const img = screen.getByRole('img', {
+            name: 'Ciclo de vida de un modelo',
+        });
+        expect(img).toHaveAttribute('src', '/media/7?signature=abc');
+        expect(img).toHaveAttribute('width', '640');
+        expect(img).toHaveAttribute('height', '480');
+        expect(img).toHaveAttribute('loading', 'lazy');
+    });
+
+    it('says which image is missing when the page did not send it', () => {
+        const { container } = renderDoc(image);
+
+        expect(container.querySelector('img')).toBeNull();
+        expect(container).toHaveTextContent(
+            'Imagen no disponible: Ciclo de vida de un modelo',
+        );
+    });
+});
+
 describe('code', () => {
     it('shows the code immediately and highlights it once Shiki loads', async () => {
         const code = 'def saludar(nombre):\n    return f"Hola, {nombre}"';

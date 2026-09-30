@@ -11,8 +11,10 @@ use App\Enums\ContentStatus;
 use App\Models\AuditLog;
 use App\Models\ContentImportRecord;
 use App\Models\Lesson;
+use App\Models\MediaAsset;
 use App\Models\Skill;
 use App\Models\Track;
+use Illuminate\Support\Facades\Storage;
 use Tests\Support\ContentPackageFixture;
 
 function importFixture(ContentPackageFixture $fixture, bool $force = false, bool $dryRun = false): ImportReport
@@ -128,4 +130,36 @@ it('audits the import as IMPORTED and the publications as PUBLISHED', function (
     expect(AuditLog::query()->where('action', AuditAction::Imported)->where('auditable_type', 'lesson')->count())->toBe(2)
         ->and(AuditLog::query()->where('action', AuditAction::Published)->count())->toBe(2)
         ->and(AuditLog::query()->where('action', AuditAction::Created)->count())->toBe(0);
+});
+
+it('imports the images of the package as they are, once each', function () {
+    $bytes = imageBytes(200, 100);
+    $this->fixture->write('media/ciclo.png', $bytes);
+    $this->fixture->lesson('01-primera', ['key' => 'base.primera', 'slug' => 'primera'], ContentPackageFixture::lessonBody('![Ciclo de vida](media/ciclo.png)'));
+    $this->fixture->lesson('02-segunda', [
+        'key' => 'base.segunda', 'slug' => 'segunda',
+        'depends_on' => [['lesson' => 'base.primera', 'kind' => 'REQUIRED']],
+    ], ContentPackageFixture::lessonBody('![El mismo ciclo, otra vez](media/ciclo.png)'));
+
+    // A dry run leaves no row and no file behind.
+    importFixture($this->fixture, dryRun: true);
+    expect(MediaAsset::count())->toBe(0)
+        ->and(Storage::disk('local')->allFiles())->toBe([]);
+
+    importFixture($this->fixture);
+    $asset = MediaAsset::query()->sole();
+    $primera = Lesson::firstWhere('slug', 'primera');
+
+    // Not re-encoded: the checksum that names the file in the package stays the same.
+    expect($asset->checksum)->toBe(hash('sha256', $bytes))
+        ->and(Storage::disk('local')->get($asset->path))->toBe($bytes)
+        ->and([$asset->width, $asset->height, $asset->uploaded_by])->toBe([200, 100, null])
+        ->and($primera->publishedVersion->body->mediaIds())->toBe([$asset->id])
+        ->and(collect($primera->publishedVersion->body->doc['content'])->firstWhere('type', 'image')['attrs']['alt'])->toBe('Ciclo de vida')
+        ->and(Lesson::firstWhere('slug', 'segunda')->body->mediaIds())->toBe([$asset->id]);
+
+    $report = importFixture($this->fixture);
+
+    expect($report->count(EntityType::Lesson, ImportOutcome::Unchanged))->toBe(2)
+        ->and(MediaAsset::count())->toBe(1);
 });

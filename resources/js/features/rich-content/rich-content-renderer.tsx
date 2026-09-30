@@ -5,13 +5,15 @@ import { useMemo } from 'react';
 import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { Callout, isCalloutVariant } from './nodes/callout';
+import { MediaProvider } from './media';
 import { CodeBlock } from './nodes/code-block';
+import { ContentImage } from './nodes/content-image';
 import { MathBlock, MathInline } from './nodes/math';
 import { MermaidDiagram } from './nodes/mermaid-diagram';
 import { VideoEmbed } from './nodes/video-embed';
 import { safeHref } from './safe-href';
 import { collectHeadings, textOf } from './text';
-import type { RichContent, RichMark, RichNode } from './types';
+import type { MediaMap, RichContent, RichMark, RichNode } from './types';
 
 type Context = { headingIds: Map<RichNode, string> };
 
@@ -245,6 +247,14 @@ function renderNode(node: RichNode, key: number, context: Context): ReactNode {
                     videoId={attrs.videoId}
                 />
             );
+        case 'image':
+            return (
+                <ContentImage
+                    key={key}
+                    mediaId={attrs.mediaId}
+                    alt={attrs.alt}
+                />
+            );
         default:
             warnUnknown('node', node.type);
 
@@ -254,13 +264,17 @@ function renderNode(node: RichNode, key: number, context: Context): ReactNode {
 
 /**
  * Maps each RichContent node to a React element (frontend-architecture §7).
- * No HTML string is generated; unknown nodes and marks are skipped.
+ * No HTML string is generated; unknown nodes and marks are skipped. Images
+ * take their URL and size from `media`, which the page receives with the
+ * content.
  */
 export function RichContentRenderer({
     content,
+    media = {},
     className,
 }: {
     content: RichContent;
+    media?: MediaMap;
     className?: string;
 }) {
     const context = useMemo<Context>(
@@ -279,7 +293,9 @@ export function RichContentRenderer({
                 className,
             )}
         >
-            {renderChildren(content.doc, context)}
+            <MediaProvider media={media}>
+                {renderChildren(content.doc, context)}
+            </MediaProvider>
         </div>
     );
 }

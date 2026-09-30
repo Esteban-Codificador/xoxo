@@ -6,6 +6,7 @@ use App\Domain\Content\RichContent\InvalidRichContent;
 use App\Domain\Content\RichContent\RichContent;
 use App\Domain\Content\RichContent\RichContentSchema;
 use App\Domain\Content\RichContent\RichContentValidator;
+use Closure;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\Autolink\AutolinkExtension;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
@@ -40,6 +41,11 @@ use League\CommonMark\Parser\MarkdownParser;
 /**
  * Converts the authoring Markdown of the content package (GitHub-compatible
  * dialect, see docs/content-architecture.md §5) into RichContent.
+ *
+ * An image is a paragraph of its own, `![alternative text](media/file.png)`.
+ * Only the caller knows what a path stands for (a file of the package being
+ * imported, one being validated…), so it passes a resolver; without one,
+ * images are an error.
  */
 final class MarkdownToRichContent
 {
@@ -51,6 +57,9 @@ final class MarkdownToRichContent
     private array $errors = [];
 
     private int $line = 1;
+
+    /** @var (Closure(string): (int|string))|null */
+    private ?Closure $images = null;
 
     public function __construct()
     {
@@ -65,12 +74,15 @@ final class MarkdownToRichContent
     }
 
     /**
+     * @param  (Closure(string): (int|string))|null  $images  Media id of an image path, or why it cannot be used.
+     *
      * @throws InvalidRichContent
      */
-    public function convert(string $markdown): RichContent
+    public function convert(string $markdown, ?Closure $images = null): RichContent
     {
         $this->errors = [];
         $this->line = 1;
+        $this->images = $images;
 
         $document = ['type' => 'doc', 'content' => $this->blocks($this->parser->parse($markdown))];
         $errors = $this->takeErrors();
@@ -117,7 +129,7 @@ final class MarkdownToRichContent
     private function block(Node $node): ?array
     {
         return match (true) {
-            $node instanceof Paragraph => $this->withContent(['type' => 'paragraph'], $this->inlines($node, [])),
+            $node instanceof Paragraph => $this->paragraph($node),
             $node instanceof Heading => $this->heading($node),
             $node instanceof BlockQuote => $this->blockQuote($node),
             $node instanceof ListBlock => $this->list($node),
@@ -128,6 +140,71 @@ final class MarkdownToRichContent
             $node instanceof HtmlBlock => $this->error('el HTML crudo no está permitido.'),
             default => $this->error('bloque no soportado ('.class_basename($node).').'),
         };
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function paragraph(Paragraph $paragraph): ?array
+    {
+        $children = array_filter(
+            [...$paragraph->children()],
+            fn (Node $child) => ! $child instanceof Text || trim($child->getLiteral()) !== '',
+        );
+
+        if (count($children) === 1 && reset($children) instanceof Image) {
+            return $this->image(reset($children));
+        }
+
+        return $this->withContent(['type' => 'paragraph'], $this->inlines($paragraph, []));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function image(Image $image): ?array
+    {
+        $path = $image->getUrl();
+        $alt = $this->plainText($image);
+
+        if (($image->getTitle() ?? '') !== '') {
+            return $this->error("imagen \"{$path}\": las imágenes no admiten título; quita el texto entre comillas.");
+        }
+
+        $altError = RichContentSchema::altText($alt);
+
+        if ($altError !== null) {
+            return $this->error("imagen \"{$path}\": {$altError}; escríbelo entre los corchetes: ![descripción]({$path}).");
+        }
+
+        if ($this->images === null) {
+            return $this->error('las imágenes solo se admiten dentro de un paquete de contenido.');
+        }
+
+        $mediaId = ($this->images)($path);
+
+        if (is_string($mediaId)) {
+            return $this->error("imagen \"{$path}\": {$mediaId}");
+        }
+
+        return ['type' => 'image', 'attrs' => ['mediaId' => $mediaId, 'alt' => $alt]];
+    }
+
+    /** The alternative text of an image, as the reader of a screen hears it. */
+    private function plainText(Node $node): string
+    {
+        $text = '';
+
+        foreach ($node->children() as $child) {
+            $text .= match (true) {
+                $child instanceof Text, $child instanceof Code => $child->getLiteral(),
+                $child instanceof InlineMath => $child->latex,
+                $child instanceof Newline => ' ',
+                default => $this->plainText($child),
+            };
+        }
+
+        return $text;
     }
 
     /**
@@ -323,7 +400,7 @@ final class MarkdownToRichContent
                 ? [['type' => 'hardBreak']]
                 : $this->text(' ', $marks),
             $node instanceof InlineMath => [['type' => 'inlineMath', 'attrs' => ['latex' => $node->latex]]],
-            $node instanceof Image => $this->inlineError('las imágenes se habilitan en la Fase 6 (media_assets).'),
+            $node instanceof Image => $this->inlineError('una imagen va sola en su párrafo, separada del texto por líneas en blanco.'),
             $node instanceof HtmlInline => $this->inlineError('el HTML crudo no está permitido.'),
             default => $this->inlineError('elemento en línea no soportado ('.class_basename($node).').'),
         };

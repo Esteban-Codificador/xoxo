@@ -290,10 +290,12 @@ videos
 
 video_links                                       -- igual que resource_links, más start_seconds integer NULL
 
-media_assets                                      -- imágenes y archivos de lecciones (Fase 6)
+media_assets                                      -- imágenes del contenido (Fase 6, ADR-034)
   id, kind enum MediaKind, disk, path UK, original_name, mime_type, size_bytes,
-  width NULL, height NULL, alt_text NULL, checksum char(64), uploaded_by FK→users (SET NULL), timestamps
-  IX (checksum)                                   -- deduplicación
+  width NULL, height NULL, checksum char(64) UK, uploaded_by FK→users (SET NULL), timestamps
+  path = media/<checksum>.<ext>                   -- direccionado por contenido: mismos bytes, misma fila
+  CK size_bytes > 0 · CK kind <> 'IMAGE' OR (width > 0 AND height > 0)
+  -- sin alt_text: el texto alternativo depende de dónde se usa y vive en el nodo `image`
 ```
 
 ### 4.4 Estado del estudiante (Fase 3)

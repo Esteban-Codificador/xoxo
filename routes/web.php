@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\LessonRelationsController;
 use App\Http\Controllers\Admin\LessonReviewController;
 use App\Http\Controllers\Admin\LessonStatusController;
 use App\Http\Controllers\Admin\LessonVersionController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
 use App\Http\Controllers\Admin\ModuleOrderController;
 use App\Http\Controllers\Admin\ModuleStatusController;
@@ -34,6 +35,7 @@ use App\Http\Controllers\Learn\ShowRoadmapController;
 use App\Http\Controllers\Learn\ShowSkillController;
 use App\Http\Controllers\Learn\ShowTrackController;
 use App\Http\Controllers\Learn\SkillIndexController;
+use App\Http\Controllers\ShowMediaController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -48,6 +50,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('lessons/{lesson:slug}', ShowLessonController::class)->name('lessons.show');
     Route::get('skills', SkillIndexController::class)->name('skills.index');
     Route::get('skills/{skill:slug}', ShowSkillController::class)->name('skills.show');
+    // Images of the content: only with the signature MediaSources adds (ADR-034).
+    Route::get('media/{media}', ShowMediaController::class)->middleware('signed:relative')->name('media.show');
 
     Route::controller(LessonProgressController::class)->prefix('lessons/{lesson:slug}')->name('lessons.')->group(function () {
         Route::post('start', 'start')->name('start');
@@ -117,6 +121,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('resources/{resource}', [ResourceController::class, 'update'])->name('resources.update');
             Route::put('resources/{resource}/status', ResourceStatusController::class)->name('resources.status');
             Route::post('resources/{resource}/verify', ResourceVerificationController::class)->name('resources.verify');
+
+            Route::post('media', [MediaController::class, 'store'])->middleware('throttle:media-uploads')->name('media.store');
         });
 });
 

@@ -1,5 +1,5 @@
 import { getSchema } from '@tiptap/core';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import allowlist from '@/features/rich-content/allowlist.json';
@@ -153,5 +153,125 @@ describe('RichContentEditor', () => {
             type: 'callout',
             attrs: { variant: 'warning' },
         });
+    });
+});
+
+describe('dialogs', () => {
+    it('never submit the page form around the editor', async () => {
+        const submitted = vi.fn((event: { preventDefault: () => void }) =>
+            event.preventDefault(),
+        );
+        render(
+            <form onSubmit={submitted}>
+                <span id="body-label">Contenido</span>
+                <RichContentEditor
+                    value={{
+                        version: 1,
+                        doc: { type: 'doc', content: [{ type: 'paragraph' }] },
+                    }}
+                    onChange={vi.fn()}
+                    labelledBy="body-label"
+                />
+            </form>,
+        );
+
+        await userEvent.click(screen.getByRole('button', { name: 'Diagrama' }));
+        const prompt = await screen.findByRole('dialog', { name: 'Diagrama' });
+        await userEvent.type(
+            within(prompt).getByLabelText('Código Mermaid'),
+            'graph LR; A --> B',
+        );
+        await userEvent.click(
+            within(prompt).getByRole('button', { name: 'Aplicar' }),
+        );
+
+        await userEvent.click(screen.getByRole('button', { name: 'Imagen' }));
+        const image = await screen.findByRole('dialog', { name: 'Imagen' });
+        await userEvent.click(
+            within(image).getByRole('button', { name: 'Subir e insertar' }),
+        );
+
+        expect(submitted).not.toHaveBeenCalled();
+    });
+});
+
+describe('image dialog', () => {
+    it('asks for a file and its alternative text before uploading', async () => {
+        render(
+            <>
+                <span id="body-label">Contenido</span>
+                <RichContentEditor
+                    value={{
+                        version: 1,
+                        doc: { type: 'doc', content: [{ type: 'paragraph' }] },
+                    }}
+                    onChange={vi.fn()}
+                    labelledBy="body-label"
+                />
+            </>,
+        );
+
+        await userEvent.click(screen.getByRole('button', { name: 'Imagen' }));
+        const dialog = await screen.findByRole('dialog', { name: 'Imagen' });
+        await userEvent.click(
+            within(dialog).getByRole('button', { name: 'Subir e insertar' }),
+        );
+
+        expect(dialog).toHaveTextContent('Elige una imagen.');
+        expect(dialog).toHaveTextContent('Escribe el texto alternativo.');
+
+        // Writing clears the message at once.
+        await userEvent.type(
+            within(dialog).getByLabelText('Texto alternativo'),
+            'Diagrama',
+        );
+        expect(dialog).not.toHaveTextContent('Escribe el texto alternativo.');
+
+        // The file picker filters by `accept`; "all files" or a drop does not.
+        await userEvent
+            .setup({ applyAccept: false })
+            .upload(
+                within(dialog).getByLabelText('Archivo'),
+                new File(['GIF89a'], 'animacion.gif', { type: 'image/gif' }),
+            );
+
+        expect(dialog).toHaveTextContent(
+            'Solo se admiten imágenes PNG, JPEG o WebP.',
+        );
+    });
+
+    it('shows an image of the document with the URL the page sent', () => {
+        render(
+            <>
+                <span id="body-label">Contenido</span>
+                <RichContentEditor
+                    value={{
+                        version: 1,
+                        doc: {
+                            type: 'doc',
+                            content: [
+                                {
+                                    type: 'image',
+                                    attrs: { mediaId: 3, alt: 'Esquema' },
+                                },
+                            ],
+                        },
+                    }}
+                    media={{ 3: { url: '/media/3?s=x', width: 10, height: 5 } }}
+                    onChange={vi.fn()}
+                    labelledBy="body-label"
+                />
+            </>,
+        );
+
+        expect(screen.getByRole('img', { name: 'Esquema' })).toHaveAttribute(
+            'src',
+            '/media/3?s=x',
+        );
+        expect(
+            screen.getByRole('button', {
+                name: 'Texto alternativo: Imagen · Esquema',
+            }),
+        ).toBeInTheDocument();
     });
 });

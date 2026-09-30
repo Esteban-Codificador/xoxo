@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Content Media Disk
+    |--------------------------------------------------------------------------
+    |
+    | Where images of the content are stored (ADR-034). It must be private:
+    | files are only served through signed URLs of the media.show route.
+    |
+    */
+
+    'media_disk' => env('MEDIA_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

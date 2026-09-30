@@ -26,7 +26,7 @@ import type {
     DependencyRow,
 } from '@/features/dependencies/dependency-editor';
 import { DependencyEditor } from '@/features/dependencies/dependency-editor';
-import type { RichContent } from '@/features/rich-content';
+import type { MediaMap, RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';
 import { dashboard } from '@/routes/admin';
 import {
@@ -67,6 +67,8 @@ type TrackFields = {
 };
 
 type Props = {
+    /** Images of the content, by media id (MediaSources). */
+    media: MediaMap;
     track: TrackFields & {
         id: number;
         description: RichContent | null;
@@ -84,6 +86,7 @@ type Props = {
 
 export default function AdminTrackEdit({
     track,
+    media,
     visible_to_learners,
     status_actions,
     dependencies,
@@ -385,6 +388,7 @@ export default function AdminTrackEdit({
                                         value={
                                             track.description ?? EMPTY_DOCUMENT
                                         }
+                                        media={media}
                                         labelledBy={`${id}-description`}
                                         describedBy={`${id}-description-help`}
                                         invalid={

@@ -10,7 +10,7 @@ Llevar a una persona desde "sé programar" hasta "diseño, evalúo y opero siste
 
 ## Estado
 
-**Fase 5 completada: la V1 funciona de punta a punta.** El estudiante se registra, recorre el roadmap (grafo o lista), estudia lecciones con código resaltado, fórmulas, diagramas y video, las completa y ve su progreso, los desbloqueos, recomendaciones de qué seguir y sus skills. El equipo editorial trabaja en `/admin`: crea, edita, revisa y publica tracks, módulos, lecciones (con TipTap, versiones y diff), skills y recursos, gestiona roles y consulta la auditoría; `php artisan content:export` lleva lo editado al repositorio. Siguiente: Fase 6 (práctica y evaluación, empezando por la subida de imágenes). En local, `/_dev/design-system` muestra los componentes y las lecciones reales.
+**V1 completa (Fase 5); Fase 6 en curso.** El estudiante se registra, recorre el roadmap (grafo o lista), estudia lecciones con código resaltado, fórmulas, diagramas y video, las completa y ve su progreso, los desbloqueos, recomendaciones de qué seguir y sus skills. El equipo editorial trabaja en `/admin`: crea, edita, revisa y publica tracks, módulos, lecciones (con TipTap, imágenes, versiones y diff), skills y recursos, gestiona roles y consulta la auditoría; `php artisan content:export` lleva lo editado al repositorio, imágenes incluidas. En curso: Fase 6 (práctica y evaluación); hecha la subida de imágenes, sigue video con oEmbed. En local, `/_dev/design-system` muestra los componentes y las lecciones reales.
 
 El estado vivo está en [`docs/progress.md`](docs/progress.md). Capturas: pendientes (Fase 9, pulido).
 

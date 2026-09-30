@@ -7,7 +7,7 @@ import { ProgressBar } from '@/features/progress/progress-bar';
 import { StateBadge } from '@/features/progress/state-badge';
 import type { TrackProgress } from '@/features/progress/types';
 import { RichContentRenderer } from '@/features/rich-content';
-import type { RichContent } from '@/features/rich-content';
+import type { MediaMap, RichContent } from '@/features/rich-content';
 import { t } from '@/i18n';
 import { formatMinutes } from '@/lib/format';
 import { dashboard } from '@/routes';
@@ -32,6 +32,8 @@ type LessonItem = {
 };
 
 type Props = {
+    /** Images of the content, by media id (MediaSources). */
+    media: MediaMap;
     roadmap: { slug: string; title: string };
     track: {
         slug: string;
@@ -62,6 +64,7 @@ const pad = (value: number) => String(value).padStart(2, '0');
 export default function TrackShow({
     roadmap,
     track,
+    media,
     progress,
     policy,
     continue: next,
@@ -196,7 +199,10 @@ export default function TrackShow({
                         <h2 id="about" className="mb-3 text-lg font-semibold">
                             {t('track.about')}
                         </h2>
-                        <RichContentRenderer content={track.description} />
+                        <RichContentRenderer
+                            content={track.description}
+                            media={media}
+                        />
                     </section>
                 )}
 

@@ -106,3 +106,18 @@ it('scopes version numbers to their lesson and keeps others out', function () {
     $this->actingAs($instructor)->get('/admin/lessons/commits/changes')->assertForbidden();
     $this->actingAs(staff(Role::Student))->get('/admin/lessons/commits/changes')->assertForbidden();
 });
+
+it('shows an image in the diff as the package writes it', function () {
+    $image = storedImage();
+    $this->lesson->body = RichContent::fromDocument(['type' => 'doc', 'content' => [
+        ...$this->lesson->body->doc['content'],
+        ['type' => 'image', 'attrs' => ['mediaId' => $image->id, 'alt' => 'Grafo de commits']],
+    ]]);
+    $this->lesson->save();
+
+    $this->actingAs(staff(Role::Editor))
+        ->get('/admin/lessons/commits/changes')
+        ->assertInertia(fn (Assert $page) => $page->where('changes.body', fn ($rows) => collect($rows)->contains(
+            fn (array $row) => $row['type'] === 'added' && $row['segments'][0]['text'] === "![Grafo de commits]({$image->packagePath()})",
+        )));
+});

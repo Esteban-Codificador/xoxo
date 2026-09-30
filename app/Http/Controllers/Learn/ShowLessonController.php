@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Learn;
 
+use App\Domain\Content\Media\MediaSources;
 use App\Domain\Curriculum\Queries\TrackOutline;
 use App\Domain\Learning\State\Blocker;
 use App\Domain\Learning\State\RoadmapStateResolver;
@@ -20,7 +21,7 @@ use Inertia\Response;
 
 class ShowLessonController extends Controller
 {
-    public function __invoke(Request $request, Lesson $lesson, RoadmapStateResolver $states): Response
+    public function __invoke(Request $request, Lesson $lesson, RoadmapStateResolver $states, MediaSources $media): Response
     {
         Gate::authorize('view', $lesson);
 
@@ -49,6 +50,7 @@ class ShowLessonController extends Controller
             'track' => ['slug' => $track->slug, 'title' => $track->title],
             'module' => ['slug' => $module->slug, 'title' => $module->title],
             'lesson' => LessonPageResource::make($lesson)->resolve(),
+            'media' => $media->for($lesson->publishedVersion?->body),
             'prerequisites' => $prerequisites->map(fn (Lesson $prerequisite) => [
                 ...LessonLinkResource::make($prerequisite)->resolve(),
                 'kind' => LessonDependency::of($prerequisite)->kind->value,

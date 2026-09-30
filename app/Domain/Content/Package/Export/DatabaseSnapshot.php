@@ -2,6 +2,7 @@
 
 namespace App\Domain\Content\Package\Export;
 
+use App\Domain\Content\Media\MediaNames;
 use App\Domain\Content\Package\ContentPackage;
 use App\Domain\Content\Package\EntityType;
 use App\Domain\Content\RichContent\InvalidRichContent;
@@ -12,6 +13,7 @@ use App\Enums\ContentStatus;
 use App\Models\ContentImportRecord;
 use App\Models\ExternalResource;
 use App\Models\Lesson;
+use App\Models\MediaAsset;
 use App\Models\Module;
 use App\Models\Pivots\LessonDependency;
 use App\Models\Pivots\SkillDependency;
@@ -36,7 +38,8 @@ use Illuminate\Support\Str;
  *
  * A lesson is written as learners see it: its published version, with
  * status PUBLISHED while it is visible. Unpublished changes stay in the
- * database and are reported.
+ * database and are reported. The images of what is written go along, as
+ * files of media/.
  */
 final class DatabaseSnapshot
 {
@@ -60,10 +63,14 @@ final class DatabaseSnapshot
     /** @var list<string> */
     private array $unfaithful = [];
 
+    private MediaNames $media;
+
     public function __construct(
         private readonly RichContentToMarkdown $markdown,
         private readonly MarkdownToRichContent $reader,
-    ) {}
+    ) {
+        $this->media = new MediaNames;
+    }
 
     /**
      * @return list<ExportedEntity>
@@ -72,6 +79,7 @@ final class DatabaseSnapshot
     {
         $this->keys = $this->taken = $this->files = $this->resourceOrder = [];
         $this->warnings = $this->unfaithful = [];
+        $this->media = new MediaNames;
         $this->remember($package, $existing);
 
         $tracks = $roadmap->tracks()->with(['prerequisites', 'modules.lessons' => fn ($query) => $query->with([
@@ -128,6 +136,16 @@ final class DatabaseSnapshot
     public function warnings(): array
     {
         return $this->warnings;
+    }
+
+    /**
+     * Images of the exported content, by their path in the package.
+     *
+     * @return array<string, MediaAsset>
+     */
+    public function media(): array
+    {
+        return $this->media->assets();
     }
 
     /**
@@ -383,10 +401,16 @@ final class DatabaseSnapshot
             return null;
         }
 
-        $markdown = $this->markdown->convert($content);
+        $markdown = $this->markdown->convert($content, $this->media->pathOf(...));
+
+        foreach ($content->mediaIds() as $id) {
+            if (is_string($this->media->idOf($this->media->pathOf($id)))) {
+                $this->unfaithful[] = "El contenido de {$owner} usa una imagen que no está guardada (id {$id}): quítala o vuelve a subirla en el CMS.";
+            }
+        }
 
         try {
-            $faithful = $this->comparable($this->reader->convert($markdown)->doc) === $this->comparable($content->doc);
+            $faithful = $this->comparable($this->reader->convert($markdown, $this->media->idOf(...))->doc) === $this->comparable($content->doc);
         } catch (InvalidRichContent) {
             $faithful = false;
         }

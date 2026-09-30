@@ -15,6 +15,7 @@ use Symfony\Component\Yaml\Yaml;
  *   tracks/NN-track/NN-module/NN-lesson.md
  *   skills/*.md
  *   resources/*.yaml
+ *   media/*.png|jpg|webp   (images, see PackageMedia)
  *
  * Structural problems are collected as issues instead of aborting, so a
  * single run reports everything that is wrong.
@@ -42,6 +43,7 @@ final class PackageReader
         $this->readTracks($roadmapKey);
         $this->readSkills();
         $this->readResources();
+        $this->readMedia();
 
         return $this->package;
     }
@@ -98,6 +100,21 @@ final class PackageReader
     {
         foreach ($this->files('skills', '*.md') as $file) {
             $this->markdownEntity(EntityType::Skill, $file, 0, null);
+        }
+    }
+
+    private function readMedia(): void
+    {
+        foreach (glob("{$this->package->path}/media/*") ?: [] as $path) {
+            $relative = 'media/'.basename($path);
+
+            if (is_dir($path)) {
+                $this->package->addIssue($relative, 'media/ no admite subdirectorios.');
+            } elseif (preg_match(PackageMedia::PATH_PATTERN, $relative) !== 1) {
+                $this->package->addIssue($relative, 'nombre no válido: letras, números, ".", "-" o "_", con extensión png, jpg, jpeg o webp.');
+            } else {
+                $this->package->addMedia($relative);
+            }
         }
     }
 

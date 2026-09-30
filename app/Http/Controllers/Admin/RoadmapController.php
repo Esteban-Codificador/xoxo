@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Content\Media\MediaSources;
 use App\Domain\Curriculum\Actions\UpdateRoadmap;
 use App\Enums\ContentStatus;
 use App\Enums\UnlockPolicy;
@@ -24,7 +25,7 @@ class RoadmapController extends Controller
 {
     use ListsStatusActions;
 
-    public function edit(Request $request, Roadmap $roadmap): Response
+    public function edit(Request $request, Roadmap $roadmap, MediaSources $media): Response
     {
         Gate::authorize('update', $roadmap);
 
@@ -41,6 +42,7 @@ class RoadmapController extends Controller
                 'tracks' => $roadmap->tracks()->count(),
                 'published_tracks' => $roadmap->tracks()->where('status', ContentStatus::Published)->count(),
             ],
+            'media' => $media->for($roadmap->description),
             'unlock_policies' => UnlockPolicy::values(),
             'status_actions' => $this->statusActions($request, $roadmap),
         ]);

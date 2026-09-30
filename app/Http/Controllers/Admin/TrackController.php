@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Content\Media\MediaSources;
 use App\Domain\Curriculum\Actions\CreateTrack;
 use App\Domain\Curriculum\Actions\UpdateTrack;
 use App\Enums\ContentStatus;
@@ -85,7 +86,7 @@ class TrackController extends Controller
         return to_route('admin.tracks.edit', $track);
     }
 
-    public function edit(Request $request, Track $track): Response
+    public function edit(Request $request, Track $track, MediaSources $media): Response
     {
         Gate::authorize('update', $track);
 
@@ -106,6 +107,7 @@ class TrackController extends Controller
                 'published_at' => $track->published_at?->toIso8601String(),
                 'roadmap' => ['slug' => $track->roadmap->slug, 'title' => $track->roadmap->title],
             ],
+            'media' => $media->for($track->description),
             'visible_to_learners' => $track->isPublished() && $track->roadmap->isPublished(),
             'status_actions' => $this->statusActions($request, $track),
             'dependencies' => $track->prerequisites->map(fn (Track $prerequisite) => [

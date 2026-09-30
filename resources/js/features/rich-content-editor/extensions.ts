@@ -7,6 +7,7 @@ import { StarterKit } from '@tiptap/starter-kit';
 import { safeHref } from '@/features/rich-content/safe-href';
 import { Callout } from './nodes/callout';
 import { Diagram } from './nodes/diagram';
+import { Image } from './nodes/image';
 import { Video } from './nodes/video';
 
 export type MathKind = 'inlineMath' | 'blockMath';
@@ -137,5 +138,6 @@ export function editorExtensions({
         Callout,
         Diagram,
         Video,
+        Image,
     ];
 }

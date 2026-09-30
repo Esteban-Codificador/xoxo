@@ -46,7 +46,7 @@ final class LessonImporter implements EntityImporter
             'summary' => $entity->string('summary'),
             'why_it_matters' => $entity->string('why_it_matters'),
             'learning_objectives' => array_map(strval(...), $entity->list('objectives')),
-            'body' => $this->markdown->convert((string) $entity->body),
+            'body' => $this->markdown->convert((string) $entity->body, $context->images),
             'content_type' => ContentType::from($entity->string('type')),
             'difficulty' => Difficulty::from($entity->string('difficulty')),
             'estimated_minutes' => $entity->int('estimated_minutes', 30),

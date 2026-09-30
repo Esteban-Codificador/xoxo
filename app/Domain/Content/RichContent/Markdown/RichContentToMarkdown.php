@@ -3,6 +3,8 @@
 namespace App\Domain\Content\RichContent\Markdown;
 
 use App\Domain\Content\RichContent\RichContent;
+use Closure;
+use LogicException;
 
 /**
  * Serializes RichContent back to the authoring Markdown of the content
@@ -10,6 +12,7 @@ use App\Domain\Content\RichContent\RichContent;
  * callouts, fenced `math`, `mermaid` and `video` blocks, `$…$` for inline
  * math). Used to diff versions as text, and the base of content:export.
  * GFM tables have no merged cells or column widths: those are dropped.
+ * Images become `![alt](path)`, with the path the caller gives each id.
  */
 final class RichContentToMarkdown
 {
@@ -18,8 +21,15 @@ final class RichContentToMarkdown
 
     private const array CALLOUTS = ['note' => 'NOTE', 'tip' => 'TIP', 'important' => 'IMPORTANT', 'warning' => 'WARNING', 'caution' => 'CAUTION'];
 
-    public function convert(RichContent $content): string
+    /** @var (Closure(int): string)|null */
+    private ?Closure $imagePath = null;
+
+    /**
+     * @param  (Closure(int): string)|null  $imagePath  Path of a media id in the package (MediaNames::pathOf).
+     */
+    public function convert(RichContent $content, ?Closure $imagePath = null): string
     {
+        $this->imagePath = $imagePath;
         $markdown = $this->blocks($content->doc['content'] ?? []);
 
         return $markdown === '' ? '' : $markdown."\n";
@@ -64,10 +74,25 @@ final class RichContentToMarkdown
             'blockMath' => $this->fence('math', (string) ($attrs['latex'] ?? '')),
             'diagram' => $this->fence('mermaid', (string) ($attrs['source'] ?? '')),
             'video' => $this->fence('video', 'provider: '.($attrs['provider'] ?? 'youtube')."\nid: ".($attrs['videoId'] ?? '')),
+            'image' => $this->image($attrs),
             'horizontalRule' => '---',
             'table' => $this->table($content),
             default => '',
         };
+    }
+
+    /**
+     * @param  array<mixed>  $attrs
+     */
+    private function image(array $attrs): string
+    {
+        if ($this->imagePath === null) {
+            throw new LogicException('RichContentToMarkdown needs an image path resolver for documents with images.');
+        }
+
+        $path = ($this->imagePath)((int) ($attrs['mediaId'] ?? 0));
+
+        return '!['.$this->escape((string) ($attrs['alt'] ?? '')).']('.str_replace([' ', '(', ')'], ['%20', '%28', '%29'], $path).')';
     }
 
     /**

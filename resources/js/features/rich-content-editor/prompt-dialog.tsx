@@ -92,6 +92,9 @@ function PromptDialog({
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
+        // React events cross portals: without this, the page form around
+        // the editor (the lesson) would be submitted too.
+        event.stopPropagation();
         const message = request.validate?.(value) ?? null;
 
         if (message !== null) {

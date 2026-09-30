@@ -6,18 +6,21 @@ import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 /**
- * Frame for atom nodes (diagram, video): the preview uses the same
+ * Frame for atom nodes (diagram, video, image): the preview uses the same
  * component the learner sees, plus explicit Edit and Remove buttons so the
  * node can be managed without selecting it with the mouse.
  */
 export function NodeFrame({
     label,
+    editLabel = t('editor.edit'),
     selected,
     onEdit,
     onRemove,
     children,
 }: {
     label: string;
+    /** What the edit button changes, when "Editar" says too little. */
+    editLabel?: string;
     selected: boolean;
     onEdit: () => void;
     onRemove: () => void;
@@ -40,11 +43,12 @@ export function NodeFrame({
                         type="button"
                         size="sm"
                         variant="ghost"
-                        aria-label={`${t('editor.edit')}: ${label}`}
+                        aria-label={`${editLabel}: ${label}`}
                         onClick={onEdit}
                     >
                         <Pencil aria-hidden="true" />
-                        {t('editor.edit')}
+                        {/* Icons only on phones: the label keeps its room. */}
+                        <span className="hidden sm:inline">{editLabel}</span>
                     </Button>
                     <Button
                         type="button"
@@ -54,7 +58,9 @@ export function NodeFrame({
                         onClick={onRemove}
                     >
                         <Trash2 aria-hidden="true" />
-                        {t('editor.remove')}
+                        <span className="hidden sm:inline">
+                            {t('editor.remove')}
+                        </span>
                     </Button>
                 </span>
             </div>

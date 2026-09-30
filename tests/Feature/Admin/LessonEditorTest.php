@@ -80,6 +80,29 @@ it('saves the working copy without changing what learners read', function () {
         ->assertInertia(fn (Assert $page) => $page->where('lesson.title', 'Commits'));
 });
 
+it('saves rich text exactly as the editor sends it, spaces around marks included', function () {
+    $lesson = publishableLesson();
+    $paragraph = ['type' => 'paragraph', 'content' => [
+        ['type' => 'text', 'text' => 'Una rama es un '],
+        ['type' => 'text', 'text' => 'puntero móvil', 'marks' => [['type' => 'bold']]],
+        // A bare space between two marks: trimmed, it would become null and fail.
+        ['type' => 'text', 'text' => ' '],
+        ['type' => 'text', 'text' => 'HEAD', 'marks' => [['type' => 'code']]],
+        ['type' => 'text', 'text' => ' indica la rama actual.  '],
+    ]];
+    $body = ['version' => 1, 'doc' => ['type' => 'doc', 'content' => [...$lesson->body->doc['content'], $paragraph]]];
+
+    $this->actingAs(staff(Role::Editor))
+        ->put("/admin/lessons/{$lesson->slug}", lessonForm($lesson, ['body' => $body, 'title' => '  Ramas  ']))
+        ->assertSessionHasNoErrors();
+
+    $lesson->refresh();
+
+    // Plain fields are still trimmed; the document is not touched.
+    expect($lesson->title)->toBe('Ramas')
+        ->and(last($lesson->body->doc['content']))->toEqual($paragraph);
+});
+
 it('rejects content outside the RichContent allowlist', function (array $body, string $fragment) {
     $this->actingAs(staff(Role::Editor))
         ->from('/admin/lessons/commits/edit')

@@ -10,6 +10,9 @@ final class ContentPackage
     /** @var list<PackageIssue> */
     private array $issues = [];
 
+    /** @var array<string, true> Image files, as paths relative to the package root. */
+    private array $media = [];
+
     public function __construct(public readonly string $name, public readonly string $path) {}
 
     public function add(SourceEntity $entity): void
@@ -50,6 +53,24 @@ final class ContentPackage
     public function find(EntityType $type, string $key): ?SourceEntity
     {
         return $this->entities[$type->value][$key] ?? null;
+    }
+
+    public function addMedia(string $path): void
+    {
+        $this->media[$path] = true;
+    }
+
+    public function hasMedia(string $path): bool
+    {
+        return isset($this->media[$path]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function media(): array
+    {
+        return array_keys($this->media);
     }
 
     public function roadmap(): ?SourceEntity

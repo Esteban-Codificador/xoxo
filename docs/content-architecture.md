@@ -122,7 +122,7 @@ Las secciones son H2 fijos para que todas las lecciones se lean igual. El ejempl
 | `inlineMath`, `blockMath` | `latex` | ≤ 2.000 caracteres |
 | `diagram` | `kind`, `source` | `kind = mermaid`; `source` ≤ 10.000 caracteres |
 | `video` | `provider`, `videoId` | `youtube`; ID de 11 caracteres `[A-Za-z0-9_-]` |
-| `image` (Fase 6) | `mediaId`, `alt` | `alt` obligatorio; `mediaId` debe existir en `media_assets` |
+| `image` | `mediaId`, `alt` | Bloque (nunca dentro de un párrafo). `alt` obligatorio, una línea, ≤ 300 caracteres; `mediaId` debe existir en `media_assets` al guardar (ADR-034) |
 | Marcas `bold`, `italic`, `strike`, `code`, `link` | `link.href` | `https:`, `http:`, `mailto:` o ruta relativa `/…` |
 
 Límites globales: documento ≤ 512 KB y profundidad ≤ 12. Cualquier nodo, marca o atributo fuera de la lista blanca **rechaza el guardado** con un error que indica la ruta del nodo.
@@ -139,7 +139,8 @@ Límites globales: documento ≤ 512 KB y profundidad ≤ 12. Cualquier nodo, ma
 | `blockMath` / `inlineMath` | ```` ```math ```` y `$x^2$` |
 | `diagram` | ```` ```mermaid ```` |
 | `video` | ```` ```video ```` con las líneas `provider: youtube` e `id: VIDEO_ID` |
-| HTML crudo, imágenes (hasta la Fase 6), H1 | **Error de validación** |
+| `image` | `![texto alternativo](media/archivo.png)` en su propio párrafo; la ruta es relativa a la raíz del paquete y el archivo vive en `media/` (ADR-034) |
+| HTML crudo, H1, imagen dentro de un párrafo o sin texto alternativo | **Error de validación** |
 
 ## 6. Formato del paquete de contenido
 
@@ -163,6 +164,7 @@ content/
     ├── videos/
     │   └── transformers.yaml
     ├── quizzes/        <quiz-key>.yaml       (Fase 6)
+    ├── media/          <16 hex del sha256>.png|jpg|webp   (imágenes; ADR-034)
     ├── exercises/      <track>/<key>.md      (Fase 6)
     ├── labs/           <key>.md              (Fase 6)
     ├── projects/       <key>.md              (Fase 6)

@@ -17,6 +17,8 @@ final class RichContentSchema
 
     public const int MAX_DIAGRAM_LENGTH = 10_000;
 
+    public const int MAX_ALT_LENGTH = 300;
+
     public const array CALLOUT_VARIANTS = ['note', 'tip', 'important', 'warning', 'caution'];
 
     public const array DIAGRAM_KINDS = ['mermaid'];
@@ -32,7 +34,7 @@ final class RichContentSchema
     /** Block nodes allowed wherever block content is expected. */
     public const array BLOCK_NODES = [
         'paragraph', 'heading', 'bulletList', 'orderedList', 'blockquote', 'codeBlock',
-        'horizontalRule', 'table', 'callout', 'blockMath', 'diagram', 'video',
+        'horizontalRule', 'table', 'callout', 'blockMath', 'diagram', 'video', 'image',
     ];
 
     public const array INLINE_NODES = ['text', 'hardBreak', 'inlineMath'];
@@ -66,6 +68,7 @@ final class RichContentSchema
             'inlineMath' => null,
             'diagram' => null,
             'video' => null,
+            'image' => null,
             'hardBreak' => null,
             'text' => null,
         ];
@@ -105,6 +108,12 @@ final class RichContentSchema
                 'provider' => [true, self::oneOf(self::VIDEO_PROVIDERS)],
                 'videoId' => [true, self::pattern(self::YOUTUBE_ID_PATTERN)],
             ],
+            // A media_assets id (existence is checked where the content is saved) and
+            // its alternative text, which depends on where the image is used.
+            'image' => [
+                'mediaId' => [true, self::positiveInt(...)],
+                'alt' => [true, self::altText(...)],
+            ],
             'link' => [
                 'href' => [true, self::safeHref(...)],
                 'target' => [false, self::nullableOneOf(['_blank'])],
@@ -137,6 +146,21 @@ final class RichContentSchema
         return in_array($scheme, ['https', 'http', 'mailto'], true)
             ? null
             : 'esquema de enlace no permitido (solo https, http, mailto o rutas relativas)';
+    }
+
+    public static function positiveInt(mixed $value): ?string
+    {
+        return is_int($value) && $value > 0 ? null : 'debe ser un entero positivo';
+    }
+
+    /** One line of text: it is also written inside `![…]` in the package Markdown. */
+    public static function altText(mixed $value): ?string
+    {
+        if (! is_string($value) || trim($value) === '' || mb_strlen($value) > self::MAX_ALT_LENGTH) {
+            return 'el texto alternativo es obligatorio (hasta '.self::MAX_ALT_LENGTH.' caracteres)';
+        }
+
+        return preg_match('/[\x00-\x1F\x7F]/', $value) === 1 ? 'el texto alternativo debe ser una sola línea' : null;
     }
 
     /** @return callable(mixed): ?string */

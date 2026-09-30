@@ -20,6 +20,7 @@ use App\Models\ContentImportRecord;
 use App\Models\Roadmap;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -111,6 +112,10 @@ final readonly class PackageExporter
         }
 
         $this->removeEmptyDirectories("{$plan->path}/tracks");
+
+        if (is_dir("{$plan->path}/media") && File::isEmptyDirectory("{$plan->path}/media")) {
+            File::deleteDirectory("{$plan->path}/media");
+        }
 
         if ($plan->copy) {
             return;
@@ -210,7 +215,7 @@ final readonly class PackageExporter
         $root = "{$temp}/{$package}";
 
         try {
-            $canonicalFiles = $this->render($entities);
+            $canonicalFiles = [...$this->render($entities), ...$this->mediaFiles()];
             $canonical = $this->write($root, $canonicalFiles);
             $files = $canonicalFiles;
             $result = $canonical;
@@ -267,6 +272,29 @@ final readonly class PackageExporter
 
         foreach ($this->resourceGroups($entities) as $file => $items) {
             $files[$file] = $this->format->resourcesFile(array_map(fn (ExportedEntity $item) => $item->data, $items));
+        }
+
+        return $files;
+    }
+
+    /**
+     * The stored images the exported content shows, byte for byte: a file
+     * named after its checksum only changes when the image does.
+     *
+     * @return array<string, string>
+     */
+    private function mediaFiles(): array
+    {
+        $files = [];
+
+        foreach ($this->snapshot->media() as $path => $asset) {
+            $bytes = Storage::disk($asset->disk)->get($asset->path);
+
+            if ($bytes === null) {
+                throw new ExportRefused("Falta el archivo de la imagen {$asset->id} ({$asset->disk}:{$asset->path}); vuelve a subirla en el CMS.");
+            }
+
+            $files[$path] = $bytes;
         }
 
         return $files;
@@ -447,6 +475,11 @@ final readonly class PackageExporter
             foreach ($existing?->all($type) ?? [] as $entity) {
                 $files[(string) preg_replace('/#\d+$/', '', $entity->file)] = true;
             }
+        }
+
+        // An image nothing shows any more leaves the package.
+        foreach ($existing?->media() ?? [] as $path) {
+            $files[$path] = true;
         }
 
         return array_keys($files);

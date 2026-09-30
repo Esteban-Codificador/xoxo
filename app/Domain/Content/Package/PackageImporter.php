@@ -30,6 +30,7 @@ final readonly class PackageImporter
 
     public function __construct(
         private PackageValidator $validator,
+        private PackageMedia $media,
         private AuditLogger $audit,
         private SyncRecords $records,
         RoadmapImporter $roadmaps,
@@ -59,7 +60,7 @@ final readonly class PackageImporter
         DB::beginTransaction();
 
         try {
-            $this->audit->during(AuditAction::Imported, fn () => $this->run($package, new ImportContext($package, $report), $force));
+            $this->audit->during(AuditAction::Imported, fn () => $this->run($package, new ImportContext($package, $report, $this->media->importer($package, $dryRun)), $force));
             $dryRun ? DB::rollBack() : DB::commit();
         } catch (Throwable $exception) {
             DB::rollBack();

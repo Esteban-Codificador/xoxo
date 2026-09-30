@@ -19,7 +19,8 @@
         "blockMath": ["latex"],
         "inlineMath": ["latex"],
         "diagram": ["kind", "source"],
-        "video": ["provider", "videoId"]
+        "video": ["provider", "videoId"],
+        "image": ["mediaId", "alt"]
     },
     "marks": {
         "bold": [],

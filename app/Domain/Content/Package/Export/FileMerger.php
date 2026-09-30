@@ -2,6 +2,7 @@
 
 namespace App\Domain\Content\Package\Export;
 
+use App\Domain\Content\Package\PackageMedia;
 use App\Domain\Content\RichContent\InvalidRichContent;
 use App\Domain\Content\RichContent\Markdown\InlineMathParser;
 use App\Domain\Content\RichContent\Markdown\MarkdownToRichContent;
@@ -286,7 +287,7 @@ final readonly class FileMerger
             $text = rtrim(implode("\n", array_slice($lines, $node->getStartLine() - 1, $node->getEndLine() - $node->getStartLine() + 1)));
 
             try {
-                $nodes = (string) json_encode($this->markdown->convert($text)->doc['content'] ?? []);
+                $nodes = (string) json_encode($this->markdown->convert($text, PackageMedia::comparable())->doc['content'] ?? []);
             } catch (InvalidRichContent) {
                 $nodes = null;
             }

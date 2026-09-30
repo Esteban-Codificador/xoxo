@@ -22,12 +22,14 @@ use App\Enums\UnlockPolicy;
 use App\Models\ContentImportRecord;
 use App\Models\ExternalResource;
 use App\Models\Lesson;
+use App\Models\MediaAsset;
 use App\Models\Module;
 use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /*
@@ -342,13 +344,15 @@ it('rewrites only the resource that changed inside a shared file', function () {
 it('accepts what the editor saves and refuses what Markdown cannot carry', function () {
     $document = json_decode((string) file_get_contents(base_path('resources/js/features/rich-content/every-node.fixture.json')), true);
     $track = Track::firstWhere('slug', 'orientacion');
+    $image = storedImage();
+    $document['doc']['content'][12]['attrs']['mediaId'] = $image->id;
 
-    // Null link attributes, default cell spans: the editor's output exports as is.
+    // Null link attributes, default cell spans: the editor's output exports as is, with its image.
     $track->update(['description' => RichContent::fromArray($document)]);
-    expect(changedPaths(exportPlan($this->path)))->toBe(['updated tracks/00-orientacion/track.md']);
+    expect(changedPaths(exportPlan($this->path)))->toBe(['created '.$image->packagePath(), 'updated tracks/00-orientacion/track.md']);
 
     // A merged cell has no GFM form.
-    $document['doc']['content'][12]['content'][0]['content'][0]['attrs']['colspan'] = 2;
+    $document['doc']['content'][13]['content'][0]['content'][0]['attrs']['colspan'] = 2;
     $track->update(['description' => RichContent::fromArray($document)]);
 
     expect(fn () => exportPlan($this->path))->toThrow(ExportRefused::class, 'no puede representar fielmente');
@@ -421,4 +425,75 @@ it('exports the roadmap edited in the CMS field by field, and imports it back', 
     expect($reimported->title)->toBe('Ingeniería de IA')
         ->and($reimported->unlock_policy)->toBe(UnlockPolicy::Strict)
         ->and($reimported->description?->plainText())->toContain('Párrafo añadido en el CMS.');
+});
+
+/**
+ * Adds an image after the first paragraph of the lesson and publishes it.
+ */
+function publishWithImage(Lesson $lesson, MediaAsset $image, string $alt): void
+{
+    $content = $lesson->body->doc['content'];
+    array_splice($content, 1, 0, [['type' => 'image', 'attrs' => ['mediaId' => $image->id, 'alt' => $alt]]]);
+    $lesson->update(['body' => RichContent::fromDocument(['type' => 'doc', 'content' => $content])]);
+    app(PublishLesson::class)->handle($lesson->refresh(), 'Añade un diagrama');
+}
+
+it('exports the images the content shows, and a fresh import brings them back', function () {
+    $lesson = Lesson::firstWhere('slug', 'git-commits-arbol-de-trabajo-y-staging');
+    $file = 'tracks/01-fundamentos-computacion/04-git-y-colaboracion/01-commits-arbol-de-trabajo-y-staging.md';
+    $image = storedImage(320, 200);
+    $bytes = (string) Storage::disk('local')->get($image->path);
+    publishWithImage($lesson, $image, 'Las tres áreas de Git: árbol de trabajo, staging y repositorio');
+
+    $plan = exportTo($this->path);
+
+    expect(changedPaths($plan))->toBe(['created '.$image->packagePath(), "updated {$file}"])
+        ->and(file_get_contents("{$this->path}/{$image->packagePath()}"))->toBe($bytes)
+        ->and((string) file_get_contents("{$this->path}/{$file}"))
+        ->toContain("\n\n![Las tres áreas de Git: árbol de trabajo, staging y repositorio]({$image->packagePath()})\n\n")
+        ->and(exportPlan($this->path)->pending())->toBe([]);
+
+    // A new environment: no rows, no files.
+    wipeContent();
+    DB::table('media_assets')->delete();
+    Storage::disk('local')->deleteDirectory('media');
+    $this->artisan('content:import', ['path' => $this->path])->assertSuccessful();
+
+    $restored = MediaAsset::query()->sole();
+    $body = Lesson::firstWhere('slug', 'git-commits-arbol-de-trabajo-y-staging')->publishedVersion->body;
+
+    expect($restored->checksum)->toBe($image->checksum)
+        ->and(Storage::disk('local')->get($restored->path))->toBe($bytes)
+        ->and($body->mediaIds())->toBe([$restored->id])
+        ->and(exportPlan($this->path)->pending())->toBe([]);
+});
+
+it('removes from the package an image the content no longer shows', function () {
+    $lesson = Lesson::firstWhere('slug', 'ramas-merge-y-rebase');
+    $old = storedImage(rgb: [10, 10, 10]);
+    publishWithImage($lesson, $old, 'Una rama que sale de main');
+    exportTo($this->path);
+
+    $new = storedImage(rgb: [250, 250, 250]);
+    $content = array_map(
+        fn (array $node) => $node['type'] === 'image' ? ['type' => 'image', 'attrs' => ['mediaId' => $new->id, 'alt' => 'Dos ramas unidas por un merge']] : $node,
+        $lesson->refresh()->body->doc['content'],
+    );
+    $lesson->update(['body' => RichContent::fromDocument(['type' => 'doc', 'content' => $content])]);
+    app(PublishLesson::class)->handle($lesson->refresh());
+
+    // Sorted by path, and file names come from checksums: compare as a set.
+    expect(changedPaths(exportTo($this->path)))->toEqualCanonicalizing([
+        'deleted '.$old->packagePath(),
+        'created '.$new->packagePath(),
+        'updated tracks/01-fundamentos-computacion/04-git-y-colaboracion/02-ramas-merge-y-rebase.md',
+    ])->and(is_file("{$this->path}/{$old->packagePath()}"))->toBeFalse();
+});
+
+it('refuses to export an image whose file is gone', function () {
+    $image = storedImage();
+    publishWithImage(Lesson::firstWhere('slug', 'ramas-merge-y-rebase'), $image, 'Diagrama de ramas');
+    Storage::disk('local')->delete($image->path);
+
+    expect(fn () => exportPlan($this->path))->toThrow(ExportRefused::class, "Falta el archivo de la imagen {$image->id}");
 });

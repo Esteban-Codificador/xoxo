@@ -70,8 +70,9 @@ final readonly class RichContent implements JsonSerializable
     }
 
     /**
-     * Text used for search, length checks and version diffs. Code and
-     * formulas are kept; diagrams and videos carry no prose and are skipped.
+     * Text used for search and length checks. Code, formulas and the
+     * alternative text of images are kept; diagrams and videos carry no
+     * prose and are skipped.
      */
     public function plainText(): string
     {
@@ -145,6 +146,36 @@ final readonly class RichContent implements JsonSerializable
     }
 
     /**
+     * Ids of the media_assets the document shows, in document order.
+     *
+     * @return list<int>
+     */
+    public function mediaIds(): array
+    {
+        return self::mediaIdsOf($this->doc);
+    }
+
+    /**
+     * The same for a document that may not be valid yet (a request).
+     *
+     * @return list<int>
+     */
+    public static function mediaIdsOf(mixed $node): array
+    {
+        if (! is_array($node)) {
+            return [];
+        }
+
+        $ids = ($node['type'] ?? null) === 'image' && is_int($node['attrs']['mediaId'] ?? null) ? [$node['attrs']['mediaId']] : [];
+
+        foreach (is_array($node['content'] ?? null) ? $node['content'] : [] as $child) {
+            array_push($ids, ...self::mediaIdsOf($child));
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
      * @param  array<mixed>  $node
      */
     private static function textOf(array $node): string
@@ -156,6 +187,7 @@ final readonly class RichContent implements JsonSerializable
             'hardBreak' => "\n",
             'inlineMath' => (string) ($node['attrs']['latex'] ?? ''),
             'blockMath' => ($node['attrs']['latex'] ?? '')."\n\n",
+            'image' => ($node['attrs']['alt'] ?? '')."\n\n",
             'diagram', 'video', 'horizontalRule' => '',
             'paragraph', 'heading', 'codeBlock' => self::childrenText($node)."\n\n",
             'listItem', 'tableRow' => rtrim(self::childrenText($node))."\n",
