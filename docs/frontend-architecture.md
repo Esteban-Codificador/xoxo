@@ -65,7 +65,7 @@ Regla de dependencia: `pages → features → components`. Una feature no import
 ## 3. Contrato servidor → cliente
 
 - Los controladores devuelven `Inertia::render('lessons/show', [...])` con **JsonResource**, nunca con modelos crudos. Eso evita filtrar columnas (borradores, respuestas correctas).
-- Los props costosos van como **deferred props** de Inertia (p. ej., recomendaciones y actividad en el dashboard) y la página muestra *skeletons* mientras llegan.
+- Los props costosos van como **deferred props** de Inertia (p. ej., la actividad del dashboard) y la página muestra *skeletons* mientras llegan. Las recomendaciones no lo son: salen del estado que la página ya calcula, sin consultas extra, y son lo primero que el estudiante lee.
 - Las **recargas parciales** (`router.reload({ only: ['progress'] })`) refrescan el progreso tras una acción sin reconstruir la página.
 - Las rutas y acciones se invocan con **Wayfinder** (funciones TS tipadas generadas desde Laravel), nunca con URLs escritas a mano.
 - Los enums se importan de `types/enums.ts`. Un test de PHP comprueba que el archivo generado coincide con los enums actuales, así que un cambio sin regenerar rompe CI.

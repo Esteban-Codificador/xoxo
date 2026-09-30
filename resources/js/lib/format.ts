@@ -15,6 +15,34 @@ export function formatDate(iso: string): string {
     }).format(new Date(iso));
 }
 
+/**
+ * How long ago a date was, in whole calendar days of the user's clock:
+ * "hoy", "ayer", "hace 3 días", "hace 2 semanas", "hace 4 meses".
+ */
+export function formatRelativeDay(iso: string, now: Date = new Date()): string {
+    const day = (date: Date) =>
+        Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+    const days = Math.max(
+        0,
+        Math.round((day(now) - day(new Date(iso))) / 86_400_000),
+    );
+    const relative = new Intl.RelativeTimeFormat(currentLocale(), {
+        numeric: 'auto',
+    });
+
+    if (days < 7) {
+        return relative.format(-days, 'day');
+    }
+
+    if (days < 30) {
+        return relative.format(-Math.floor(days / 7), 'week');
+    }
+
+    return days < 365
+        ? relative.format(-Math.floor(days / 30), 'month')
+        : relative.format(-Math.floor(days / 365), 'year');
+}
+
 /** 45 → "45 min"; 90 → "1 h 30 min"; 120 → "2 h". */
 export function formatMinutes(total: number): string {
     const hours = Math.floor(total / 60);

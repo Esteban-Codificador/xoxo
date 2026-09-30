@@ -61,7 +61,9 @@ it('opens the first lesson and locks what depends on it for a new learner', func
         ->and($state->track($this->trackB)->state)->toBe(NodeState::Locked)
         ->and($state->track($this->trackB)->blockers[0]->toArray())->toMatchArray(['type' => 'track', 'slug' => 'a', 'progress' => 0, 'required' => 100])
         ->and($state->lesson($this->b1)->state)->toBe(NodeState::Locked)
-        ->and($state->nextLessonId())->toBe($this->a1->id);
+        ->and($state->lastViewedInProgress())->toBeNull()
+        ->and($state->lastActivityTrackId())->toBeNull()
+        ->and($state->trackIds())->toBe([$this->trackA->id, $this->trackB->id]);
 });
 
 it('unlocks a lesson when its required prerequisite is completed', function () {
@@ -85,8 +87,7 @@ it('completes a track at 100 % and unlocks the tracks that require it', function
 
     expect($state->track($this->trackA)->toArray())->toMatchArray(['state' => 'COMPLETED', 'progress' => 100, 'completed' => 2, 'total' => 2])
         ->and($state->track($this->trackB)->state)->toBe(NodeState::Available)
-        ->and($state->lesson($this->b1)->state)->toBe(NodeState::Available)
-        ->and($state->nextLessonId())->toBe($this->b1->id);
+        ->and($state->lesson($this->b1)->state)->toBe(NodeState::Available);
 });
 
 it('never reaches MASTERED for a track without evidence', function () {
@@ -107,7 +108,8 @@ it('keeps a started lesson in progress even if it is locked, and resumes the las
 
     expect($state->lesson($this->b1)->state)->toBe(NodeState::InProgress)
         ->and($state->lesson($this->b1)->blockers)->not->toBeEmpty()
-        ->and($state->nextLessonId())->toBe($this->a1->id);
+        ->and($state->lastViewedInProgress()[0])->toBe($this->a1->id)
+        ->and($state->lastActivityTrackId())->toBe($this->trackA->id);
 });
 
 it('ignores recommended and unpublished prerequisites', function () {

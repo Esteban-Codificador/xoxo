@@ -21,6 +21,8 @@ final readonly class RoadmapState
      * @param  list<int>  $studyOrder  visible lesson ids in study order
      * @param  array<int, CarbonImmutable>  $lastViewed  in-progress lesson id => last visit
      * @param  array<int, array{slug: string, title: string, track_id: int, module_slug: string, module_title: string}>  $outline  visible lesson id => where it sits
+     * @param  array<int, array{slug: string, title: string}>  $trackOutline  published track id => slug and title, in study order
+     * @param  int|null  $lastActivity  the lesson the learner touched last (visited, completed), whatever its state
      */
     public function __construct(
         public UnlockPolicy $policy,
@@ -29,6 +31,8 @@ final readonly class RoadmapState
         private array $studyOrder,
         private array $lastViewed,
         private array $outline = [],
+        private array $trackOutline = [],
+        private ?int $lastActivity = null,
     ) {}
 
     public function track(Track|int $track): TrackState
@@ -98,24 +102,64 @@ final readonly class RoadmapState
     }
 
     /**
-     * Where to continue: the in-progress lesson visited last, otherwise the
-     * first available lesson in study order. Null when nothing is left.
+     * The in-progress lesson visited last, with that visit.
+     *
+     * @return array{0: int, 1: CarbonImmutable}|null
      */
-    public function nextLessonId(): ?int
+    public function lastViewedInProgress(): ?array
     {
-        if ($this->lastViewed !== []) {
-            $recent = $this->lastViewed;
-            arsort($recent);
-
-            return array_key_first($recent);
+        if ($this->lastViewed === []) {
+            return null;
         }
 
-        foreach ($this->studyOrder as $id) {
-            if ($this->lessons[$id]->state === NodeState::Available) {
-                return $id;
-            }
-        }
+        $recent = $this->lastViewed;
+        arsort($recent);
+        $id = array_key_first($recent);
 
-        return null;
+        return [$id, $recent[$id]];
+    }
+
+    /** The track of the lesson the learner touched last; null for a new learner. */
+    public function lastActivityTrackId(): ?int
+    {
+        return $this->lastActivity === null ? null : ($this->outline[$this->lastActivity]['track_id'] ?? null);
+    }
+
+    /**
+     * Published track ids in study order.
+     *
+     * @return list<int>
+     */
+    public function trackIds(): array
+    {
+        return array_keys($this->trackOutline);
+    }
+
+    /**
+     * @return array{slug: string, title: string}
+     */
+    public function trackInfo(int $track): array
+    {
+        return $this->trackOutline[$track] ?? throw new LogicException("Track {$track} is not a published track of this roadmap.");
+    }
+
+    /**
+     * Where a visible lesson sits: slug, title and track.
+     *
+     * @return array{slug: string, title: string, track_id: int, module_slug: string, module_title: string}
+     */
+    public function lessonInfo(int $lesson): array
+    {
+        return $this->outline[$lesson] ?? throw new LogicException("Lesson {$lesson} is not visible in this roadmap.");
+    }
+
+    /**
+     * Visible lesson ids of a track in study order.
+     *
+     * @return list<int>
+     */
+    public function lessonIdsOf(int $track): array
+    {
+        return array_values(array_filter($this->studyOrder, fn (int $id) => ($this->outline[$id]['track_id'] ?? null) === $track));
     }
 }

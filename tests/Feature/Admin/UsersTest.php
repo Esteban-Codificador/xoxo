@@ -14,7 +14,9 @@ use Inertia\Testing\AssertableInertia as Assert;
 */
 
 it('lists accounts with their role, searchable and filterable by role', function () {
+    // A fixed name: the list is sorted by name and a random one could come first.
     $admin = staff(Role::Admin);
+    $admin->update(['name' => 'Zoe Admin']);
     staff(Role::Editor)->update(['name' => 'Ana Editora', 'email' => 'ana@example.com']);
     staff(Role::Student)->update(['name' => 'Beto Estudiante']);
     User::factory()->create(['name' => 'Carla Sin Rol']);

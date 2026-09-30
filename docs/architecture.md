@@ -295,13 +295,13 @@ stateDiagram-v2
 
 ## 8. Recomendaciones
 
-Interfaz `RecommendationEngine::recommend(User, Roadmap, int $limit): Recommendation[]`. Cada `Recommendation` lleva `{type, subject, reasonKey, reasonParams, priority}`; la razón se traduce con i18n, no se guarda como texto.
+Interfaz `RecommendationEngine::recommend(RoadmapState $state, int $limit = 3): Recommendation[]` (**implementada en la 5a**, `App\Domain\Learning\Recommendations`). Recibe el estado ya resuelto por `RoadmapStateResolver` y no el par usuario–roadmap del diseño inicial: las reglas son funciones puras de ese estado, la página lo calcula una vez por petición y los tests de reglas no dependen de nada más. Cada `Recommendation` lleva `{reason, subject: {type: lesson|track, slug, title, track}, params, priority}`; `reason` es el enum `RecommendationReason` (exportado a TypeScript) y el cliente lo convierte en frase con i18n, nunca se guarda como texto. Un mismo contenido se recomienda una sola vez, con la razón de la primera regla que lo propone.
 
-Reglas deterministas de V1, evaluadas en orden (cada regla es una clase):
+Reglas deterministas de V1, evaluadas en orden (cada regla es una clase en `Rules/`):
 
-1. **Continuar**: la lección IN_PROGRESS vista más recientemente.
-2. **Siguiente en el track**: la primera lección AVAILABLE, por posición, en el track de la última actividad.
-3. **Desbloquear**: si el siguiente track natural está LOCKED, se recomienda el prerequisito incumplido con el mensaje "Antes de continuar, completa {track} (llevas {x} %, se requiere {y} %)".
+1. **Continuar** (`ContinueLesson`): la lección IN_PROGRESS vista más recientemente, con la fecha de esa visita.
+2. **Siguiente en el track** (`NextLesson`): la primera lección AVAILABLE, por posición, en el track de la última actividad (la visita o la finalización más reciente, sea cual sea el estado de la lección). Si ese track ya no tiene ninguna, sigue por los tracks siguientes y luego por los anteriores, para que terminar un track no deje al estudiante sin siguiente paso (`NEXT_TRACK`). Sin actividad, la primera lección disponible del roadmap (`START`).
+3. **Desbloquear** (`UnlockTrack`): si el siguiente track no completado después del de la última actividad está LOCKED, se recomienda su prerrequisito incumplido con el mensaje "Antes de continuar con {siguiente}, completa {track}: llevas {x} %, se requiere {y} %". Solo con actividad: a quien no ha empezado no se le habla de continuar.
 4. **Refuerzo** (V1.1): un quiz reprobado en los últimos 7 días lleva a repasar su lección.
 5. **Proyecto** (V1.1): un track ≥ 80 % con un proyecto no iniciado lleva a sugerir ese proyecto.
 

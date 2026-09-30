@@ -1,23 +1,18 @@
 import { Head, Link, setLayoutProps } from '@inertiajs/react';
-import {
-    ArrowRight,
-    BookOpen,
-    CircleCheck,
-    Clock,
-    Map as MapIcon,
-} from 'lucide-react';
+import { BookOpen, CircleCheck, Clock, Map as MapIcon } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from '@/features/progress/progress-bar';
 import { StateBadge } from '@/features/progress/state-badge';
 import type { TrackProgress } from '@/features/progress/types';
+import type { Recommendation } from '@/features/recommendations/recommendation-list';
+import { RecommendationList } from '@/features/recommendations/recommendation-list';
 import { t } from '@/i18n';
 import { dashboard } from '@/routes';
-import { show as showLesson } from '@/routes/lessons';
 import { show as showRoadmap } from '@/routes/roadmaps';
 import { show as showTrack } from '@/routes/tracks';
-import type { Difficulty, NodeState } from '@/types/enums';
+import type { Difficulty } from '@/types/enums';
 
 type RoadmapSummary = { slug: string; title: string; summary: string };
 
@@ -35,26 +30,19 @@ type TrackSummary = {
 type Props = {
     roadmap: RoadmapSummary | null;
     tracks: TrackSummary[];
-    continue: {
-        slug: string;
-        title: string;
-        track: string;
-        state: NodeState;
-    } | null;
+    recommendations: Recommendation[];
     all_done?: boolean;
 };
 
 export default function Dashboard({
     roadmap,
     tracks,
-    continue: next,
+    recommendations,
     all_done: allDone = false,
 }: Props) {
     setLayoutProps({
         breadcrumbs: [{ title: t('nav.dashboard'), href: dashboard() }],
     });
-
-    const resuming = next?.state === 'IN_PROGRESS';
 
     return (
         <>
@@ -90,39 +78,12 @@ export default function Dashboard({
                     />
                 ) : (
                     <>
-                        {next && (
-                            <section
-                                aria-labelledby="continue"
-                                className="flex flex-col gap-4 rounded-xl border bg-card p-5 sm:flex-row sm:items-center sm:justify-between"
-                            >
-                                <div className="space-y-1">
-                                    <h2
-                                        id="continue"
-                                        className="text-sm font-medium text-muted-foreground"
-                                    >
-                                        {resuming
-                                            ? t('progress.continueTitle')
-                                            : t('progress.startTitle')}
-                                    </h2>
-                                    <p className="text-lg font-medium">
-                                        {next.title}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {next.track}
-                                    </p>
-                                </div>
-                                <Button asChild className="shrink-0">
-                                    <Link href={showLesson(next.slug)}>
-                                        {resuming
-                                            ? t('progress.continueAction')
-                                            : t('progress.startAction')}
-                                        <ArrowRight aria-hidden="true" />
-                                    </Link>
-                                </Button>
-                            </section>
-                        )}
+                        <RecommendationList
+                            roadmapSlug={roadmap.slug}
+                            recommendations={recommendations}
+                        />
 
-                        {!next && allDone && (
+                        {recommendations.length === 0 && allDone && (
                             <p className="flex items-center gap-2 rounded-xl border border-state-completed/40 bg-state-completed-soft p-4 font-medium text-state-completed">
                                 <CircleCheck
                                     className="size-5"

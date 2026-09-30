@@ -59,7 +59,7 @@ final class RoadmapStateResolver
         $progress = LessonProgress::query()
             ->whereBelongsTo($user)
             ->whereIn('lesson_id', $lessons->keys())
-            ->get(['lesson_id', 'status', 'last_viewed_at'])
+            ->get(['lesson_id', 'status', 'started_at', 'completed_at', 'last_viewed_at'])
             ->keyBy('lesson_id');
 
         $requiredLessons = LessonDependency::query()
@@ -148,6 +148,16 @@ final class RoadmapStateResolver
             ->filter()
             ->all();
 
+        // Visiting or completing a lesson is activity; the latest one wins.
+        // Starting happens on the first visit, so it only counts without one.
+        $lastActivity = $progress
+            ->sortByDesc(fn (LessonProgress $row) => max(
+                ($row->last_viewed_at ?? $row->started_at)->getTimestamp(),
+                $row->completed_at?->getTimestamp() ?? 0,
+            ))
+            ->keys()
+            ->first();
+
         return new RoadmapState(
             $roadmap->unlock_policy,
             $trackStates,
@@ -161,6 +171,8 @@ final class RoadmapStateResolver
                 'module_slug' => (string) $lesson->module_slug,
                 'module_title' => (string) $lesson->module_title,
             ])->all(),
+            $tracks->map(fn (Track $track) => ['slug' => $track->slug, 'title' => $track->title])->all(),
+            $lastActivity === null ? null : (int) $lastActivity,
         );
     }
 }

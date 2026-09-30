@@ -50,13 +50,28 @@ it('logs in, creates a lesson, publishes it and a learner reads it', function ()
         ->fill('input[id$="-objective-0"]', 'Guardar y recuperar cambios con git stash')
         ->fill('input[id$="-objective-1"]', 'Elegir entre stash y un commit temporal');
 
-    $write = function (int $heading, string $topic) use ($page): void {
-        $page->click(".tiptap h2 >> nth={$heading}")
-            ->keys('.tiptap', ['End', 'Enter'])
+    // The caret goes to the end of a section heading through TipTap itself:
+    // a click followed at once by keys can reach ProseMirror before it syncs
+    // the clicked position, and on a slow CI runner the text then lands in
+    // the previous section. The writing itself is typed like an author.
+    $write = function (string $heading, string $topic) use ($page): void {
+        $page->script(<<<JS
+            () => {
+                const editor = document.querySelector('.tiptap').editor;
+                let end = null;
+                editor.state.doc.forEach((node, offset) => {
+                    if (end === null && node.type.name === 'heading' && node.textContent === '{$heading}') {
+                        end = offset + node.nodeSize - 1;
+                    }
+                });
+                editor.chain().focus().setTextSelection(end).run();
+            }
+            JS);
+        $page->keys('.tiptap', ['Enter'])
             ->typeSlowly('.tiptap', sectionText($topic), 1);
     };
 
-    foreach ([0 => 'Git stash', 1 => 'La pila de stash', 3 => 'Un stash olvidado'] as $heading => $topic) {
+    foreach (['Concepto' => 'Git stash', 'Cómo funciona' => 'La pila de stash', 'Errores comunes' => 'Un stash olvidado'] as $heading => $topic) {
         $write($heading, $topic);
     }
 
@@ -65,7 +80,9 @@ it('logs in, creates a lesson, publishes it and a learner reads it', function ()
         ->waitForText('Todo guardado.')
         ->assertSee('Falta la práctica');
 
-    $write(5, 'En tu repositorio, git stash');
+    $write('Práctica', 'En tu repositorio, git stash');
+    // The practice is under its heading, not in the section before it.
+    $page->assertScript("document.querySelector('.tiptap h2:last-of-type').nextElementSibling?.textContent.startsWith('En tu repositorio')");
     $page->press('Guardar cambios')
         ->waitForText('Todo guardado.')
         ->assertDontSee('Falta la práctica');

@@ -131,6 +131,17 @@ export const ProgressStatus = {
 export type ProgressStatus =
     (typeof ProgressStatus)[keyof typeof ProgressStatus];
 
+export const RecommendationReason = {
+    Continue: 'CONTINUE',
+    Start: 'START',
+    NextInTrack: 'NEXT_IN_TRACK',
+    NextTrack: 'NEXT_TRACK',
+    Unlock: 'UNLOCK',
+} as const;
+
+export type RecommendationReason =
+    (typeof RecommendationReason)[keyof typeof RecommendationReason];
+
 export const ResourceType = {
     Documentation: 'DOCUMENTATION',
     Article: 'ARTICLE',

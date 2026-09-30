@@ -15,7 +15,7 @@ it('gives a role and shows the change in the audit log', function () {
     $page = visit('/admin')
         ->click('a:has-text("Usuarios")')
         ->assertPathIs('/admin/users')
-        ->fill('q', 'lucía')
+        ->fill('q', 'aprendiz')
         ->press('Filtrar')
         ->assertSee('Cuentas: 1')
         ->click('[aria-label="Ver la cuenta de Lucía Aprendiz"]')

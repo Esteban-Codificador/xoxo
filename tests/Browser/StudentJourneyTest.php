@@ -67,6 +67,13 @@ it('studies a lesson, completes it and sees progress and unlocks change', functi
     $page->navigate('/lessons/ciclo-de-vida-de-un-sistema-de-ia')
         ->assertDontSee('Antes de esta lección conviene completar');
 
+    // The dashboard recommends the next lesson of the same track, and says why.
+    $page->navigate('/dashboard')
+        ->assertSee('Recomendado para ti')
+        ->assertSee('Siguiente lección')
+        ->assertSee('Es la siguiente lección disponible de Orientación: el rol de AI Engineer.')
+        ->assertDontSee('Empieza por aquí');
+
     // The track shows the progress and suggests the next lesson.
     $page->navigate('/roadmaps/ai-engineer/tracks/orientacion')
         ->assertSee('1 de 3 lecciones')

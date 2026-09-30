@@ -150,14 +150,14 @@ it('shows track progress, lesson states and where to continue', function () {
 
     $this->actingAs($this->user)->get(route('dashboard'))->assertInertia(fn ($page) => $page
         ->where('tracks.0.progress.progress', 50)
-        ->where('continue.slug', 'ramas')
-        ->where('continue.state', 'AVAILABLE')
+        ->where('recommendations.0.reason', 'NEXT_IN_TRACK')
+        ->where('recommendations.0.subject.slug', 'ramas')
         ->where('all_done', false));
 
     app(CompleteLesson::class)->handle($this->user, $second);
 
     $this->actingAs($this->user)->get(route('dashboard'))->assertInertia(fn ($page) => $page
         ->where('tracks.0.progress.state', 'COMPLETED')
-        ->where('continue', null)
+        ->where('recommendations', [])
         ->where('all_done', true));
 });

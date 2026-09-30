@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Domain\Audit\AuditLogger;
+use App\Domain\Learning\Recommendations\RecommendationEngine;
+use App\Domain\Learning\Recommendations\RuleBasedRecommendationEngine;
 use App\Models\ExternalResource;
 use App\Models\LearningActivity;
 use App\Models\Lesson;
@@ -28,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(AuditLogger::class);
+        $this->app->bind(RecommendationEngine::class, RuleBasedRecommendationEngine::class);
     }
 
     /**
