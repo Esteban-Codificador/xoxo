@@ -60,14 +60,13 @@ final class LessonReadiness
         return $issues;
     }
 
+    /**
+     * A "## Práctica" with something under it: new lessons start with the
+     * heading from the template (LessonTemplate), so the heading alone
+     * proves nothing.
+     */
     private function hasPracticeSection(LessonDraft $draft): bool
     {
-        foreach ($draft->body->headings(2) as $heading) {
-            if (mb_strtolower($heading) === mb_strtolower(self::PRACTICE_HEADING)) {
-                return true;
-            }
-        }
-
-        return false;
+        return ($draft->body->sectionText(self::PRACTICE_HEADING) ?? '') !== '';
     }
 }

@@ -88,6 +88,45 @@ final readonly class RichContent implements JsonSerializable
     }
 
     /**
+     * Plain text under a top-level heading (compared without case), up to
+     * the next heading of the same or a higher level; null when there is
+     * no such heading.
+     */
+    public function sectionText(string $heading, int $level = 2): ?string
+    {
+        $wanted = mb_strtolower(trim($heading));
+        $inside = false;
+        $found = false;
+        $text = '';
+
+        foreach ($this->doc['content'] ?? [] as $node) {
+            if (! is_array($node)) {
+                continue;
+            }
+
+            $nodeLevel = ($node['type'] ?? null) === 'heading' ? (int) ($node['attrs']['level'] ?? 0) : null;
+
+            if ($nodeLevel !== null && $nodeLevel <= $level) {
+                if ($inside) {
+                    break;
+                }
+
+                if ($nodeLevel === $level && mb_strtolower(trim(self::textOf($node))) === $wanted) {
+                    $inside = $found = true;
+                }
+
+                continue;
+            }
+
+            if ($inside) {
+                $text .= self::textOf($node)."\n\n";
+            }
+        }
+
+        return $found ? trim((string) preg_replace("/\n{3,}/", "\n\n", $text)) : null;
+    }
+
+    /**
      * Plain text of every heading at the given level, in document order.
      *
      * @return list<string>
