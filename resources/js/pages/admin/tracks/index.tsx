@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import { formatDateTime } from '@/lib/format';
 import { dashboard } from '@/routes/admin';
+import { edit as editRoadmap } from '@/routes/admin/roadmaps';
 import { create, edit, index } from '@/routes/admin/tracks';
 import type { ContentStatus } from '@/types/enums';
 
@@ -22,7 +23,14 @@ type TrackRow = {
 };
 
 type Props = {
-    roadmaps: { slug: string; title: string; tracks: TrackRow[] }[];
+    roadmaps: {
+        id: number;
+        slug: string;
+        title: string;
+        status: ContentStatus;
+        can_edit: boolean;
+        tracks: TrackRow[];
+    }[];
     can: { create: boolean };
 };
 
@@ -75,22 +83,53 @@ export default function AdminTracksIndex({ roadmaps, can }: Props) {
                             aria-label={roadmap.title}
                             className="space-y-3"
                         >
-                            <div className="flex items-center justify-between gap-2">
-                                <h2 className="font-medium">{roadmap.title}</h2>
-                                {can.create && roadmaps.length > 1 && (
-                                    <Button asChild size="sm" variant="outline">
-                                        <Link
-                                            href={create({
-                                                query: {
-                                                    roadmap: roadmap.slug,
-                                                },
-                                            })}
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                    <h2 className="font-medium">
+                                        {roadmap.title}
+                                    </h2>
+                                    <ContentStatusBadge
+                                        status={roadmap.status}
+                                    />
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {roadmap.can_edit && (
+                                        <Button
+                                            asChild
+                                            size="sm"
+                                            variant="outline"
                                         >
-                                            <Plus aria-hidden="true" />
-                                            {t('cms.tracks.create')}
-                                        </Link>
-                                    </Button>
-                                )}
+                                            <Link
+                                                href={editRoadmap(roadmap.id)}
+                                                aria-label={t(
+                                                    'cms.tracks.editRoadmapLabel',
+                                                    { roadmap: roadmap.title },
+                                                )}
+                                            >
+                                                <Pencil aria-hidden="true" />
+                                                {t('cms.tracks.editRoadmap')}
+                                            </Link>
+                                        </Button>
+                                    )}
+                                    {can.create && roadmaps.length > 1 && (
+                                        <Button
+                                            asChild
+                                            size="sm"
+                                            variant="outline"
+                                        >
+                                            <Link
+                                                href={create({
+                                                    query: {
+                                                        roadmap: roadmap.slug,
+                                                    },
+                                                })}
+                                            >
+                                                <Plus aria-hidden="true" />
+                                                {t('cms.tracks.create')}
+                                            </Link>
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                             <div className="overflow-x-auto rounded-xl border">
                                 <table className="w-full min-w-[44rem] table-fixed text-sm">

@@ -41,8 +41,11 @@ class TrackController extends Controller
 
         return Inertia::render('admin/tracks/index', [
             'roadmaps' => $roadmaps->map(fn (Roadmap $roadmap) => [
+                'id' => $roadmap->id,
                 'slug' => $roadmap->slug,
                 'title' => $roadmap->title,
+                'status' => $roadmap->status->value,
+                'can_edit' => $request->user()?->can('update', $roadmap) ?? false,
                 'tracks' => $roadmap->tracks->map(fn (Track $track) => [
                     'id' => $track->id,
                     'title' => $track->title,

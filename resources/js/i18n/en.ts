@@ -699,6 +699,8 @@ export const en: Messages = {
             editTrack: 'Edit {track}',
             empty: 'There are no tracks yet.',
             create: 'New track',
+            editRoadmap: 'Edit roadmap',
+            editRoadmapLabel: 'Edit the roadmap {roadmap}',
         },
         trackCreate: {
             head: 'New track',
@@ -706,6 +708,37 @@ export const en: Messages = {
                 'It starts as a draft at the end of “{roadmap}”. Add its description, prerequisites and modules afterwards.',
             submit: 'Create track',
             creating: 'Creating…',
+        },
+        roadmapEdit: {
+            head: 'Edit: {roadmap}',
+            tracks: 'Tracks: {count} · published: {published}',
+            tracksLink: 'See its tracks',
+            details: 'Roadmap details',
+            fields: {
+                slugHelp:
+                    'Part of the URL of the roadmap and all its tracks. If you change it, saved links stop working.',
+                summaryHelp: 'Shown under the title, above the map.',
+                description: 'Description',
+                descriptionHelp:
+                    'Optional. Shown folded in «About this roadmap», above the map.',
+            },
+            policy: 'Unlock policy',
+            policyHelp:
+                'What happens when a learner opens a lesson whose required prerequisites they have not met. Applies from their next page.',
+            policies: {
+                ADVISORY: 'Advisory',
+                STRICT: 'Strict',
+            },
+            policyHelps: {
+                ADVISORY:
+                    'Points out what is best completed first, but lets learners start and complete any lesson.',
+                STRICT: 'A lesson with pending required prerequisites is locked: it cannot be started or completed until they are met.',
+            },
+            status: 'Status',
+            visible: 'Learners see it, with its published tracks.',
+            hidden: 'Learners do not see it, nor any of its tracks.',
+            liveNotice:
+                'No versions: when you save, learners see the change right away.',
         },
         trackEdit: {
             head: 'Edit: {track}',
@@ -798,6 +831,16 @@ export const en: Messages = {
                         'Learners will stop seeing the lesson. Its versions and progress are kept; it can be restored.',
                     restore:
                         'It comes back as a draft. If it had a published version, learners see it again.',
+                },
+                roadmap: {
+                    PUBLISHED:
+                        'Learners will see the roadmap with its published tracks.',
+                    DRAFT: 'Learners will stop seeing the roadmap and all its content: tracks, modules and lessons. Their progress is kept.',
+                    REVIEW: 'Learners will stop seeing the roadmap and all its content until it is published.',
+                    ARCHIVED:
+                        'It stops being visible with all its content and leaves editorial work. It can be restored as a draft. Progress is kept.',
+                    restore:
+                        'Back to editorial work as a draft, still not visible.',
                 },
                 resource: {
                     PUBLISHED: 'It will show in the lessons that use it.',
@@ -892,6 +935,7 @@ export const en: Messages = {
     },
     roadmap: {
         eyebrow: 'Roadmap',
+        about: 'About this roadmap',
         view: 'View',
         graph: 'Graph',
         list: 'List',

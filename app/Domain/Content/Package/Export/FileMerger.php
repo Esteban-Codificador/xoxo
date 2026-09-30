@@ -185,9 +185,11 @@ final readonly class FileMerger
                 return null;
             }
 
-            $out[] = [$key, $this->format->sameField($key, $parsed[$key] ?? null, $data[$key], in_array($key, $markdownKeys, true))
+            $markdown = in_array($key, $markdownKeys, true);
+
+            $out[] = [$key, $this->format->sameField($key, $parsed[$key] ?? null, $data[$key], $markdown)
                 ? $text
-                : $this->format->field($key, $data[$key])];
+                : $this->format->field($key, $markdown ? $this->markdownField($parsed[$key] ?? null, $data[$key]) : $data[$key])];
         }
 
         $order = array_keys($data);
@@ -212,6 +214,22 @@ final readonly class FileMerger
         }
 
         return implode("\n", array_column($out, 1));
+    }
+
+    /**
+     * A Markdown field that changed keeps the old text of its unchanged
+     * blocks, like a lesson body: one edited paragraph is one changed
+     * paragraph, not the whole field rewrapped.
+     */
+    private function markdownField(mixed $old, mixed $new): mixed
+    {
+        if (! is_string($old) || ! is_string($new)) {
+            return $new;
+        }
+
+        $merged = $this->body($old, $new);
+
+        return str_ends_with($new, "\n") ? $merged : rtrim($merged, "\n");
     }
 
     /**

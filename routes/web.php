@@ -16,6 +16,8 @@ use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Admin\ResourceStatusController;
 use App\Http\Controllers\Admin\ResourceVerificationController;
 use App\Http\Controllers\Admin\ReviewQueueController;
+use App\Http\Controllers\Admin\RoadmapController as AdminRoadmapController;
+use App\Http\Controllers\Admin\RoadmapStatusController;
 use App\Http\Controllers\Admin\SkillController as AdminSkillController;
 use App\Http\Controllers\Admin\SkillDependencyController;
 use App\Http\Controllers\Admin\SkillStatusController;
@@ -74,6 +76,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('lessons.versions.show');
 
             // Tracks and modules by id: their slugs are only unique inside the parent and editable.
+            Route::get('roadmaps/{roadmap}/edit', [AdminRoadmapController::class, 'edit'])->name('roadmaps.edit');
+            Route::put('roadmaps/{roadmap}', [AdminRoadmapController::class, 'update'])->name('roadmaps.update');
+            Route::put('roadmaps/{roadmap}/status', RoadmapStatusController::class)->name('roadmaps.status');
+
             Route::get('tracks', [AdminTrackController::class, 'index'])->name('tracks.index');
             Route::get('tracks/create', [AdminTrackController::class, 'create'])->name('tracks.create');
             Route::post('tracks', [AdminTrackController::class, 'store'])->name('tracks.store');

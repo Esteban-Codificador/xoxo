@@ -7,6 +7,13 @@ return [
     'not_ready' => 'It cannot be published yet. Check the requirements list.',
     'invalid_body' => 'The content has a structure that is not allowed: :errors',
     'invalid_slug' => 'Use only lowercase letters without accents, numbers and hyphens (for example: git-and-collaboration).',
+    'roadmap_saved' => 'Roadmap saved. Learners see the change right away.',
+    'roadmap_status' => [
+        'PUBLISHED' => 'Roadmap published: learners see its published tracks.',
+        'DRAFT' => 'The roadmap is now a draft: learners see none of its tracks.',
+        'REVIEW' => 'The roadmap is in review: learners see none of its tracks.',
+        'ARCHIVED' => 'Roadmap archived: learners see none of its tracks.',
+    ],
     'track_saved' => 'Track saved. Learners see the change right away.',
     'track_status' => [
         'PUBLISHED' => 'Track published: learners see it now.',

@@ -32,7 +32,7 @@ git diff content/                      # solo cambia lo editado; revisa y haz co
 ```
 
 - Se exporta **lo que ven los estudiantes**: si una lección tiene cambios sin publicar, se exporta su versión publicada y el comando lo avisa. Publica antes de exportar si quieres llevarlos.
-- Lo que no cambió conserva su texto. Lo editado se escribe en formato canónico: cada párrafo en una línea y los textos del front matter entre comillas cuando hace falta.
+- Lo que no cambió conserva su texto, hasta el nivel de párrafo: en el cuerpo de una lección o en la descripción del roadmap, solo se reescriben los bloques editados. Lo editado se escribe en formato canónico: cada párrafo en una línea y los textos del front matter entre comillas cuando hace falta.
 - Si un archivo cambió a mano y no se importó, el export se detiene para no pisarlo: impórtalo primero. Si cambió en los dos lados, decide cuál vale: `content:import --force` (gana el archivo) o `content:export --force` (gana la base de datos).
 - Tras exportar, la base de datos y el paquete quedan sincronizados: `content:import` no cambia nada y `migrate:fresh --seed` reconstruye la base desde el paquete sin perder lo editado. El historial de versiones no viaja: cada lección vuelve como versión 1.
 - Para un respaldo o una revisión en otro directorio: `php artisan content:export /ruta/copia --copy` (no altera la sincronización).

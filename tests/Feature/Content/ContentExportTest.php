@@ -14,9 +14,11 @@ use App\Domain\Curriculum\Actions\CreateLesson;
 use App\Domain\Curriculum\Actions\CreateModule;
 use App\Domain\Curriculum\Actions\CreateTrack;
 use App\Domain\Curriculum\Actions\PublishLesson;
+use App\Domain\Curriculum\Actions\UpdateRoadmap;
 use App\Domain\Curriculum\Publishing\LessonTemplate;
 use App\Enums\ContentStatus;
 use App\Enums\Difficulty;
+use App\Enums\UnlockPolicy;
 use App\Models\ContentImportRecord;
 use App\Models\ExternalResource;
 use App\Models\Lesson;
@@ -382,4 +384,41 @@ it('exports tracks, modules and lessons created in the CMS, and imports them bac
     expect($lesson->status)->toBe(ContentStatus::Draft)
         ->and($lesson->module->track->slug)->toBe('python-para-ia')
         ->and($lesson->body->headings(2))->toBe(LessonTemplate::SECTIONS);
+});
+
+it('exports the roadmap edited in the CMS field by field, and imports it back', function () {
+    $roadmap = Roadmap::firstWhere('slug', 'ai-engineer');
+    $before = (string) file_get_contents("{$this->path}/roadmap.yaml");
+    $description = $roadmap->description?->toArray();
+    $description['doc']['content'][] = ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Párrafo añadido en el CMS.']]];
+
+    app(UpdateRoadmap::class)->handle($roadmap, [
+        'title' => 'Ingeniería de IA',
+        'slug' => 'ai-engineer',
+        'summary' => $roadmap->summary,
+        'description' => $description,
+        'unlock_policy' => 'STRICT',
+    ]);
+
+    $plan = exportTo($this->path);
+    $written = (string) file_get_contents("{$this->path}/roadmap.yaml");
+
+    expect(changedPaths($plan))->toBe(['updated roadmap.yaml'])
+        ->and($written)->toContain('unlock_policy: STRICT')
+        ->toContain('Párrafo añadido en el CMS.');
+
+    // Only what was edited changed: two fields and one new paragraph. The
+    // rest, the wrapped description paragraphs included, keeps its text.
+    $removed = array_values(array_diff(explode("\n", $before), explode("\n", $written)));
+    $added = array_values(array_diff(explode("\n", $written), explode("\n", $before)));
+    expect($removed)->toBe(['title: AI Engineer', 'unlock_policy: ADVISORY'])
+        ->and($added)->toBe(["title: 'Ingeniería de IA'", 'unlock_policy: STRICT', '  Párrafo añadido en el CMS.']);
+
+    wipeContent();
+    $this->artisan('content:import', ['path' => $this->path])->assertSuccessful();
+
+    $reimported = Roadmap::firstWhere('slug', 'ai-engineer');
+    expect($reimported->title)->toBe('Ingeniería de IA')
+        ->and($reimported->unlock_policy)->toBe(UnlockPolicy::Strict)
+        ->and($reimported->description?->plainText())->toContain('Párrafo añadido en el CMS.');
 });

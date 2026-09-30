@@ -3,6 +3,8 @@ import { Map as MapIcon } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import { EmptyState } from '@/components/empty-state';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { RichContentRenderer } from '@/features/rich-content';
+import type { RichContent } from '@/features/rich-content';
 import { NodeDetailPanel } from '@/features/roadmap-graph/node-detail-panel';
 import { RoadmapListView } from '@/features/roadmap-graph/roadmap-list-view';
 import type { RoadmapEdge, RoadmapTrack } from '@/features/roadmap-graph/types';
@@ -16,7 +18,12 @@ const RoadmapCanvas = lazy(
 );
 
 type Props = {
-    roadmap: { slug: string; title: string; summary: string };
+    roadmap: {
+        slug: string;
+        title: string;
+        summary: string;
+        description: RichContent | null;
+    };
     policy: UnlockPolicy;
     tracks: RoadmapTrack[];
     edges: RoadmapEdge[];
@@ -108,6 +115,20 @@ export default function RoadmapShow({ roadmap, policy, tracks, edges }: Props) {
                         </div>
                     )}
                 </header>
+
+                {roadmap.description && (
+                    // Folded: the map is what this page is for.
+                    <details className="-mt-2 max-w-2xl text-sm">
+                        <summary className="w-fit cursor-pointer font-medium text-primary underline-offset-4 hover:underline">
+                            {t('roadmap.about')}
+                        </summary>
+                        <div className="mt-3">
+                            <RichContentRenderer
+                                content={roadmap.description}
+                            />
+                        </div>
+                    </details>
+                )}
 
                 {tracks.length === 0 ? (
                     <EmptyState icon={MapIcon} title={t('roadmap.empty')} />

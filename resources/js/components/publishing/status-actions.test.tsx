@@ -42,6 +42,30 @@ describe('StatusActions', () => {
         );
     });
 
+    it('warns that unpublishing the roadmap hides all its content', async () => {
+        render(
+            <StatusActions
+                entity="roadmap"
+                name="AI Engineer"
+                current="PUBLISHED"
+                actions={['DRAFT', 'ARCHIVED']}
+                url="/admin/roadmaps/1/status"
+            />,
+        );
+
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Pasar a borrador' }),
+        );
+
+        expect(
+            screen.getByRole('dialog', {
+                name: '¿Pasar «AI Engineer» a borrador?',
+            }),
+        ).toHaveTextContent(
+            'Los estudiantes dejarán de ver el roadmap y todo su contenido: tracks, módulos y lecciones.',
+        );
+    });
+
     it('calls leaving ARCHIVED a restore', () => {
         render(
             <StatusActions

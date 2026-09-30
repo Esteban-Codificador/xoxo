@@ -7,6 +7,13 @@ return [
     'not_ready' => 'Todavía no se puede publicar. Revisa la lista de requisitos.',
     'invalid_body' => 'El contenido tiene una estructura no permitida: :errors',
     'invalid_slug' => 'Usa solo minúsculas sin tildes, números y guiones (por ejemplo: git-y-colaboracion).',
+    'roadmap_saved' => 'Roadmap guardado. Los estudiantes ven el cambio de inmediato.',
+    'roadmap_status' => [
+        'PUBLISHED' => 'Roadmap publicado: los estudiantes ven sus tracks publicados.',
+        'DRAFT' => 'El roadmap quedó en borrador: los estudiantes no ven ninguno de sus tracks.',
+        'REVIEW' => 'El roadmap quedó en revisión: los estudiantes no ven ninguno de sus tracks.',
+        'ARCHIVED' => 'Roadmap archivado: los estudiantes no ven ninguno de sus tracks.',
+    ],
     'track_saved' => 'Track guardado. Los estudiantes ven el cambio de inmediato.',
     'track_created' => 'Track creado como borrador. Añade sus prerrequisitos y módulos.',
     'module_created' => 'Módulo «:module» creado como borrador, al final del track.',

@@ -49,7 +49,12 @@ class ShowRoadmapController extends Controller
             ->all();
 
         return Inertia::render('roadmap/show', [
-            'roadmap' => ['slug' => $roadmap->slug, 'title' => $roadmap->title, 'summary' => $roadmap->summary],
+            'roadmap' => [
+                'slug' => $roadmap->slug,
+                'title' => $roadmap->title,
+                'summary' => $roadmap->summary,
+                'description' => $roadmap->description,
+            ],
             'policy' => $state->policy->value,
             'tracks' => $tracks->map(function (Track $track) use ($state) {
                 $lessons = $state->lessonsOf($track);

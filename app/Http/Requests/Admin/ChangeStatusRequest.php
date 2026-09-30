@@ -7,6 +7,7 @@ use App\Enums\ContentStatus;
 use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
 use Illuminate\Auth\Access\Response;
@@ -15,13 +16,13 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 /**
- * Publish, unpublish, archive or restore a track, module or lesson. The policy
+ * Publish, unpublish, archive or restore a curriculum entity. The policy
  * checks the permission for the requested change; the rules check that the
  * change exists from the current status.
  */
 abstract class ChangeStatusRequest extends FormRequest
 {
-    abstract public function subject(): Track|Module|Lesson|Skill|ExternalResource;
+    abstract public function subject(): Roadmap|Track|Module|Lesson|Skill|ExternalResource;
 
     public function authorize(): Response|bool
     {

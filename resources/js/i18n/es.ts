@@ -707,6 +707,8 @@ export const es = {
             editTrack: 'Editar {track}',
             empty: 'Todavía no hay tracks.',
             create: 'Nuevo track',
+            editRoadmap: 'Editar roadmap',
+            editRoadmapLabel: 'Editar el roadmap {roadmap}',
         },
         trackCreate: {
             head: 'Nuevo track',
@@ -714,6 +716,37 @@ export const es = {
                 'Nace en borrador al final de «{roadmap}». Después añadirás su descripción, prerrequisitos y módulos.',
             submit: 'Crear track',
             creating: 'Creando…',
+        },
+        roadmapEdit: {
+            head: 'Editar: {roadmap}',
+            tracks: 'Tracks: {count} · publicados: {published}',
+            tracksLink: 'Ver sus tracks',
+            details: 'Datos del roadmap',
+            fields: {
+                slugHelp:
+                    'Forma parte de la URL del roadmap y de todos sus tracks. Si lo cambias, los enlaces guardados dejan de funcionar.',
+                summaryHelp: 'Se muestra bajo el título, encima del mapa.',
+                description: 'Descripción',
+                descriptionHelp:
+                    'Opcional. Se muestra plegada en «Sobre este roadmap», encima del mapa.',
+            },
+            policy: 'Política de desbloqueo',
+            policyHelp:
+                'Qué pasa cuando un estudiante abre una lección cuyos prerrequisitos necesarios no cumple. Se aplica desde su siguiente página.',
+            policies: {
+                ADVISORY: 'Orientativa',
+                STRICT: 'Estricta',
+            },
+            policyHelps: {
+                ADVISORY:
+                    'Avisa de lo que conviene completar antes, pero deja empezar y completar cualquier lección.',
+                STRICT: 'Una lección con prerrequisitos necesarios pendientes queda bloqueada: no se puede empezar ni completar hasta cumplirlos.',
+            },
+            status: 'Estado',
+            visible: 'Los estudiantes lo ven, con sus tracks publicados.',
+            hidden: 'Los estudiantes no lo ven, ni ninguno de sus tracks.',
+            liveNotice:
+                'Sin versiones: al guardar, los estudiantes ven el cambio de inmediato.',
         },
         trackEdit: {
             head: 'Editar: {track}',
@@ -808,6 +841,16 @@ export const es = {
                     restore:
                         'Vuelve como borrador. Si tenía una versión publicada, los estudiantes vuelven a verla.',
                 },
+                roadmap: {
+                    PUBLISHED:
+                        'Los estudiantes verán el roadmap con sus tracks publicados.',
+                    DRAFT: 'Los estudiantes dejarán de ver el roadmap y todo su contenido: tracks, módulos y lecciones. Su progreso se conserva.',
+                    REVIEW: 'Los estudiantes dejarán de ver el roadmap y todo su contenido hasta que se publique.',
+                    ARCHIVED:
+                        'Deja de verse con todo su contenido y sale del trabajo editorial. Se puede restaurar como borrador. El progreso se conserva.',
+                    restore:
+                        'Vuelve al trabajo editorial como borrador, todavía sin verse.',
+                },
                 resource: {
                     PUBLISHED: 'Aparecerá en las lecciones que lo usan.',
                     DRAFT: 'Dejará de aparecer en las lecciones.',
@@ -901,6 +944,7 @@ export const es = {
     },
     roadmap: {
         eyebrow: 'Roadmap',
+        about: 'Sobre este roadmap',
         view: 'Vista',
         graph: 'Grafo',
         list: 'Lista',

@@ -21,7 +21,7 @@ export function StatusActions({
     url,
     className,
 }: {
-    entity: 'track' | 'module' | 'lesson' | 'resource' | 'skill';
+    entity: 'roadmap' | 'track' | 'module' | 'lesson' | 'resource' | 'skill';
     name: string;
     current: ContentStatus;
     actions: ContentStatus[];

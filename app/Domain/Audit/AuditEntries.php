@@ -8,6 +8,7 @@ use App\Models\ExternalResource;
 use App\Models\Lesson;
 use App\Models\LessonVersion;
 use App\Models\Module;
+use App\Models\Roadmap;
 use App\Models\Skill;
 use App\Models\Track;
 use App\Models\User;
@@ -83,6 +84,7 @@ final class AuditEntries
         return match (true) {
             $subject instanceof Lesson => route('admin.lessons.edit', ['lesson' => $subject->slug], false),
             $subject instanceof LessonVersion => $this->versionHref($subject),
+            $subject instanceof Roadmap => route('admin.roadmaps.edit', $subject, false),
             $subject instanceof Track => route('admin.tracks.edit', $subject, false),
             $subject instanceof Module => route('admin.tracks.edit', ['track' => $subject->track_id], false),
             $subject instanceof Skill => route('admin.skills.edit', $subject, false),
