@@ -76,14 +76,14 @@ Tokens semánticos (estados de nodo), tipografía, `AppLayout` y `AdminLayout` (
 
 **Cerrada el 2026-09-25.** Consumidores ya activos: `EmptyState` y `PageHeader` (dashboard), insignias de estado de publicación y de enlace (admin), `RichContentRenderer` (galería local). Consumidores en la 5a: `StateBadge`, `ProgressBar` y skeletons (dashboard, track y roadmap con progreso), `ErrorState` (props diferidos) y `collectHeadings` (tabla de contenidos de la lección).
 
-### Fase 5 — MVP de punta a punta · estimación: 4–5 sesiones
+### Fase 5 — MVP de punta a punta ✅ · cerrada el 2026-09-30
 
-- **5a · Ruta del estudiante:** `RoadmapStateResolver`, `CompleteLesson`, `StartLesson`, `UncompleteLesson`, política de desbloqueo, recomendaciones por reglas (1–3), dashboard, roadmap (canvas + lista), track, lección y skills. Recursos visibles con su estado de enlace.
+- **5a · Ruta del estudiante ✅:** `RoadmapStateResolver`, `CompleteLesson`, `StartLesson`, `UncompleteLesson`, política de desbloqueo, recomendaciones por reglas (1–3), dashboard, roadmap (canvas + lista), track, lección y skills. Recursos visibles con su estado de enlace.
 - **5b · CMS ✅** (adelantado por el dueño del producto el 2026-09-29, **cerrado el 2026-09-30**): crear, editar, publicar y archivar tracks, módulos, lecciones, skills y recursos, y editar el roadmap. Editor TipTap con nodos de dominio y checklist. `DependencyEditor`. Flujo de publicación, versiones con diff y revisión (ADR-032). Usuarios y roles (ADR-033). Vista de auditoría. `content:export` (adelantado de la Fase 7, ADR-031). Sin borrado (se archiva, TD-4) ni alta de roadmaps; imágenes y embeds en el editor, en la Fase 6. Detalle en [progress.md](progress.md).
 - ~~**5c · Contenido:** paquete completo con 17 tracks, 50 módulos, 72 skills y dependencias, recursos oficiales y ≥ 100 lecciones publicadas.~~ **Redefinida por D8 (2026-09-29): no se agregan lecciones; se pulen las 6 existentes** con la revisión del dueño del producto dentro de la plataforma. El job de CI de verificación de enlaces ya existe (ADR-027).
 - **E2E:** los dos flujos de §78.
 
-**Criterio de salida:** un estudiante nuevo puede registrarse, recorrer el roadmap, estudiar, completar lecciones y ver cómo cambian el progreso y los desbloqueos (**hecho** en la 5a, roadmap visual incluido). Un editor puede crear y publicar una lección que el estudiante ve de inmediato (**hecho** en la 5b, con el E2E de §78 de punta a punta). Todo cubierto por tests. Faltan las recomendaciones 1–3 y las skills del estudiante (5a) y pulir las 6 lecciones (D8). **Aquí queda cerrada la V1.**
+**Criterio de salida (cumplido):** un estudiante nuevo puede registrarse, recorrer el roadmap, estudiar, completar lecciones y ver cómo cambian el progreso y los desbloqueos, con recomendaciones y skills (5a). Un editor puede crear y publicar una lección que el estudiante ve de inmediato (5b, E2E de §78 de punta a punta). Todo cubierto por tests: 363 de backend, 181 de frontend y 16 E2E. **La V1 queda cerrada en lo técnico.** Pulir las 6 lecciones (D8) sale de la puerta de fase por decisión del dueño del producto (2026-09-30): es trabajo de contenido que se hace desde el CMS en cualquier momento y no cambia código.
 
 ### Fase 6 — Práctica y evaluación · estimación: 3–4 sesiones
 

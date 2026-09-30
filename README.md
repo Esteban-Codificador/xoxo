@@ -10,9 +10,9 @@ Llevar a una persona desde "sé programar" hasta "diseño, evalúo y opero siste
 
 ## Estado
 
-**Fase 4 (design system) completada.** Hay autenticación, esquema de datos, publicación versionada, auditoría, roles, un importador de contenido con un currículo de muestra, la interfaz en español (i18n tipado), un dashboard con los tracks publicados, un resumen de contenido para el equipo editorial y el renderizador de lecciones (código resaltado, fórmulas, diagramas y video). Desde el dashboard se entra a cada track y a cada lección publicada; el estudiante marca lecciones como completadas y ve su progreso, los requisitos pendientes y dónde continuar. **Aún no hay CMS**: llega en la Fase 5b. En local, `/_dev/design-system` muestra los componentes y las lecciones reales.
+**Fase 5 completada: la V1 funciona de punta a punta.** El estudiante se registra, recorre el roadmap (grafo o lista), estudia lecciones con código resaltado, fórmulas, diagramas y video, las completa y ve su progreso, los desbloqueos, recomendaciones de qué seguir y sus skills. El equipo editorial trabaja en `/admin`: crea, edita, revisa y publica tracks, módulos, lecciones (con TipTap, versiones y diff), skills y recursos, gestiona roles y consulta la auditoría; `php artisan content:export` lleva lo editado al repositorio. Siguiente: Fase 6 (práctica y evaluación, empezando por la subida de imágenes). En local, `/_dev/design-system` muestra los componentes y las lecciones reales.
 
-El estado vivo está en [`docs/progress.md`](docs/progress.md). Las capturas se añadirán cuando existan pantallas propias (Fase 5).
+El estado vivo está en [`docs/progress.md`](docs/progress.md). Capturas: pendientes (Fase 9, pulido).
 
 ## Principio de diseño
 
@@ -20,7 +20,7 @@ La **plataforma** (código) y el **contenido** (datos) están desacoplados. El c
 
 ## Stack
 
-Laravel 13 · Inertia 3 · React 19 + TypeScript · Tailwind CSS 4 · shadcn/ui · TipTap (editor, Fase 5) · PostgreSQL 16 · Redis 7 · Pest 5 · Vitest · GitHub Actions. Base: el starter kit oficial de React para Laravel.
+Laravel 13 · Inertia 3 · React 19 + TypeScript · Tailwind CSS 4 · shadcn/ui · TipTap (editor) · PostgreSQL 16 · Redis 7 · Pest 5 · Vitest · GitHub Actions. Base: el starter kit oficial de React para Laravel.
 
 Motivos y alternativas: [`docs/architecture.md`](docs/architecture.md).
 
