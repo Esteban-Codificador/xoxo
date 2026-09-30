@@ -31,7 +31,9 @@ use App\Http\Controllers\Learn\DashboardController;
 use App\Http\Controllers\Learn\LessonProgressController;
 use App\Http\Controllers\Learn\ShowLessonController;
 use App\Http\Controllers\Learn\ShowRoadmapController;
+use App\Http\Controllers\Learn\ShowSkillController;
 use App\Http\Controllers\Learn\ShowTrackController;
+use App\Http\Controllers\Learn\SkillIndexController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -44,6 +46,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->scopeBindings()
         ->name('tracks.show');
     Route::get('lessons/{lesson:slug}', ShowLessonController::class)->name('lessons.show');
+    Route::get('skills', SkillIndexController::class)->name('skills.index');
+    Route::get('skills/{skill:slug}', ShowSkillController::class)->name('skills.show');
 
     Route::controller(LessonProgressController::class)->prefix('lessons/{lesson:slug}')->name('lessons.')->group(function () {
         Route::post('start', 'start')->name('start');

@@ -13,6 +13,13 @@ class SkillPolicy
 {
     use AuthorizesContentEdits;
 
+    /** Learners see published skills; drafts answer 404. */
+    public function view(User $user, Skill $model): Response
+    {
+        return $model->isPublished() ? Response::allow() : Response::denyAsNotFound();
+    }
+
+    /** The CMS skill list (admin.access is checked by the route group). */
     public function viewAny(User $user): bool
     {
         return $user->can(Permission::ContentViewAny->value);

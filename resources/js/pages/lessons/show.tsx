@@ -16,6 +16,7 @@ import { t } from '@/i18n';
 import { formatDate, formatMinutes } from '@/lib/format';
 import { dashboard } from '@/routes';
 import { show as showLesson, start } from '@/routes/lessons';
+import { show as showSkill } from '@/routes/skills';
 import { show as showTrack } from '@/routes/tracks';
 import type {
     ContentType,
@@ -238,11 +239,13 @@ export default function LessonShow({
                             </h2>
                             <ul className="flex flex-wrap gap-2">
                                 {skills.map((skill) => (
-                                    <li
-                                        key={skill.slug}
-                                        className="rounded-md bg-muted px-2.5 py-1 text-sm"
-                                    >
-                                        {skill.name}
+                                    <li key={skill.slug}>
+                                        <Link
+                                            href={showSkill(skill.slug)}
+                                            className="block rounded-md bg-muted px-2.5 py-1 text-sm underline-offset-4 hover:bg-muted/70 hover:underline"
+                                        >
+                                            {skill.name}
+                                        </Link>
                                     </li>
                                 ))}
                             </ul>

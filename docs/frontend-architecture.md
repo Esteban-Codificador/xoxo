@@ -81,7 +81,9 @@ Regla de dependencia: `pages → features → components`. Una feature no import
 
 Dark y light mode vienen del starter kit (`use-appearance`), con preferencia del sistema y persistencia por cookie.
 
-**Estado a la Fase 4.** El sidebar del estudiante tiene "Inicio" y, solo si el prop compartido `access.admin` es verdadero, "Administración". El del admin tiene "Resumen" y "Volver a la plataforma". Cada fase añade entradas cuando su página existe: no hay enlaces a pantallas futuras. Se eliminaron el header alternativo del starter y los enlaces al repositorio y la documentación de Laravel.
+**Estado a la Fase 4** (ampliado en la 5a con "Roadmap" y "Skills"). El sidebar del estudiante tiene "Inicio" y, solo si el prop compartido `access.admin` es verdadero, "Administración". El del admin tiene "Resumen" y "Volver a la plataforma". Cada fase añade entradas cuando su página existe: no hay enlaces a pantallas futuras. Se eliminaron el header alternativo del starter y los enlaces al repositorio y la documentación de Laravel.
+
+**Skills del estudiante (Fase 5a).** `/skills` lista las skills publicadas en el orden en que el roadmap las desarrolla (`SkillCard`: estado, progreso ponderado, lecciones completadas y dificultad). `/skills/{slug}` muestra la descripción, el progreso, los prerrequisitos pendientes con `BlockerNotice` (`scope="skill"`, siempre orientativo: una skill no bloquea lecciones), las lecciones que la desarrollan con su estado, los prerrequisitos, a qué abre camino y sus recursos. El dashboard resume "Completadas: N de M" y las skills de una lección enlazan a su página. Todo llega calculado del servidor (`SkillProgressCalculator`); la página no suma pesos.
 
 **Página de error.** El manejador de excepciones (`bootstrap/app.php`) responde 403, 404, 419, 500 y 503 con `errors/error`, sin layout. Puede ejecutarse antes de cualquier middleware (un 404 de ruta), así que solo recibe `status` y no usa props compartidos. Las peticiones JSON conservan su respuesta JSON y, con `APP_DEBUG=true`, los 5xx conservan la página de depuración de Laravel.
 

@@ -2,7 +2,7 @@ import type { NodeState, UnlockPolicy } from '@/types/enums';
 
 /** A REQUIRED dependency not met yet (app/Domain/Learning/State/Blocker.php). */
 export type Blocker = {
-    type: 'lesson' | 'track';
+    type: 'lesson' | 'track' | 'skill';
     slug: string;
     title: string;
     progress: number | null;

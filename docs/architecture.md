@@ -225,8 +225,14 @@ Lección MASTERED ⇔ COMPLETED ∧ quiz de la lección aprobado con score ≥ m
 
 Skill S: progreso = Σ weight(L)·[L ≥ COMPLETED] / Σ weight(L), sobre las lecciones publicadas que desarrollan S
   MASTERED    ⇔ progreso = 100 ∧ toda lección de S que tenga quiz está MASTERED
+                ∧ S tiene al menos una evidencia publicada   ← ADR-029, también para skills
+  COMPLETED   ⇔ todas sus lecciones publicadas completadas
+  IN_PROGRESS ⇔ alguna de sus lecciones con progreso
   AVAILABLE   ⇔ ∀ dependencia REQUIRED de skill (P, m): progreso(P) ≥ m
+  LOCKED      ⇔ en otro caso (solo informa: una skill nunca bloquea lecciones)
 ```
+
+**Implementación de las skills (Fase 5a):** `SkillProgressCalculator` parte del `RoadmapState` ya resuelto y añade **3 consultas** (skills publicadas, pesos de `lesson_skill` y dependencias REQUIRED de skill). Cuenta las lecciones visibles de ese roadmap: hoy hay uno; con varios, una skill que se trabaje en dos roadmaps necesitará sumar ambos. Las skills se listan en el orden en que el roadmap las desarrolla (la posición de su primera lección) y las que aún no tienen lecciones van al final. Sin quizzes, ninguna llega a MASTERED, igual que los tracks.
 
 El desbloqueo de un track depende del **progreso** de sus prerequisitos, no de su *estado de desbloqueo*. Por eso el cálculo no es recursivo: una sola pasada O(V+E).
 

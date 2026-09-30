@@ -1,5 +1,10 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Map as MapIcon, ShieldCheck } from 'lucide-react';
+import {
+    LayoutGrid,
+    Map as MapIcon,
+    ShieldCheck,
+    Sparkles,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -14,16 +19,26 @@ import {
 } from '@/components/ui/sidebar';
 import { t } from '@/i18n';
 import { dashboard, roadmap } from '@/routes';
+import { useCurrentUrl } from '@/hooks/use-current-url';
 import { dashboard as adminDashboard } from '@/routes/admin';
+import { index as skillsIndex } from '@/routes/skills';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const { access } = usePage().props;
+    const { isCurrentOrParentUrl } = useCurrentUrl();
 
     // Only routes that exist: new sections are added here as they ship.
     const mainNavItems: NavItem[] = [
         { title: t('nav.dashboard'), href: dashboard(), icon: LayoutGrid },
         { title: t('nav.roadmap'), href: roadmap(), icon: MapIcon },
+        {
+            title: t('nav.skills'),
+            href: skillsIndex(),
+            icon: Sparkles,
+            // Also active on a skill page.
+            isActive: isCurrentOrParentUrl(skillsIndex()),
+        },
         ...(access.admin
             ? [
                   {

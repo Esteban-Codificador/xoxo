@@ -1069,6 +1069,7 @@ export const es = {
         nextUp: 'Siguiente: {lesson}',
         nextLesson: 'Siguiente lección',
         advisoryTitle: 'Antes de esta lección conviene completar',
+        advisorySkillTitle: 'Antes de esta skill conviene avanzar en',
         advisoryTrackTitle: 'Antes de este track conviene completar',
         advisoryHint:
             'Puedes seguir igual: la ruta recomienda este orden, no lo exige.',
@@ -1076,6 +1077,33 @@ export const es = {
         trackBlocker: '{track} (llevas {progress} %, se requiere {required} %)',
         allDone: 'Completaste todas las lecciones publicadas.',
         trackContinue: 'Continuar: {lesson}',
+    },
+    skills: {
+        head: 'Skills',
+        title: 'Skills',
+        description:
+            'Lo que desarrollas al estudiar. Cada skill avanza con las lecciones que la trabajan, y cuentan más las que la trabajan a fondo.',
+        summary: 'Completadas: {completed} de {total}',
+        empty: 'Todavía no hay skills publicadas.',
+        lessons: '{count} lecciones',
+        oneLesson: '1 lección',
+        noLessons: 'Sin lecciones publicadas todavía',
+        completedOf: '{completed} de {total} lecciones completadas',
+        completedOfOne: '{completed} de 1 lección completada',
+        progressLabel: 'Progreso en {skill}: {value} %',
+        open: 'Ver {skill}',
+        lessonsTitle: 'Lecciones que la desarrollan',
+        lessonsHelp:
+            'El porcentaje pondera cuánto trabaja cada lección esta skill, así que no siempre coincide con la cuenta de lecciones.',
+        noLessonsYet:
+            'Ninguna lección publicada desarrolla esta skill todavía.',
+        prerequisites: 'Conviene avanzar antes en',
+        required: 'Necesaria: {required} %',
+        recommended: 'Recomendada',
+        enables: 'Abre el camino a',
+        resources: 'Recursos',
+        dashboardTitle: 'Tus skills',
+        viewAll: 'Ver skills',
     },
     recommendations: {
         title: 'Recomendado para ti',

@@ -154,6 +154,16 @@ final readonly class RoadmapState
     }
 
     /**
+     * Every visible lesson id, in study order.
+     *
+     * @return list<int>
+     */
+    public function lessonIds(): array
+    {
+        return $this->studyOrder;
+    }
+
+    /**
      * Visible lesson ids of a track in study order.
      *
      * @return list<int>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Learn;
 use App\Domain\Learning\Recommendations\Recommendation;
 use App\Domain\Learning\Recommendations\RecommendationEngine;
 use App\Domain\Learning\State\RoadmapStateResolver;
+use App\Domain\Learning\State\SkillProgressCalculator;
 use App\Enums\NodeState;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\RoadmapSummaryResource;
@@ -17,12 +18,12 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, RoadmapStateResolver $states, RecommendationEngine $recommendations): Response
+    public function __invoke(Request $request, RoadmapStateResolver $states, RecommendationEngine $recommendations, SkillProgressCalculator $calculator): Response
     {
         $roadmap = Roadmap::query()->published()->orderBy('id')->first();
 
         if ($roadmap === null) {
-            return Inertia::render('dashboard', ['roadmap' => null, 'tracks' => [], 'recommendations' => []]);
+            return Inertia::render('dashboard', ['roadmap' => null, 'tracks' => [], 'recommendations' => [], 'skills' => ['completed' => 0, 'total' => 0]]);
         }
 
         $tracks = Track::query()
@@ -33,6 +34,7 @@ class DashboardController extends Controller
             ->get();
 
         $state = $states->resolve($request->user(), $roadmap);
+        $skills = $calculator->calculate($state);
 
         return Inertia::render('dashboard', [
             'roadmap' => RoadmapSummaryResource::make($roadmap)->resolve(),
@@ -45,6 +47,8 @@ class DashboardController extends Controller
                 fn (Recommendation $recommendation) => $recommendation->toArray(),
                 $recommendations->recommend($state),
             ),
+            // Skills completed and pending (master spec §28).
+            'skills' => ['completed' => $skills->completedCount(), 'total' => $skills->count()],
             'all_done' => $tracks->isNotEmpty() && $tracks->every(
                 fn (Track $track) => $state->track($track)->total === 0 || $state->track($track)->state === NodeState::Completed,
             ),

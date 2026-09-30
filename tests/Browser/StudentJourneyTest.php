@@ -74,6 +74,16 @@ it('studies a lesson, completes it and sees progress and unlocks change', functi
         ->assertSee('Es la siguiente lección disponible de Orientación: el rol de AI Engineer.')
         ->assertDontSee('Empieza por aquí');
 
+    // Its skill grew by the weight of that lesson: 2 of the 6 of its lessons.
+    $page->navigate('/skills')
+        ->assertSee('Completadas: 0 de 3')
+        ->assertSee('1 de 3 lecciones completadas')
+        ->click('[aria-label="Ver Ciclo de vida de sistemas de IA"]')
+        ->assertPathIs('/skills/ai-lifecycle')
+        ->assertSee('33 %')
+        ->assertSee('Lecciones que la desarrollan')
+        ->assertSee('Qué es AI Engineering');
+
     // The track shows the progress and suggests the next lesson.
     $page->navigate('/roadmaps/ai-engineer/tracks/orientacion')
         ->assertSee('1 de 3 lecciones')

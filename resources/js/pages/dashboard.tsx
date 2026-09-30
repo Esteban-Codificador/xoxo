@@ -1,5 +1,11 @@
 import { Head, Link, setLayoutProps } from '@inertiajs/react';
-import { BookOpen, CircleCheck, Clock, Map as MapIcon } from 'lucide-react';
+import {
+    BookOpen,
+    CircleCheck,
+    Clock,
+    Map as MapIcon,
+    Sparkles,
+} from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -11,6 +17,7 @@ import { RecommendationList } from '@/features/recommendations/recommendation-li
 import { t } from '@/i18n';
 import { dashboard } from '@/routes';
 import { show as showRoadmap } from '@/routes/roadmaps';
+import { index as skillsIndex } from '@/routes/skills';
 import { show as showTrack } from '@/routes/tracks';
 import type { Difficulty } from '@/types/enums';
 
@@ -31,6 +38,8 @@ type Props = {
     roadmap: RoadmapSummary | null;
     tracks: TrackSummary[];
     recommendations: Recommendation[];
+    /** Skills completed and published (master spec §28). */
+    skills: { completed: number; total: number };
     all_done?: boolean;
 };
 
@@ -38,6 +47,7 @@ export default function Dashboard({
     roadmap,
     tracks,
     recommendations,
+    skills,
     all_done: allDone = false,
 }: Props) {
     setLayoutProps({
@@ -91,6 +101,31 @@ export default function Dashboard({
                                 />
                                 {t('progress.allDone')}
                             </p>
+                        )}
+
+                        {skills.total > 0 && (
+                            <section
+                                aria-labelledby="skills-summary"
+                                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-5 py-4"
+                            >
+                                <div className="space-y-0.5">
+                                    <h2
+                                        id="skills-summary"
+                                        className="text-sm font-medium text-muted-foreground"
+                                    >
+                                        {t('skills.dashboardTitle')}
+                                    </h2>
+                                    <p className="font-medium">
+                                        {t('skills.summary', skills)}
+                                    </p>
+                                </div>
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href={skillsIndex()}>
+                                        <Sparkles aria-hidden="true" />
+                                        {t('skills.viewAll')}
+                                    </Link>
+                                </Button>
+                            </section>
                         )}
 
                         <ol className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

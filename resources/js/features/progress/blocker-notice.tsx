@@ -3,6 +3,7 @@ import { Info, Lock } from 'lucide-react';
 import { t } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { show as showLesson } from '@/routes/lessons';
+import { show as showSkill } from '@/routes/skills';
 import { show as showTrack } from '@/routes/tracks';
 import type { Blocker } from './types';
 
@@ -11,7 +12,8 @@ type Props = {
     roadmapSlug: string;
     /** STRICT roadmaps enforce the order; ADVISORY ones only recommend it. */
     strict: boolean;
-    scope: 'lesson' | 'track';
+    /** Skills never block anything: their notice is always advisory. */
+    scope: 'lesson' | 'track' | 'skill';
     className?: string;
 };
 
@@ -30,9 +32,11 @@ export function BlockerNotice({
     const Icon = strict ? Lock : Info;
     const title = strict
         ? t('progress.strictTitle')
-        : scope === 'track'
-          ? t('progress.advisoryTrackTitle')
-          : t('progress.advisoryTitle');
+        : {
+              lesson: t('progress.advisoryTitle'),
+              track: t('progress.advisoryTrackTitle'),
+              skill: t('progress.advisorySkillTitle'),
+          }[scope];
 
     return (
         <aside
@@ -61,14 +65,16 @@ export function BlockerNotice({
                                 href={
                                     blocker.type === 'lesson'
                                         ? showLesson(blocker.slug)
-                                        : showTrack({
-                                              roadmap: roadmapSlug,
-                                              track: blocker.slug,
-                                          })
+                                        : blocker.type === 'skill'
+                                          ? showSkill(blocker.slug)
+                                          : showTrack({
+                                                roadmap: roadmapSlug,
+                                                track: blocker.slug,
+                                            })
                                 }
                                 className="underline underline-offset-4 hover:text-foreground"
                             >
-                                {blocker.type === 'track'
+                                {blocker.type !== 'lesson'
                                     ? t('progress.trackBlocker', {
                                           track: blocker.title,
                                           progress: blocker.progress ?? 0,

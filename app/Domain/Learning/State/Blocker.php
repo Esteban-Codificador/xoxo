@@ -26,6 +26,12 @@ final readonly class Blocker
         return new self('track', $slug, $title, $progress, $required);
     }
 
+    /** A skill never blocks lessons: it only says what to develop first. */
+    public static function skill(string $slug, string $title, int $progress, int $required): self
+    {
+        return new self('skill', $slug, $title, $progress, $required);
+    }
+
     /**
      * @return array{type: string, slug: string, title: string, progress: int|null, required: int|null}
      */
